@@ -48,26 +48,13 @@ Include a meaningful description of the change, with an optional body. Keep the 
 
 #### Examples
 
-Simple, one-line commits:
+Simple, one-line commit:
 
 ```
-Add DINOv2 pair-fusion baseline
-Fix bounding box offset in mutation labels
-Generate benign cross-browser render pairs with Playwright
-Add opacity mutation family
-Remove unused ChangeFormer config
 Update README with data setup instructions
 ```
 
 Commits with a body for extra context:
-
-```
-Add nuisance-aware training loop
-
-Trains on (reference, benign variation, regression) triplets so
-the encoder learns to be invariant to rendering noise while
-staying sensitive to real CSS changes.
-```
 
 ```
 Filter out mutations with no visible pixel change
@@ -75,14 +62,6 @@ Filter out mutations with no visible pixel change
 Some CSS mutations (e.g. tiny opacity shifts) produced no
 detectable difference after rendering. These were polluting
 the labeled dataset, so we now discard them during generation.
-```
-
-```
-Switch DiffSpot loader to streaming mode
-
-Loading the full dataset into memory was causing OOM errors on
-the lab machines. Streaming keeps memory usage flat at the cost
-of slightly slower iteration.
 ```
 
 ### Pull Requests
