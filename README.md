@@ -147,13 +147,3 @@ of slightly slower iteration.
 ## Evaluation
 
 > _TODO: Document metrics (accuracy, localization IoU, change-type classification accuracy, etc.) and how to reproduce results._
-
-## References
-
-- DiffSpot: [2605.29615] DiffSpot: Can VLMs Spot Fine-Grained Visual Differences in Web Interfaces?
-- Design2Code
-- WEBDIFF — Detecting and Localizing Visual Inconsistencies in Web Applications
-- X-Pert — Accurate Identification of Cross-Browser Issues in Web Applications
-- REDECHECK — Automated Detection of Layout Inconsistencies in Responsive Web Pages
-- Visual Testing of Graphical User Interfaces: An Exploratory Study
-- Exploring the Capabilities of Vision-Language Models to Detect Visual Bugs in HTML5 Applications
