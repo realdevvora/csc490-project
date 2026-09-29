@@ -14,7 +14,7 @@ This project asks a more useful question than "are these two images different?":
 
 > **Is this difference meaningful, where is it, and what changed?**
 
-We propose a model that, given an expected (reference) and actual (rendered) screenshot of the same web page, distinguishes benign rendering variation from real CSS/layout regressions, localizes the change, and classifies what kind of change it is (typography, layout, appearance, shape/chrome). The model is trained on programmatically mutated pairs generated from the Design2Code dataset and evaluated against the independent DiffSpot benchmark, with the goal of generalizing to web pages it has never seen before.
+We propose a model that, given an expected (reference) and actual (rendered) screenshot of the same web page, distinguishes benign rendering variation from real CSS/layout regressions, localizes the change, and classifies what kind of change it is (typography, layout, appearance, shape/chrome). The model is trained on programmatically mutated pairs generated from the [Design2Code](https://github.com/NoviScl/Design2Code) dataset and evaluated against the independent [DiffSpot](https://huggingface.co/datasets/tencent/DiffSpot) benchmark, with the goal of generalizing to web pages it has never seen before.
 
 ## Team — Regression Lens
 
@@ -87,18 +87,10 @@ of slightly slower iteration.
 
 ### Pull Requests
 
-- Open a PR into `main` when your branch is ready for review.
-- Reference related issues where applicable.
+- Open a pull request (PR) into `main` when your branch is ready for review.
+- Follow the pull request template (to be created)
+- Set the pull request to squash commits if you have many small commits that will add lots of clutter to the commit history.
 - At least one other team member should review before merging.
-
-## Project Overview
-
-- **Primary domain:** webpages / web interfaces
-- **Optional stretch:** transfer to responsive HTML emails
-- **Training data:** [Design2Code](https://github.com/NoviScl/Design2Code) — 484 real webpages with source HTML and screenshots, used to generate controlled CSS mutation pairs
-- **Evaluation data:** [DiffSpot](https://huggingface.co/datasets/tencent/DiffSpot) — paired screenshots with labeled fine-grained visual differences, used as an independent external benchmark
-- **Baselines:** pixel diff, SSIM, LPIPS, DINOv2 feature distance, ChangeFormer
-- **Main extension:** nuisance-aware representation learning, training on (reference, benign variation, true regression) triplets so the model is invariant to harmless rendering noise while remaining sensitive to real regressions
 
 ## Installation
 
