@@ -68,7 +68,7 @@ the labeled dataset, so we now discard them during generation.
 
 - Open a pull request (PR) into `main` when your branch is ready for review.
 - Follow the pull request template (to be created)
-- Set the pull request to squash commits if you have many small commits that will add lots of clutter to the commit history.
+- Squashing commits is optional but highly recommended if you have many small commits that will add lots of clutter to the commit history.
 - At least one other team member should review before merging.
 
 ## Installation
