@@ -33,13 +33,10 @@ Branches must be prefixed with your name, followed by what you're working on, in
 <name>-<what-you-are-working-on>
 ```
 
-Examples:
+Example:
 
 ```
-abdullah-model
-zehao-data-mutation-pipeline
-dev-changeformer-baseline
-abuzar-diffspot-eval
+abdullah-data-mutation-pipeline
 ```
 
 ### Commit Message Conventions
