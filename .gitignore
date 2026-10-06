@@ -1,2 +1,36 @@
 .DS_Store
 **/.DS_Store
+
+# Python environments and build products
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# Local secrets
+.env
+.env.*
+!.env.example
+
+# Datasets and generated artifacts
+data/raw/
+data/interim/
+data/processed/
+data/external/
+outputs/
+runs/
+checkpoints/
+playwright-report/
+test-results/
+
+AGENTS.md
+Regression_Lens_Codex_Bootstrap_Instructions.md

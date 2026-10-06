@@ -1,24 +1,36 @@
-Potential models to investigate on our diffspot dataset
+Regression Lens model ideas (exploratory)
+=========================================
 
-- DinoV2 (from proposal)
-- ChangeFormer (from proposal)
+Status: brainstorming only. This file does not select a final model or override
+the dataset, label, split, or evaluation decisions in docs/adr/.
 
-- DinoV3 is successor to DinoV2, came out in 2025 vs DinoV2 in 2023, has roughly 6x larger model size and 12x more training data compared to DinoV2
-https://ai.meta.com/research/dinov3/
+Paired-image detection/localization candidates
+----------------------------------------------
 
-
-For feature extraction / identifying regressions
+- Pixel-difference and SSIM baselines
+- LPIPS
+- DINOv2 paired-feature approaches (from the proposal)
+- ChangeFormer (from the proposal)
+- DINOv3, the successor to DINOv2
+  https://ai.meta.com/research/dinov3/
 - BIT / Bitemporal Image Transformer
-- Siamese ViT/ConvNet (pairwise feature comparison)
-- CLIP / SigLIP (for image/text semantics)
-- UI-specific models such as UIClip (can understand UI appearance)
+- Siamese ViT or ConvNet
+- CLIP / SigLIP
+- UI-specific representation models such as UIClip
 
+Regression description candidates
+---------------------------------
 
-For describing what the regression is
-- VLM/LVLM
+- A VLM/LVLM could eventually describe a regression after a detection/localization
+  model identifies the relevant visual evidence.
+- Natural-language descriptions are a probable extension, not part of the first
+  trustworthy data-generation milestone.
 
-We will probably have some model to first extract features, and then use something like VLM/LVLM to describe what the regression is
+Data and evaluation constraints
+-------------------------------
 
-
-
-Currently the dataset classifies all the types of mutations we added as regressions, nothing is benign. It would be interesting to test how well it performs without any benign examples in the training set, and maybe add them later.
+- DiffSpot is the external benchmark, not a training or model-selection dataset.
+- Intentional visible CSS/DOM mutations are regressions. Benign/no-change examples
+  are generated separately; mutation size alone does not justify a benign label.
+- All candidates should use the same source-page-disjoint splits and versioned
+  evaluation protocol so their results remain comparable.
