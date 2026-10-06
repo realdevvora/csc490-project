@@ -39,6 +39,6 @@ Return:
 
 We will probably have some model to first extract features, and then use something like VLM/LVLM to describe what the regression is
 
-
-
 Currently the dataset classifies all the types of mutations we added as regressions, nothing is benign. It would be interesting to test how well it performs without any benign examples in the training set, and maybe add them later.
+
+Maybe also output an image with the regression circled so it's clear to a viewer
