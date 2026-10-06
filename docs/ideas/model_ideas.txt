@@ -16,6 +16,26 @@ For feature extraction / identifying regressions
 
 For describing what the regression is
 - VLM/LVLM
+    - Qwen3-VL (https://github.com/QwenLM/Qwen3-VL?utm_source=chatgpt.com)
+    - InternVL3.0 (https://internvl.readthedocs.io/en/latest/internvl3.0/introduction.html?utm_source=chatgpt.com)
+    - Gemma 3 (https://deepmind.google/models/gemma/gemma-3/?utm_source=chatgpt.com), good for running the model locally
+    - LLaVA / LLaVA-OneVision (https://ollama.com/library/llava), good baseline
+
+Give the VLM
+Image 1: Expected UI
+Image 2: Actual UI
+Image 3: Difference map
+
+Task:
+Identify any meaningful UI regression.
+
+Return:
+{
+  "regression": true/false,
+  "type": "...",
+  "description": "..."
+}
+
 
 We will probably have some model to first extract features, and then use something like VLM/LVLM to describe what the regression is
 
