@@ -15,6 +15,13 @@ dev = [
     "pytest>=8,<10",
     "PyYAML>=6,<7",
 ]
+uiclip = [
+    "torch>=2.7",
+    "transformers>=4.44",
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "Pillow>=10",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
