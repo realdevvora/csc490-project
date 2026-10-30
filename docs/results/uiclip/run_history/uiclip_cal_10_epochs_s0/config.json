@@ -1,0 +1,60 @@
+{
+  "exp": "uiclip_cal_10_epochs_s0",
+  "data_root": "d2c_v2",
+  "split": "data/processed/splits_placeholder_85_15.json",
+  "checkpoint": "biglab/uiclip_jitteredwebsites-2-224-paraphrased_webpairs_humanpairs",
+  "train_last_n": 0,
+  "no_self_calibration": false,
+  "epochs": 10,
+  "lr_head": 0.001,
+  "lr_encoder": 1e-05,
+  "weight_decay": 0.01,
+  "accum": 8,
+  "patch_pos_weight": 5.0,
+  "map_threshold": 0.5,
+  "exclude_benign": false,
+  "limit_pages": null,
+  "cache_features": true,
+  "cache_dir": "data/processed/features",
+  "workers": 4,
+  "seed": 0,
+  "eval_only": false,
+  "operators": [
+    "background_color",
+    "border_radius",
+    "border_width",
+    "font_size",
+    "font_weight",
+    "letter_spacing",
+    "line_height",
+    "margin",
+    "opacity",
+    "padding",
+    "position",
+    "text_color",
+    "width"
+  ],
+  "encoder": {
+    "tile": 224,
+    "patch": 32,
+    "mean": [
+      0.48145466,
+      0.4578275,
+      0.40821073
+    ],
+    "std": [
+      0.26862954,
+      0.26130258,
+      0.27577711
+    ]
+  },
+  "git": {
+    "commit": "3ee96d4c9b4b1fa81009456dda3789081ff36e08",
+    "dirty": false
+  },
+  "torch": "2.11.0+cu128",
+  "device": "NVIDIA GeForce RTX 5070 Ti",
+  "n_train_pairs": 6163,
+  "n_val_pairs": 1108,
+  "feature_cache": "data/processed/features/biglab__uiclip_jitteredwebsites-2-224-paraphrased_webpairs_humanpairs/layer12_w1344"
+}
