@@ -22,6 +22,11 @@ uiclip = [
     "scipy>=1.11",
     "Pillow>=10",
 ]
+figures = [
+    "matplotlib>=3.8",
+    "numpy>=1.26",
+    "Pillow>=10",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
