@@ -1,4 +1,4 @@
-# UIClip / SigLIP investigation
+# UIClip / CLIP / SigLIP investigation
 
 Track 4 of the [model investigation plan](model-investigation-plan.md).
 
@@ -22,6 +22,71 @@ ref tiles  ──┐                           ┌─> patch logits ─> change 
              ├─ UIClip vision (shared) ──┤─> image logit (regression vs not)
 cand tiles ──┘   patch tokens [T,49,768] └─> type logits (13 operators)
 ```
+
+## Main findings
+
+**Setup of these results:**
+- Every experiment was trained for 10 epochs with seeds 0, 1 and 2, using the feature cache.
+- Each run is represented by its best-AUROC checkpoint, and values are mean ± standard deviation across the 3 seeds.
+- Evaluation is on the validation split: 73 pages, 1,108 pairs (889 regression, 146 benign, 73 no-change).
+- Scoring used `scripts/score_predictions.py`, and the full table is in `outputs/comparison/comparison.md`.
+
+| Experiment | AUROC reg/benign | Benign FPR @95% recall | F1 | Benign FPR | No-change FPR | Type macro-F1 | Pointing | Mean IoU | Recall, reflowed changes |
+|---|---|---|---|---|---|---|---|---|---|
+| UIClip, frozen (`uiclip_cal`) | 0.993 ± 0.002 | 0.009 | 0.983 | 0.041 | 0.032 | 0.36 ± 0.03 | 0.44 | 0.20 | 0.82 |
+| UIClip, frozen, no calibration (`uiclip_nocal`) | 0.994 ± 0.001 | 0.002 | 0.983 | 0.030 | 0.055 | 0.35 ± 0.03 | 0.47 | 0.21 | 0.81 |
+| CLIP, frozen (`clip_cal`) | 0.992 ± 0.002 | 0.009 | 0.979 | 0.039 | 0.027 | 0.34 ± 0.06 | 0.40 | 0.21 | 0.78 |
+| UIClip, no benign training pairs (`uiclip_cal_nobenign`) | 0.622 ± 0.057 | 0.993 | 0.919 | 1.000 | 0.041 | 0.38 ± 0.01 | 0.46 | 0.18 | 1.00 |
+| UIClip, last 4 blocks fine-tuned (`uiclip_cal_ft4`) | **0.999 ± 0.001** | 0.009 | **0.995** | 0.034 | 0.041 | **0.45 ± 0.00** | **0.47** | 0.19 | **1.00** |
+
+1. **Fine-tuning the last 4 encoder blocks gives the best model.**
+   - Compared with the frozen encoder:
+     - AUROC rises from 0.993 to 0.999 and F1 from 0.983 to 0.995.
+     - Type macro-F1 rises from 0.36 to 0.45.
+     - Recall on reflowed changes rises from 0.82 to 1.00, and on the layout family from 0.94 to 1.00.
+   - Costs:
+     - Training takes about 4× as long: 37–41 min per run instead of about 10.
+     - Mean IoU is slightly lower (0.19 vs 0.20).
+
+2. **Benign training pairs are essential.**
+   - Trained only on regressions and identical pairs, the model flags every Firefox/WebKit pair (benign FPR 1.00, AUROC 0.62), while still catching 99% of regressions.
+   - In effect it learns "any difference is a regression".
+   - This is the clearest answer so far to the regression-only vs. regression + benign question in the [investigation plan](model-investigation-plan.md).
+
+3. **UI-specific pretraining helps slightly at best.**
+   - With frozen encoders, UIClip is ahead of plain CLIP on every metric: F1 0.983 vs 0.979, pointing 0.44 vs 0.40, type 0.36 vs 0.34, and reflow recall 0.82 vs 0.78.
+   - Most gaps are within one to two standard deviations of seed noise, so this is weak evidence.
+   - CLIP has not been fine-tuned yet, so we don't know whether the gap survives fine-tuning.
+
+4. **Self-calibration fixes the identical-pair problem without hurting detection.**
+   - No-change FPR falls from 0.055 to 0.032, while AUROC (0.993 vs 0.994) and F1 (0.983 for both) are unchanged.
+   - The remaining no-change false positives are mostly pairs that aren't actually identical (see below).
+   - Pointing accuracy is lower with calibration (0.44 vs 0.47). Whether that's a real cost is still open.
+
+5. **Detection is easy on this data; localization and change type are hard.**
+   - **Detection:** every model trained with benign pairs reaches AUROC ≥ 0.99. Recall is about the same for small, medium and large mutations (0.96–0.98 frozen, ≥ 0.99 fine-tuned).
+   - **Localization:** pointing accuracy stays at 0.40–0.47 and IoU at about 0.2. The change map is a coarse 32 px patch grid, and CLIP-style patch features are known to localize poorly.
+   - **Change type:**
+     - Colour and border changes are recognised well; F1 for `background_color` is 0.84–0.87 and for `border_width` and `border_radius` 0.66–0.80.
+     - Subtle spacing and typography changes are not; F1 for `font_size`, `position` and `margin` is 0.09–0.25.
+
+6. **Seed variance is large relative to the differences between models.**
+   - The same configuration's benign FPR ranges from 0.014 to 0.068 across seeds.
+   - Compare models by mean ± spread over several seeds, never by single runs.
+
+**Caveats:**
+- These are validation numbers: the best epoch and the threshold were both selected on validation, so they are optimistic.
+- The split is still the placeholder 85/15, and there is no test split yet.
+- Generalization to DiffSpot is untested.
+- 25 of the dataset's 484 `no_change` pairs are not actually identical.
+- SigLIP has not been run.
+
+**Next steps:**
+- Evaluate the frozen best model on DiffSpot.
+- Add a page-level test split.
+- Fine-tune CLIP's last 4 blocks to settle the UIClip vs. CLIP question.
+- Improve localization, e.g. with finer patches (SigLIP patch16 or higher-resolution tiles).
+- Pass the change map and boxes to the VLM description stage.
 
 ## Code
 
