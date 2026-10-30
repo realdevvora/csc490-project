@@ -23,7 +23,7 @@ Two exploratory 5-epoch runs are also included, `uiclip_frozen_s1_5_epochs` and 
 
 ## Reproducing
 
-The 10-epoch runs record commit `3ee96d4` on a clean working tree. That commit was later rewritten to change only its message, and its file contents are identical to `ca409c2` on `abdullah-clip-model-evaluation`. The 5-epoch runs predate the commits and ran on uncommitted code (`"dirty": true`).
+The 10-epoch runs ran on a clean working tree at commit `ca409c2` on `abdullah-clip-model-evaluation`, as recorded in each `config.json`. They actually ran on an earlier copy of that commit whose message was later rewritten; its files are identical, so its hash in the configs was replaced with `ca409c2`. The 5-epoch runs predate the commits and ran on uncommitted code (`"dirty": true`).
 
 To reproduce, check out `ca409c2`, then:
 1. unzip the dataset to `d2c_v2/`;
