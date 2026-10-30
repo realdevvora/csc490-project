@@ -48,7 +48,7 @@ def parse_args() -> argparse.Namespace:
                             help="fixed decision threshold(s), one per file or one for all")
     thresholds.add_argument("--threshold-from", nargs="+",
                             help="validation prediction file(s); use each one's max-F1 threshold")
-    parser.add_argument("--out", help="directory for <name>.metrics.json and comparison.md")
+    parser.add_argument("--out", help="directory for <name>.metrics.json (/ in names becomes __) and comparison.md")
     return parser.parse_args()
 
 
@@ -153,7 +153,8 @@ def main() -> None:
         out = Path(args.out)
         out.mkdir(parents=True, exist_ok=True)
         for name, metrics in results.items():
-            (out / f"{name}.metrics.json").write_text(json.dumps(metrics, indent=2))
+            # Names like "run/best_auroc" become "run__best_auroc.metrics.json".
+            (out / f"{name.replace('/', '__')}.metrics.json").write_text(json.dumps(metrics, indent=2))
         (out / "comparison.md").write_text(
             f"Subset: {args.subset} ({args.split})\n\n{table}\n\n"
             + "\n".join(f"- {name}: threshold {m['threshold_selection']}" for name, m in results.items())
