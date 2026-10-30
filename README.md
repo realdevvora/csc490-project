@@ -48,8 +48,9 @@ The project proposal is available at [Regression_Lens_CSC490_Project_Report_Fina
 |  |- data/                       # generated-pair metadata contract
 |  |- mutations/                  # mutation provenance and interface
 |  |- rendering/                  # reproducible render configuration
-|  |- models/                     # future paired-image model adapters
-|  `- evaluation/                 # future metric adapters
+|  |- models/                     # paired-image models (UIClip/CLIP/SigLIP)
+|  `- evaluation/                 # protocol metrics
+|- scripts/                       # training and evaluation entry points
 |- tests/                         # tests for the stable scaffold contracts
 `- .github/pull_request_template.md
 ```
@@ -76,6 +77,7 @@ Playwright and data/model dependencies will be added with the first implementati
 - [Architecture](docs/architecture.md)
 - [Data design](docs/data-design.md)
 - [Experiment protocol](docs/experiment-protocol.md)
+- [Prediction format and shared scoring](docs/prediction-format.md)
 - [Project status](docs/project-status.md)
 - [Scope and roadmap](docs/scope-and-roadmap.md)
 - [Architecture decision records](docs/adr/README.md)
