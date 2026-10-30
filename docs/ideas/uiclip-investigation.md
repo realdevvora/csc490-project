@@ -29,7 +29,8 @@ cand tiles ──┘   patch tokens [T,49,768] └─> type logits (13 operators
 - Every experiment was trained for 10 epochs with seeds 0, 1 and 2, using the feature cache.
 - Each run is represented by its best-AUROC checkpoint, and values are mean ± standard deviation across the 3 seeds.
 - Evaluation is on the validation split: 73 pages, 1,108 pairs (889 regression, 146 benign, 73 no-change).
-- Scoring used `scripts/score_predictions.py`, and the full table is in `outputs/comparison/comparison.md`.
+- Scoring used `scripts/score_predictions.py`. The full table is in [`comparison.md`](../results/uiclip/comparison.md), and every run's metrics, configuration and the best model's predictions are in [`docs/results/uiclip/`](../results/uiclip/README.md).
+- [Figures](#figures) below illustrate these findings.
 
 | Experiment | AUROC reg/benign | Benign FPR @95% recall | F1 | Benign FPR | No-change FPR | Type macro-F1 | Pointing | Mean IoU | Recall, reflowed changes |
 |---|---|---|---|---|---|---|---|---|---|
@@ -87,6 +88,22 @@ cand tiles ──┘   patch tokens [T,49,768] └─> type logits (13 operators
 - Fine-tune CLIP's last 4 blocks to settle the UIClip vs. CLIP question.
 - Improve localization, e.g. with finer patches (SigLIP patch16 or higher-resolution tiles).
 - Pass the change map and boxes to the VLM description stage.
+
+### Figures
+
+Generated from the 10-epoch runs by `scripts/plot_uiclip_findings.py`; rerun it after new experiments to refresh them.
+
+![The five experiments and the one setting each changes](../figures/uiclip/1_experiments.png)
+
+![Benign pairs flagged and regressions caught, with and without benign training pairs](../figures/uiclip/2_benign_training.png)
+
+![AUROC, F1, type macro-F1 and pointing accuracy per experiment, across seeds](../figures/uiclip/3_model_comparison.png)
+
+![Scores of identical screenshot pairs with and without self-calibration](../figures/uiclip/4_identical_pairs.png)
+
+![Mutation-type F1 per CSS operator, frozen vs fine-tuned](../figures/uiclip/5_type_f1.png)
+
+![Validation loss by epoch for UIClip frozen, CLIP frozen and UIClip fine-tuned](../figures/uiclip/6_validation_loss.png)
 
 ## Code
 
@@ -191,7 +208,7 @@ The first time it runs, the script writes the placeholder split to `data/process
 
 ### Observation
 
-The first full run (`outputs/uiclip_frozen_s1_5_epochs/`: UIClip frozen, seed 1, 5 epochs, without self-calibration) flagged 3 of the 73 validation `no_change` pairs as regressions (4.1% FPR). Those pairs are meant to be pixel-identical. Across the 73 pairs the model produced 68 different scores, from 0.0009 to 0.995, even though every pair compared a page with itself.
+The first full run ([`uiclip_frozen_s1_5_epochs`](../results/uiclip/run_history/uiclip_frozen_s1_5_epochs/metrics.json): UIClip frozen, seed 1, 5 epochs, without self-calibration) flagged 3 of the 73 validation `no_change` pairs as regressions (4.1% FPR). Those pairs are meant to be pixel-identical. Across the 73 pairs the model produced 68 different scores, from 0.0009 to 0.995, even though every pair compared a page with itself.
 
 ### Cause
 
@@ -214,7 +231,7 @@ logit(ref, cand) = head(ref, cand) − head(ref, ref) + learned offset
 
 ### Result
 
-`outputs/uiclip_cal_s1_5_epochs/` uses the same setup as the first run, with calibration on. Both are validated on the same 73 pages:
+[`uiclip_cal_s1_5_epochs`](../results/uiclip/run_history/uiclip_cal_s1_5_epochs/metrics.json) uses the same setup as the first run, with calibration on. Both are validated on the same 73 pages:
 
 | Run | AUROC reg/benign | Benign FPR | No-change FPR | Type macro-F1 | Pointing |
 |---|---|---|---|---|---|
