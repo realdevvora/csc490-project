@@ -1,0 +1,1258 @@
+{
+  "best_epoch": {
+    "best_auroc": 7,
+    "best_f1": 9
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": {
+        "total": 1.8449739293291567,
+        "patch": 0.7281333450545318,
+        "image": 0.12708422224387067,
+        "type": 2.4745916655457165
+      },
+      "val_loss": {
+        "total": 1.7019786126239205,
+        "patch": 0.6389465145901222,
+        "image": 0.08031439172335782,
+        "type": 2.4496090405099973
+      },
+      "format_version": "1",
+      "threshold_selection": "max F1 on the scored predictions",
+      "threshold": 0.48005983233451843,
+      "n": 1108,
+      "n_by_label": {
+        "benign": 146,
+        "no_change": 73,
+        "regression": 889
+      },
+      "detection": {
+        "precision": 0.9941860465116279,
+        "recall": 0.9617547806524185,
+        "f1": 0.9777015437392795,
+        "accuracy": 0.9648014440433214
+      },
+      "false_positive_rate": {
+        "benign": 0.0136986301369863,
+        "no_change": 0.0410958904109589
+      },
+      "auroc": {
+        "regression_vs_benign": 0.9886396905866219,
+        "regression_vs_all_negatives": 0.9802199382611421
+      },
+      "benign_fpr_at_95_recall": {
+        "threshold": 0.5884828567504883,
+        "recall": 0.9516310461192351,
+        "fpr": 0.0136986301369863
+      },
+      "type": {
+        "n": 889,
+        "macro_f1": 0.08501913260167206,
+        "per_class": {
+          "background_color": {
+            "f1": 0.0,
+            "support": 72
+          },
+          "border_radius": {
+            "f1": 0.0,
+            "support": 35
+          },
+          "border_width": {
+            "f1": 0.0,
+            "support": 72
+          },
+          "font_size": {
+            "f1": 0.11834319526627218,
+            "support": 72
+          },
+          "font_weight": {
+            "f1": 0.022988505747126436,
+            "support": 72
+          },
+          "letter_spacing": {
+            "f1": 0.3047619047619048,
+            "support": 71
+          },
+          "line_height": {
+            "f1": 0.056074766355140186,
+            "support": 61
+          },
+          "margin": {
+            "f1": 0.0,
+            "support": 73
+          },
+          "opacity": {
+            "f1": 0.0,
+            "support": 73
+          },
+          "padding": {
+            "f1": 0.0,
+            "support": 73
+          },
+          "position": {
+            "f1": 0.0,
+            "support": 72
+          },
+          "text_color": {
+            "f1": 0.32018561484918795,
+            "support": 72
+          },
+          "width": {
+            "f1": 0.28289473684210525,
+            "support": 71
+          }
+        }
+      },
+      "localization": {
+        "n_box": 889,
+        "mean_iou": 0.19195587773241396,
+        "n_point": 889,
+        "pointing_accuracy": 0.4150731158605174
+      },
+      "recall_by": {
+        "family": {
+          "appearance": 1.0,
+          "colour": 0.9930555555555556,
+          "layout": 0.9134948096885813,
+          "shape": 0.9906542056074766,
+          "typography": 0.9746376811594203
+        },
+        "magnitude": {
+          "large": 0.9584569732937686,
+          "medium": 0.9628378378378378,
+          "small": 0.96484375
+        },
+        "reflow": {
+          "False": 0.9770531400966184,
+          "True": 0.7540983606557377
+        }
+      }
+    },
+    {
+      "epoch": 2,
+      "train_loss": {
+        "total": 1.544155728463014,
+        "patch": 0.5895515261591207,
+        "image": 0.09113617434368454,
+        "type": 2.158845215727315
+      },
+      "val_loss": {
+        "total": 1.4333971940276855,
+        "patch": 0.5433289008181448,
+        "image": 0.07028212064566082,
+        "type": 2.043471490471149
+      },
+      "format_version": "1",
+      "threshold_selection": "max F1 on the scored predictions",
+      "threshold": 0.4445146322250366,
+      "n": 1108,
+      "n_by_label": {
+        "benign": 146,
+        "no_change": 73,
+        "regression": 889
+      },
+      "detection": {
+        "precision": 0.9896670493685419,
+        "recall": 0.96962879640045,
+        "f1": 0.9795454545454546,
+        "accuracy": 0.9675090252707581
+      },
+      "false_positive_rate": {
+        "benign": 0.0410958904109589,
+        "no_change": 0.0410958904109589
+      },
+      "auroc": {
+        "regression_vs_benign": 0.9930466739602755,
+        "regression_vs_all_negatives": 0.9863013698630136
+      },
+      "benign_fpr_at_95_recall": {
+        "threshold": 0.7363612055778503,
+        "recall": 0.9505061867266592,
+        "fpr": 0.0
+      },
+      "type": {
+        "n": 889,
+        "macro_f1": 0.17592901292460986,
+        "per_class": {
+          "background_color": {
+            "f1": 0.7777777777777778,
+            "support": 72
+          },
+          "border_radius": {
+            "f1": 0.0,
+            "support": 35
+          },
+          "border_width": {
+            "f1": 0.5578947368421052,
+            "support": 72
+          },
+          "font_size": {
+            "f1": 0.0,
+            "support": 72
+          },
+          "font_weight": {
+            "f1": 0.24581005586592178,
+            "support": 72
+          },
+          "letter_spacing": {
+            "f1": 0.0,
+            "support": 71
+          },
+          "line_height": {
+            "f1": 0.04,
+            "support": 61
+          },
+          "margin": {
+            "f1": 0.10619469026548672,
+            "support": 73
+          },
+          "opacity": {
+            "f1": 0.06315789473684211,
+            "support": 73
+          },
+          "padding": {
+            "f1": 0.04938271604938271,
+            "support": 73
+          },
+          "position": {
+            "f1": 0.0,
+            "support": 72
+          },
+          "text_color": {
+            "f1": 0.075,
+            "support": 72
+          },
+          "width": {
+            "f1": 0.37185929648241206,
+            "support": 71
+          }
+        }
+      },
+      "localization": {
+        "n_box": 889,
+        "mean_iou": 0.201478296452805,
+        "n_point": 889,
+        "pointing_accuracy": 0.40382452193475815
+      },
+      "recall_by": {
+        "family": {
+          "appearance": 1.0,
+          "colour": 0.9930555555555556,
+          "layout": 0.9273356401384083,
+          "shape": 1.0,
+          "typography": 0.9818840579710145
+        },
+        "magnitude": {
+          "large": 0.973293768545994,
+          "medium": 0.972972972972973,
+          "small": 0.9609375
+        },
+        "reflow": {
+          "False": 0.9842995169082126,
+          "True": 0.7704918032786885
+        }
+      }
+    },
+    {
+      "epoch": 3,
+      "train_loss": {
+        "total": 1.3698040731571604,
+        "patch": 0.5213897486176368,
+        "image": 0.0732714315164952,
+        "type": 1.9380144629870344
+      },
+      "val_loss": {
+        "total": 1.334800457454115,
+        "patch": 0.4988685496796985,
+        "image": 0.06283898338891047,
+        "type": 1.9270797755753664
+      },
+      "format_version": "1",
+      "threshold_selection": "max F1 on the scored predictions",
+      "threshold": 0.455890953540802,
+      "n": 1108,
+      "n_by_label": {
+        "benign": 146,
+        "no_change": 73,
+        "regression": 889
+      },
+      "detection": {
+        "precision": 0.9896907216494846,
+        "recall": 0.9718785151856018,
+        "f1": 0.9807037457434733,
+        "accuracy": 0.9693140794223827
+      },
+      "false_positive_rate": {
+        "benign": 0.0410958904109589,
+        "no_change": 0.0410958904109589
+      },
+      "auroc": {
+        "regression_vs_benign": 0.9928964358907192,
+        "regression_vs_all_negatives": 0.9865684597644473
+      },
+      "benign_fpr_at_95_recall": {
+        "threshold": 0.7207337021827698,
+        "recall": 0.9516310461192351,
+        "fpr": 0.00684931506849315
+      },
+      "type": {
+        "n": 889,
+        "macro_f1": 0.2787978689650344,
+        "per_class": {
+          "background_color": {
+            "f1": 0.8396946564885496,
+            "support": 72
+          },
+          "border_radius": {
+            "f1": 0.25,
+            "support": 35
+          },
+          "border_width": {
+            "f1": 0.6607142857142857,
+            "support": 72
+          },
+          "font_size": {
+            "f1": 0.0,
+            "support": 72
+          },
+          "font_weight": {
+            "f1": 0.04819277108433735,
+            "support": 72
+          },
+          "letter_spacing": {
+            "f1": 0.30120481927710846,
+            "support": 71
+          },
+          "line_height": {
+            "f1": 0.0759493670886076,
+            "support": 61
+          },
+          "margin": {
+            "f1": 0.23030303030303031,
+            "support": 73
+          },
+          "opacity": {
+            "f1": 0.24633431085043989,
+            "support": 73
+          },
+          "padding": {
+            "f1": 0.14285714285714285,
+            "support": 73
+          },
+          "position": {
+            "f1": 0.0,
+            "support": 72
+          },
+          "text_color": {
+            "f1": 0.4120603015075377,
+            "support": 72
+          },
+          "width": {
+            "f1": 0.41706161137440756,
+            "support": 71
+          }
+        }
+      },
+      "localization": {
+        "n_box": 889,
+        "mean_iou": 0.21135722667101278,
+        "n_point": 889,
+        "pointing_accuracy": 0.4150731158605174
+      },
+      "recall_by": {
+        "family": {
+          "appearance": 0.9863013698630136,
+          "colour": 0.9930555555555556,
+          "layout": 0.9377162629757786,
+          "shape": 1.0,
+          "typography": 0.9818840579710145
+        },
+        "magnitude": {
+          "large": 0.9703264094955489,
+          "medium": 0.9763513513513513,
+          "small": 0.96875
+        },
+        "reflow": {
+          "False": 0.9842995169082126,
+          "True": 0.8032786885245902
+        }
+      }
+    },
+    {
+      "epoch": 4,
+      "train_loss": {
+        "total": 1.2662688611525907,
+        "patch": 0.49203491293385915,
+        "image": 0.05735302484073172,
+        "type": 1.7923477200450797
+      },
+      "val_loss": {
+        "total": 1.2957292591029987,
+        "patch": 0.5098655720506979,
+        "image": 0.07004003074140017,
+        "type": 1.7843253372389438
+      },
+      "format_version": "1",
+      "threshold_selection": "max F1 on the scored predictions",
+      "threshold": 0.44007134437561035,
+      "n": 1108,
+      "n_by_label": {
+        "benign": 146,
+        "no_change": 73,
+        "regression": 889
+      },
+      "detection": {
+        "precision": 0.9841628959276018,
+        "recall": 0.9786276715410573,
+        "f1": 0.9813874788494077,
+        "accuracy": 0.970216606498195
+      },
+      "false_positive_rate": {
+        "benign": 0.07534246575342465,
+        "no_change": 0.0410958904109589
+      },
+      "auroc": {
+        "regression_vs_benign": 0.9895449712621539,
+        "regression_vs_all_negatives": 0.9857723264044049
+      },
+      "benign_fpr_at_95_recall": {
+        "threshold": 0.8881147503852844,
+        "recall": 0.9505061867266592,
+        "fpr": 0.0273972602739726
+      },
+      "type": {
+        "n": 889,
+        "macro_f1": 0.2910844893974914,
+        "per_class": {
+          "background_color": {
+            "f1": 0.8461538461538461,
+            "support": 72
+          },
+          "border_radius": {
+            "f1": 0.6265060240963856,
+            "support": 35
+          },
+          "border_width": {
+            "f1": 0.6976744186046512,
+            "support": 72
+          },
+          "font_size": {
+            "f1": 0.0,
+            "support": 72
+          },
+          "font_weight": {
+            "f1": 0.0,
+            "support": 72
+          },
+          "letter_spacing": {
+            "f1": 0.025974025974025976,
+            "support": 71
+          },
+          "line_height": {
+            "f1": 0.0,
+            "support": 61
+          },
+          "margin": {
+            "f1": 0.0,
+            "support": 73
+          },
+          "opacity": {
+            "f1": 0.2962962962962963,
+            "support": 73
+          },
+          "padding": {
+            "f1": 0.15384615384615385,
+            "support": 73
+          },
+          "position": {
+            "f1": 0.15300546448087432,
+            "support": 72
+          },
+          "text_color": {
+            "f1": 0.5812807881773399,
+            "support": 72
+          },
+          "width": {
+            "f1": 0.40336134453781514,
+            "support": 71
+          }
+        }
+      },
+      "localization": {
+        "n_box": 889,
+        "mean_iou": 0.19173454595382455,
+        "n_point": 889,
+        "pointing_accuracy": 0.4330708661417323
+      },
+      "recall_by": {
+        "family": {
+          "appearance": 1.0,
+          "colour": 0.9930555555555556,
+          "layout": 0.9480968858131488,
+          "shape": 1.0,
+          "typography": 0.9891304347826086
+        },
+        "magnitude": {
+          "large": 0.9792284866468842,
+          "medium": 0.9763513513513513,
+          "small": 0.98046875
+        },
+        "reflow": {
+          "False": 0.9879227053140096,
+          "True": 0.8524590163934426
+        }
+      }
+    },
+    {
+      "epoch": 5,
+      "train_loss": {
+        "total": 1.1891247164370389,
+        "patch": 0.47546825257651165,
+        "image": 0.04561641038009263,
+        "type": 1.6702356408511219
+      },
+      "val_loss": {
+        "total": 1.2760070820577738,
+        "patch": 0.47369245111619523,
+        "image": 0.07262791159766048,
+        "type": 1.8188816294477501
+      },
+      "format_version": "1",
+      "threshold_selection": "max F1 on the scored predictions",
+      "threshold": 0.2366553395986557,
+      "n": 1108,
+      "n_by_label": {
+        "benign": 146,
+        "no_change": 73,
+        "regression": 889
+      },
+      "detection": {
+        "precision": 0.9808342728297632,
+        "recall": 0.9786276715410573,
+        "f1": 0.9797297297297297,
+        "accuracy": 0.9675090252707581
+      },
+      "false_positive_rate": {
+        "benign": 0.0958904109589041,
+        "no_change": 0.0410958904109589
+      },
+      "auroc": {
+        "regression_vs_benign": 0.9812317980800345,
+        "regression_vs_all_negatives": 0.9800247571793251
+      },
+      "benign_fpr_at_95_recall": {
+        "threshold": 0.5040987133979797,
+        "recall": 0.9516310461192351,
+        "fpr": 0.07534246575342465
+      },
+      "type": {
+        "n": 889,
+        "macro_f1": 0.3354397367205198,
+        "per_class": {
+          "background_color": {
+            "f1": 0.8391608391608392,
+            "support": 72
+          },
+          "border_radius": {
+            "f1": 0.6909090909090909,
+            "support": 35
+          },
+          "border_width": {
+            "f1": 0.5863874345549738,
+            "support": 72
+          },
+          "font_size": {
+            "f1": 0.0,
+            "support": 72
+          },
+          "font_weight": {
+            "f1": 0.2755102040816326,
+            "support": 72
+          },
+          "letter_spacing": {
+            "f1": 0.025974025974025976,
+            "support": 71
+          },
+          "line_height": {
+            "f1": 0.0,
+            "support": 61
+          },
+          "margin": {
+            "f1": 0.144,
+            "support": 73
+          },
+          "opacity": {
+            "f1": 0.3893129770992366,
+            "support": 73
+          },
+          "padding": {
+            "f1": 0.28735632183908044,
+            "support": 73
+          },
+          "position": {
+            "f1": 0.18309859154929578,
+            "support": 72
+          },
+          "text_color": {
+            "f1": 0.5390070921985816,
+            "support": 72
+          },
+          "width": {
+            "f1": 0.4,
+            "support": 71
+          }
+        }
+      },
+      "localization": {
+        "n_box": 889,
+        "mean_iou": 0.21845451177504907,
+        "n_point": 889,
+        "pointing_accuracy": 0.3948256467941507
+      },
+      "recall_by": {
+        "family": {
+          "appearance": 1.0,
+          "colour": 0.9861111111111112,
+          "layout": 0.9584775086505191,
+          "shape": 1.0,
+          "typography": 0.9818840579710145
+        },
+        "magnitude": {
+          "large": 0.9821958456973294,
+          "medium": 0.9797297297297297,
+          "small": 0.97265625
+        },
+        "reflow": {
+          "False": 0.9867149758454107,
+          "True": 0.8688524590163934
+        }
+      }
+    },
+    {
+      "epoch": 6,
+      "train_loss": {
+        "total": 1.149577186829313,
+        "patch": 0.4697874617686853,
+        "image": 0.042465879283240034,
+        "type": 1.5934388891049285
+      },
+      "val_loss": {
+        "total": 1.2814732706207876,
+        "patch": 0.5032199418595874,
+        "image": 0.06664102785848225,
+        "type": 1.773827735430357
+      },
+      "format_version": "1",
+      "threshold_selection": "max F1 on the scored predictions",
+      "threshold": 0.5734211802482605,
+      "n": 1108,
+      "n_by_label": {
+        "benign": 146,
+        "no_change": 73,
+        "regression": 889
+      },
+      "detection": {
+        "precision": 0.9885321100917431,
+        "recall": 0.96962879640045,
+        "f1": 0.9789892106757524,
+        "accuracy": 0.9666064981949458
+      },
+      "false_positive_rate": {
+        "benign": 0.04794520547945205,
+        "no_change": 0.0410958904109589
+      },
+      "auroc": {
+        "regression_vs_benign": 0.9888900873692158,
+        "regression_vs_all_negatives": 0.9850943289623044
+      },
+      "benign_fpr_at_95_recall": {
+        "threshold": 0.9272924065589905,
+        "recall": 0.9505061867266592,
+        "fpr": 0.0273972602739726
+      },
+      "type": {
+        "n": 889,
+        "macro_f1": 0.3887031863700327,
+        "per_class": {
+          "background_color": {
+            "f1": 0.8421052631578947,
+            "support": 72
+          },
+          "border_radius": {
+            "f1": 0.7419354838709677,
+            "support": 35
+          },
+          "border_width": {
+            "f1": 0.6756756756756757,
+            "support": 72
+          },
+          "font_size": {
+            "f1": 0.287292817679558,
+            "support": 72
+          },
+          "font_weight": {
+            "f1": 0.26595744680851063,
+            "support": 72
+          },
+          "letter_spacing": {
+            "f1": 0.25862068965517243,
+            "support": 71
+          },
+          "line_height": {
+            "f1": 0.0,
+            "support": 61
+          },
+          "margin": {
+            "f1": 0.0,
+            "support": 73
+          },
+          "opacity": {
+            "f1": 0.42990654205607476,
+            "support": 73
+          },
+          "padding": {
+            "f1": 0.29015544041450775,
+            "support": 73
+          },
+          "position": {
+            "f1": 0.20238095238095238,
+            "support": 72
+          },
+          "text_color": {
+            "f1": 0.6111111111111112,
+            "support": 72
+          },
+          "width": {
+            "f1": 0.448,
+            "support": 71
+          }
+        }
+      },
+      "localization": {
+        "n_box": 889,
+        "mean_iou": 0.18915656750788987,
+        "n_point": 889,
+        "pointing_accuracy": 0.45556805399325084
+      },
+      "recall_by": {
+        "family": {
+          "appearance": 0.9863013698630136,
+          "colour": 0.9791666666666666,
+          "layout": 0.9411764705882353,
+          "shape": 1.0,
+          "typography": 0.9782608695652174
+        },
+        "magnitude": {
+          "large": 0.9703264094955489,
+          "medium": 0.972972972972973,
+          "small": 0.96484375
+        },
+        "reflow": {
+          "False": 0.9806763285024155,
+          "True": 0.819672131147541
+        }
+      }
+    },
+    {
+      "epoch": 7,
+      "train_loss": {
+        "total": 1.0972002447328455,
+        "patch": 0.467635630937476,
+        "image": 0.03297314102588631,
+        "type": 1.4915996958694173
+      },
+      "val_loss": {
+        "total": 1.241595268276409,
+        "patch": 0.468795950104237,
+        "image": 0.05467629963531038,
+        "type": 1.7900569241569195
+      },
+      "format_version": "1",
+      "threshold_selection": "max F1 on the scored predictions",
+      "threshold": 0.176883727312088,
+      "n": 1108,
+      "n_by_label": {
+        "benign": 146,
+        "no_change": 73,
+        "regression": 889
+      },
+      "detection": {
+        "precision": 0.9897025171624714,
+        "recall": 0.9730033745781778,
+        "f1": 0.9812819058423143,
+        "accuracy": 0.970216606498195
+      },
+      "false_positive_rate": {
+        "benign": 0.0410958904109589,
+        "no_change": 0.0410958904109589
+      },
+      "auroc": {
+        "regression_vs_benign": 0.9945143843320955,
+        "regression_vs_all_negatives": 0.9869280038625309
+      },
+      "benign_fpr_at_95_recall": {
+        "threshold": 0.7236010432243347,
+        "recall": 0.9505061867266592,
+        "fpr": 0.0
+      },
+      "type": {
+        "n": 889,
+        "macro_f1": 0.3689879151535313,
+        "per_class": {
+          "background_color": {
+            "f1": 0.8289473684210527,
+            "support": 72
+          },
+          "border_radius": {
+            "f1": 0.7868852459016393,
+            "support": 35
+          },
+          "border_width": {
+            "f1": 0.6846846846846847,
+            "support": 72
+          },
+          "font_size": {
+            "f1": 0.0,
+            "support": 72
+          },
+          "font_weight": {
+            "f1": 0.22818791946308725,
+            "support": 72
+          },
+          "letter_spacing": {
+            "f1": 0.3781094527363184,
+            "support": 71
+          },
+          "line_height": {
+            "f1": 0.0,
+            "support": 61
+          },
+          "margin": {
+            "f1": 0.02564102564102564,
+            "support": 73
+          },
+          "opacity": {
+            "f1": 0.39228295819935693,
+            "support": 73
+          },
+          "padding": {
+            "f1": 0.32599118942731276,
+            "support": 73
+          },
+          "position": {
+            "f1": 0.1391304347826087,
+            "support": 72
+          },
+          "text_color": {
+            "f1": 0.5660377358490566,
+            "support": 72
+          },
+          "width": {
+            "f1": 0.4409448818897638,
+            "support": 71
+          }
+        }
+      },
+      "localization": {
+        "n_box": 889,
+        "mean_iou": 0.22048926906356203,
+        "n_point": 889,
+        "pointing_accuracy": 0.43082114735658045
+      },
+      "recall_by": {
+        "family": {
+          "appearance": 1.0,
+          "colour": 0.9930555555555556,
+          "layout": 0.9411764705882353,
+          "shape": 1.0,
+          "typography": 0.9782608695652174
+        },
+        "magnitude": {
+          "large": 0.9703264094955489,
+          "medium": 0.9763513513513513,
+          "small": 0.97265625
+        },
+        "reflow": {
+          "False": 0.9842995169082126,
+          "True": 0.819672131147541
+        }
+      }
+    },
+    {
+      "epoch": 8,
+      "train_loss": {
+        "total": 1.062632635565822,
+        "patch": 0.4656479223539898,
+        "image": 0.03554027728748315,
+        "type": 1.4037249759247414
+      },
+      "val_loss": {
+        "total": 1.2657943482406517,
+        "patch": 0.46904562710908776,
+        "image": 0.061356235882380074,
+        "type": 1.8331043286216957
+      },
+      "format_version": "1",
+      "threshold_selection": "max F1 on the scored predictions",
+      "threshold": 0.1680990606546402,
+      "n": 1108,
+      "n_by_label": {
+        "benign": 146,
+        "no_change": 73,
+        "regression": 889
+      },
+      "detection": {
+        "precision": 0.9919632606199771,
+        "recall": 0.9718785151856018,
+        "f1": 0.9818181818181818,
+        "accuracy": 0.9711191335740073
+      },
+      "false_positive_rate": {
+        "benign": 0.03424657534246575,
+        "no_change": 0.0273972602739726
+      },
+      "auroc": {
+        "regression_vs_benign": 0.991305453256699,
+        "regression_vs_all_negatives": 0.9843187409792954
+      },
+      "benign_fpr_at_95_recall": {
+        "threshold": 0.5988894701004028,
+        "recall": 0.952755905511811,
+        "fpr": 0.0136986301369863
+      },
+      "type": {
+        "n": 889,
+        "macro_f1": 0.3616196044989823,
+        "per_class": {
+          "background_color": {
+            "f1": 0.8208955223880597,
+            "support": 72
+          },
+          "border_radius": {
+            "f1": 0.7586206896551724,
+            "support": 35
+          },
+          "border_width": {
+            "f1": 0.7142857142857143,
+            "support": 72
+          },
+          "font_size": {
+            "f1": 0.16326530612244897,
+            "support": 72
+          },
+          "font_weight": {
+            "f1": 0.3058823529411765,
+            "support": 72
+          },
+          "letter_spacing": {
+            "f1": 0.3163841807909605,
+            "support": 71
+          },
+          "line_height": {
+            "f1": 0.07142857142857142,
+            "support": 61
+          },
+          "margin": {
+            "f1": 0.14035087719298245,
+            "support": 73
+          },
+          "opacity": {
+            "f1": 0.26666666666666666,
+            "support": 73
+          },
+          "padding": {
+            "f1": 0.21875,
+            "support": 73
+          },
+          "position": {
+            "f1": 0.075,
+            "support": 72
+          },
+          "text_color": {
+            "f1": 0.5418326693227091,
+            "support": 72
+          },
+          "width": {
+            "f1": 0.3076923076923077,
+            "support": 71
+          }
+        }
+      },
+      "localization": {
+        "n_box": 889,
+        "mean_iou": 0.21168895029438722,
+        "n_point": 889,
+        "pointing_accuracy": 0.4668166479190101
+      },
+      "recall_by": {
+        "family": {
+          "appearance": 1.0,
+          "colour": 0.9930555555555556,
+          "layout": 0.9377162629757786,
+          "shape": 1.0,
+          "typography": 0.9782608695652174
+        },
+        "magnitude": {
+          "large": 0.9643916913946587,
+          "medium": 0.9797297297297297,
+          "small": 0.97265625
+        },
+        "reflow": {
+          "False": 0.9842995169082126,
+          "True": 0.8032786885245902
+        }
+      }
+    },
+    {
+      "epoch": 9,
+      "train_loss": {
+        "total": 1.0241458720947538,
+        "patch": 0.4642542441477254,
+        "image": 0.024396763487146093,
+        "type": 1.3388457806052727
+      },
+      "val_loss": {
+        "total": 1.2674425679800312,
+        "patch": 0.47367284797965836,
+        "image": 0.05244332309720388,
+        "type": 1.8478957273007341
+      },
+      "format_version": "1",
+      "threshold_selection": "max F1 on the scored predictions",
+      "threshold": 0.43156203627586365,
+      "n": 1108,
+      "n_by_label": {
+        "benign": 146,
+        "no_change": 73,
+        "regression": 889
+      },
+      "detection": {
+        "precision": 0.9942396313364056,
+        "recall": 0.9707536557930259,
+        "f1": 0.9823562891291975,
+        "accuracy": 0.9720216606498195
+      },
+      "false_positive_rate": {
+        "benign": 0.0136986301369863,
+        "no_change": 0.0410958904109589
+      },
+      "auroc": {
+        "regression_vs_benign": 0.9922723700633311,
+        "regression_vs_all_negatives": 0.9855026683308422
+      },
+      "benign_fpr_at_95_recall": {
+        "threshold": 0.8780956864356995,
+        "recall": 0.9505061867266592,
+        "fpr": 0.00684931506849315
+      },
+      "type": {
+        "n": 889,
+        "macro_f1": 0.40466675625622134,
+        "per_class": {
+          "background_color": {
+            "f1": 0.8396946564885496,
+            "support": 72
+          },
+          "border_radius": {
+            "f1": 0.7352941176470589,
+            "support": 35
+          },
+          "border_width": {
+            "f1": 0.7218045112781954,
+            "support": 72
+          },
+          "font_size": {
+            "f1": 0.2328767123287671,
+            "support": 72
+          },
+          "font_weight": {
+            "f1": 0.32857142857142857,
+            "support": 72
+          },
+          "letter_spacing": {
+            "f1": 0.14457831325301204,
+            "support": 71
+          },
+          "line_height": {
+            "f1": 0.26666666666666666,
+            "support": 61
+          },
+          "margin": {
+            "f1": 0.10309278350515463,
+            "support": 73
+          },
+          "opacity": {
+            "f1": 0.411214953271028,
+            "support": 73
+          },
+          "padding": {
+            "f1": 0.3067484662576687,
+            "support": 73
+          },
+          "position": {
+            "f1": 0.08163265306122448,
+            "support": 72
+          },
+          "text_color": {
+            "f1": 0.6751592356687898,
+            "support": 72
+          },
+          "width": {
+            "f1": 0.41333333333333333,
+            "support": 71
+          }
+        }
+      },
+      "localization": {
+        "n_box": 889,
+        "mean_iou": 0.2029157792035396,
+        "n_point": 889,
+        "pointing_accuracy": 0.4578177727784027
+      },
+      "recall_by": {
+        "family": {
+          "appearance": 1.0,
+          "colour": 0.9791666666666666,
+          "layout": 0.9411764705882353,
+          "shape": 1.0,
+          "typography": 0.9782608695652174
+        },
+        "magnitude": {
+          "large": 0.9703264094955489,
+          "medium": 0.9763513513513513,
+          "small": 0.96484375
+        },
+        "reflow": {
+          "False": 0.9818840579710145,
+          "True": 0.819672131147541
+        }
+      }
+    },
+    {
+      "epoch": 10,
+      "train_loss": {
+        "total": 0.9882627748256377,
+        "patch": 0.46409244262710825,
+        "image": 0.023737426436195887,
+        "type": 1.2511837708925473
+      },
+      "val_loss": {
+        "total": 1.287745542528397,
+        "patch": 0.4722761340735191,
+        "image": 0.05553249559361388,
+        "type": 1.8942859439366104
+      },
+      "format_version": "1",
+      "threshold_selection": "max F1 on the scored predictions",
+      "threshold": 0.1552840769290924,
+      "n": 1108,
+      "n_by_label": {
+        "benign": 146,
+        "no_change": 73,
+        "regression": 889
+      },
+      "detection": {
+        "precision": 0.9808988764044944,
+        "recall": 0.9820022497187851,
+        "f1": 0.9814502529510961,
+        "accuracy": 0.970216606498195
+      },
+      "false_positive_rate": {
+        "benign": 0.0958904109589041,
+        "no_change": 0.0410958904109589
+      },
+      "auroc": {
+        "regression_vs_benign": 0.9915481455229055,
+        "regression_vs_all_negatives": 0.9886204292956531
+      },
+      "benign_fpr_at_95_recall": {
+        "threshold": 0.7868859767913818,
+        "recall": 0.953880764904387,
+        "fpr": 0.0410958904109589
+      },
+      "type": {
+        "n": 889,
+        "macro_f1": 0.37867842630509535,
+        "per_class": {
+          "background_color": {
+            "f1": 0.8299319727891157,
+            "support": 72
+          },
+          "border_radius": {
+            "f1": 0.6376811594202898,
+            "support": 35
+          },
+          "border_width": {
+            "f1": 0.6901408450704225,
+            "support": 72
+          },
+          "font_size": {
+            "f1": 0.15254237288135594,
+            "support": 72
+          },
+          "font_weight": {
+            "f1": 0.23703703703703705,
+            "support": 72
+          },
+          "letter_spacing": {
+            "f1": 0.4166666666666667,
+            "support": 71
+          },
+          "line_height": {
+            "f1": 0.15942028985507245,
+            "support": 61
+          },
+          "margin": {
+            "f1": 0.1111111111111111,
+            "support": 73
+          },
+          "opacity": {
+            "f1": 0.25263157894736843,
+            "support": 73
+          },
+          "padding": {
+            "f1": 0.225,
+            "support": 73
+          },
+          "position": {
+            "f1": 0.19607843137254902,
+            "support": 72
+          },
+          "text_color": {
+            "f1": 0.5203252032520326,
+            "support": 72
+          },
+          "width": {
+            "f1": 0.4942528735632184,
+            "support": 71
+          }
+        }
+      },
+      "localization": {
+        "n_box": 889,
+        "mean_iou": 0.21259686276748638,
+        "n_point": 889,
+        "pointing_accuracy": 0.43194600674915634
+      },
+      "recall_by": {
+        "family": {
+          "appearance": 1.0,
+          "colour": 0.9930555555555556,
+          "layout": 0.9653979238754326,
+          "shape": 1.0,
+          "typography": 0.9818840579710145
+        },
+        "magnitude": {
+          "large": 0.9792284866468842,
+          "medium": 0.9864864864864865,
+          "small": 0.98046875
+        },
+        "reflow": {
+          "False": 0.9891304347826086,
+          "True": 0.8852459016393442
+        }
+      }
+    }
+  ]
+}
