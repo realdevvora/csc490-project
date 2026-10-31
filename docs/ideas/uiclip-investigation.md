@@ -26,72 +26,109 @@ cand tiles ──┘   patch tokens [T,49,768] └─> type logits (13 operators
 ## Main findings
 
 **Setup of these results:**
-- Every experiment was trained for 10 epochs with seeds 0, 1 and 2, using the feature cache.
-- Each run is represented by its best-AUROC checkpoint, and values are mean ± standard deviation across the 3 seeds.
-- Evaluation is on the validation split: 73 pages, 1,108 pairs (889 regression, 146 benign, 73 no-change).
-- Scoring used `scripts/score_predictions.py`. The full table is in [`comparison.md`](../results/uiclip/comparison.md), and every run's metrics, configuration and the best model's predictions are in [`docs/results/uiclip/`](../results/uiclip/README.md).
+- **Runs:** two batches, all trained for 10 epochs.
+  - The first, from `scripts/run_uiclip_experiments.sh`: UIClip and CLIP variants.
+  - The follow-up, from `scripts/run_clip_siglip_experiments.sh`: CLIP fine-tuned, and SigLIP-512 frozen and fine-tuned.
+- **Seeds:** every experiment has seeds 0, 1 and 2, except SigLIP fine-tuned, which has one seed. Each run is represented by its best-AUROC checkpoint, and values are means across seeds (± standard deviation where shown).
+- **Evaluation:** on the validation split: 73 pages, 1,108 pairs (889 regression, 146 benign, 73 no-change).
+- **Where the data is:**
+  - Scoring used `scripts/score_predictions.py`, and the full table is in [`comparison.md`](../results/uiclip/comparison.md).
+  - Every run's metrics, configuration and the best models' predictions are in [`docs/results/uiclip/`](../results/uiclip/README.md).
 - [Figures](#figures) below illustrate these findings.
 
 | Experiment | AUROC reg/benign | Benign FPR @95% recall | F1 | Benign FPR | No-change FPR | Type macro-F1 | Pointing | Mean IoU | Recall, reflowed changes |
 |---|---|---|---|---|---|---|---|---|---|
-| UIClip, frozen (`uiclip_cal`) | 0.993 ± 0.002 | 0.009 | 0.983 | 0.041 | 0.032 | 0.36 ± 0.03 | 0.44 | 0.20 | 0.82 |
-| UIClip, frozen, no calibration (`uiclip_nocal`) | 0.994 ± 0.001 | 0.002 | 0.983 | 0.030 | 0.055 | 0.35 ± 0.03 | 0.47 | 0.21 | 0.81 |
-| CLIP, frozen (`clip_cal`) | 0.992 ± 0.002 | 0.009 | 0.979 | 0.039 | 0.027 | 0.34 ± 0.06 | 0.40 | 0.21 | 0.78 |
-| UIClip, no benign training pairs (`uiclip_cal_nobenign`) | 0.622 ± 0.057 | 0.993 | 0.919 | 1.000 | 0.041 | 0.38 ± 0.01 | 0.46 | 0.18 | 1.00 |
-| UIClip, last 4 blocks fine-tuned (`uiclip_cal_ft4`) | **0.999 ± 0.001** | 0.009 | **0.995** | 0.034 | 0.041 | **0.45 ± 0.00** | **0.47** | 0.19 | **1.00** |
+| UIClip, frozen (`uiclip_cal`) | 0.9927 ± 0.0019 | 0.009 | 0.983 | 0.041 | 0.032 | 0.36 ± 0.03 | 0.44 | 0.20 | 0.82 |
+| UIClip, frozen, no calibration (`uiclip_nocal`) | 0.9945 ± 0.0006 | 0.002 | 0.983 | 0.030 | 0.055 | 0.35 ± 0.03 | 0.47 | 0.21 | 0.81 |
+| CLIP, frozen (`clip_cal`) | 0.9924 ± 0.0019 | 0.009 | 0.979 | 0.039 | 0.027 | 0.34 ± 0.06 | 0.40 | 0.21 | 0.78 |
+| SigLIP-512, frozen (`siglip_cal`) | 0.9982 ± 0.0004 | 0.007 | 0.975 | 0.011 | 0.037 | 0.36 ± 0.02 | 0.50 | 0.21 | 0.84 |
+| UIClip, no benign training pairs (`uiclip_cal_nobenign`) | 0.6224 ± 0.0569 | 0.993 | 0.919 | 1.000 | 0.041 | 0.38 ± 0.01 | 0.46 | 0.18 | 1.00 |
+| UIClip, last 4 blocks fine-tuned (`uiclip_cal_ft4`) | 0.9988 ± 0.0007 | 0.009 | 0.995 | 0.034 | 0.041 | 0.45 ± 0.00 | 0.47 | 0.19 | 1.00 |
+| CLIP, last 4 blocks fine-tuned (`clip_cal_ft4`) | 0.9996 ± 0.0001 | 0.000 | 0.995 | 0.014 | 0.041 | 0.40 ± 0.08 | 0.48 | 0.19 | 0.98 |
+| SigLIP-512, last 4 blocks fine-tuned (1 seed) (`siglip_cal_ft4`) | 0.9999 | 0.000 | 0.993 | 0.000 | 0.041 | 0.44 | 0.57 | 0.16 | 0.95 |
 
-1. **Fine-tuning the last 4 encoder blocks gives the best model.**
-   - Compared with the frozen encoder:
-     - AUROC rises from 0.993 to 0.999 and F1 from 0.983 to 0.995.
-     - Type macro-F1 rises from 0.36 to 0.45.
-     - Recall on reflowed changes rises from 0.82 to 1.00, and on the layout family from 0.94 to 1.00.
-   - Costs:
-     - Training takes about 4× as long: 37–41 min per run instead of about 10.
-     - Mean IoU is slightly lower (0.19 vs 0.20).
+1. **Fine-tuning the last 4 encoder blocks matters more than which backbone you start from.**
+   - All three fine-tuned models reach AUROC ≥ 0.998, F1 0.993–0.995, and recall of 0.95–1.00 on reflowed changes (0.78–0.84 frozen).
+   - Fine-tuning raises F1 by up to 0.018 (from 0.975 for SigLIP and 0.979 for CLIP). Switching backbones moves it by at most 0.008.
+   - Type macro-F1 also improves under fine-tuning: from 0.36 to 0.45 for UIClip, from 0.34 to 0.40 for CLIP, and from 0.36 to 0.44 for SigLIP.
 
 2. **Benign training pairs are essential.**
    - Trained only on regressions and identical pairs, the model flags every Firefox/WebKit pair (benign FPR 1.00, AUROC 0.62), while still catching 99% of regressions.
    - In effect it learns "any difference is a regression".
-   - This is the clearest answer so far to the regression-only vs. regression + benign question in the [investigation plan](model-investigation-plan.md).
+   - The benign pairs were removed from training only. The model is still scored on the same 146 validation benign pairs as every other experiment.
+   - This is the clearest answer to the regression-only vs. regression + benign question in the [investigation plan](model-investigation-plan.md).
 
-3. **UI-specific pretraining helps slightly at best.**
-   - With frozen encoders, UIClip is ahead of plain CLIP on every metric: F1 0.983 vs 0.979, pointing 0.44 vs 0.40, type 0.36 vs 0.34, and reflow recall 0.82 vs 0.78.
-   - Most gaps are within one to two standard deviations of seed noise, so this is weak evidence.
-   - CLIP has not been fine-tuned yet, so we don't know whether the gap survives fine-tuning.
+3. **UI-specific pretraining makes little difference once the encoder is fine-tuned.**
+   - **Frozen:** UIClip is slightly ahead of plain CLIP: F1 0.983 vs 0.979, pointing 0.44 vs 0.40, and reflow recall 0.82 vs 0.78.
+   - **Fine-tuned:** CLIP matches or beats UIClip on detection: AUROC 0.9996 vs 0.9988, benign FPR 0.014 vs 0.034, and pointing 0.48 vs 0.47.
+   - **What UIClip keeps:** more stable type classification (macro-F1 0.45 ± 0.004 vs 0.40 ± 0.08) and recall of every reflowed change (1.00 vs 0.98).
+   - This answers the track's research question: on this task, UI-aware pretraining gives at most a small, inconsistent benefit, and fine-tuning a general model on our data matters far more.
 
-4. **Self-calibration fixes the identical-pair problem without hurting detection.**
-   - No-change FPR falls from 0.055 to 0.032, while AUROC (0.993 vs 0.994) and F1 (0.983 for both) are unchanged.
+4. **Finer patches (SigLIP-512) help find where a change is, but not draw its box.**
+   - SigLIP's change map has cells of about 13 px, against about 30 px for UIClip/CLIP.
+   - **Pointing:** 0.50 frozen, against 0.40–0.44 for frozen UIClip/CLIP. Fine-tuned it reaches 0.57, the best of any model, on one seed.
+   - **False alarms:** frozen SigLIP also has the fewest of the frozen models: benign FPR 0.011, against about 0.04.
+   - **Boxes:** mean IoU stays at 0.16–0.21 across every experiment. Fine-tuned SigLIP has the *lowest* IoU, 0.16.
+   - So box quality is limited by how boxes are produced, not by encoder resolution. Boxes are drawn around the largest change-map region above 0.5, and the `diff_bbox` target of a reflowed change covers everything that moved.
+   - **Cost:** about 4× the training time of UIClip/CLIP, even with the feature cache (see [Training cost](#training-cost)).
+
+5. **Self-calibration fixes the identical-pair problem without hurting detection.**
+   - No-change FPR falls from 0.055 to 0.032, while AUROC (0.993 vs 0.995) and F1 (0.983 for both) are essentially unchanged.
    - The remaining no-change false positives are mostly pairs that aren't actually identical (see below).
    - Pointing accuracy is lower with calibration (0.44 vs 0.47). Whether that's a real cost is still open.
 
-5. **Detection is easy on this data; localization and change type are hard.**
-   - **Detection:** every model trained with benign pairs reaches AUROC ≥ 0.99. Recall is about the same for small, medium and large mutations (0.96–0.98 frozen, ≥ 0.99 fine-tuned).
-   - **Localization:** pointing accuracy stays at 0.40–0.47 and IoU at about 0.2. The change map is a coarse 32 px patch grid, and CLIP-style patch features are known to localize poorly.
-   - **Change type:**
-     - Colour and border changes are recognised well; F1 for `background_color` is 0.84–0.87 and for `border_width` and `border_radius` 0.66–0.80.
-     - Subtle spacing and typography changes are not; F1 for `font_size`, `position` and `margin` is 0.09–0.25.
+6. **Detection is saturated on this validation set; localization and change type are the open problems.**
+   - **Detection:**
+     - The fine-tuned models score AUROC ≥ 0.998 and benign FPR at 95% recall of 0–0.009. The remaining gaps are a pair or two, too small to rank them.
+     - Recall is about the same for small, medium and large mutations.
+   - **Change type, for the best UIClip model:** see the [confusion matrix](#figures).
+     - The exact type is right 44% of the time, but the right *family* (colour, appearance, shape, typography, layout) 67% of the time.
+     - Errors are mostly between similar-looking changes. Opacity is predicted as text colour 53% of the time; font size, letter spacing and font weight are confused with each other; and layout changes (margin, padding, position, width) are often predicted as padding or font size.
+     - Margin is almost never predicted correctly.
+   - **Per-type F1:** background-colour and border changes are recognised well (F1 0.66–0.91 across models). Spacing and typography types (font size, margin, position, padding, line height, letter spacing, font weight) stay at about 0.07–0.46 for every backbone.
 
-6. **Seed variance is large relative to the differences between models.**
-   - The same configuration's benign FPR ranges from 0.014 to 0.068 across seeds.
-   - Compare models by mean ± spread over several seeds, never by single runs.
+7. **Best-AUROC checkpoint selection becomes arbitrary once AUROC saturates.**
+   - The selected epochs ranged from 1 to 10. One frozen SigLIP seed picked epoch 1, before the type head had learned much, which partly explains frozen SigLIP's lower recall (0.957 ± 0.029).
+   - Validation loss bottoms out around epochs 4–7 for every model, then rises, a sign of overfitting.
+   - Choosing the checkpoint by validation loss, or training for about 6 epochs, would likely give steadier models.
+
+8. **Seed variance is large relative to the differences between models.**
+   - The same configuration's benign FPR ranges from 0.014 to 0.068 across seeds, and CLIP fine-tuned's type macro-F1 from 0.31 to 0.47.
+   - Compare models by mean ± spread over several seeds, never by single runs. The one-seed SigLIP fine-tuned result is therefore tentative.
+
+### Training cost
+
+Wall-clock time per 10-epoch run on the [machine below](#machine-used-for-these-experiments), averaged over seeds and excluding runs that also built a cache:
+
+| Setup | Time per run | Feature cache |
+|---|---|---|
+| UIClip or CLIP, frozen | ~10 min | ~49 GB, built once in ~5 min |
+| UIClip or CLIP, last 4 blocks fine-tuned | ~37 min | ~49 GB (first 8 blocks), built once in ~5 min |
+| SigLIP-512, frozen | ~38 min (vs ~2.3 h uncached) | ~266 GB, built once in ~10 min |
+| SigLIP-512, last 4 blocks fine-tuned | ~3.4 h | none (a second ~266 GB cache would barely help) |
+
+The first batch took 3 h 55 min and the follow-up 7 h 27 min. All caches together take about 460 GB.
 
 **Caveats:**
 - These are validation numbers: the best epoch and the threshold were both selected on validation, so they are optimistic.
 - The split is still the placeholder 85/15, and there is no test split yet.
 - Generalization to DiffSpot is untested.
 - 25 of the dataset's 484 `no_change` pairs are not actually identical.
-- SigLIP has not been run.
+- SigLIP fine-tuned has a single seed.
 
 **Next steps:**
-- Evaluate the frozen best model on DiffSpot.
-- Add a page-level test split.
-- Fine-tune CLIP's last 4 blocks to settle the UIClip vs. CLIP question.
-- Improve localization, e.g. with finer patches (SigLIP patch16 or higher-resolution tiles).
-- Pass the change map and boxes to the VLM description stage.
+- Evaluate the frozen best models on DiffSpot, and add a page-level test split. The validation set can no longer separate the fine-tuned models.
+- Select checkpoints by validation loss, or train for about 6 epochs, instead of by best AUROC.
+- Improve box extraction, e.g. by thresholding relative to the peak, by using `bbox_after` as the training target for reflowed changes, or by training mask-level targets.
+- Consider predicting the change *family* (67% correct) alongside the exact type (44%), or reporting it for the VLM stage.
+- Run 2 more SigLIP fine-tuned seeds if localization becomes the priority.
+- Pass the change map, or its peak point, to the VLM description stage. Points are more reliable than our boxes.
 
 ### Figures
 
-Generated from the 10-epoch runs by `scripts/plot_uiclip_findings.py`; rerun it after new experiments to refresh them.
+Generated by `scripts/plot_uiclip_findings.py` (`--only <numbers>` redraws a subset).
+
+**First batch (figures 1–6).** These show UIClip and CLIP before the follow-up runs. Figure 3's "UIClip edges out CLIP" applies to the frozen encoders only. Figure 7 shows that the gap disappears after fine-tuning.
 
 ![The five experiments and the one setting each changes](../figures/uiclip/1_experiments.png)
 
@@ -104,6 +141,16 @@ Generated from the 10-epoch runs by `scripts/plot_uiclip_findings.py`; rerun it 
 ![Mutation-type F1 per CSS operator, frozen vs fine-tuned](../figures/uiclip/5_type_f1.png)
 
 ![Validation loss by epoch for UIClip frozen, CLIP frozen and UIClip fine-tuned](../figures/uiclip/6_validation_loss.png)
+
+**Follow-up batch (figures 7–10).** These cover all three backbones, frozen and fine-tuned.
+
+![Each backbone frozen vs fine-tuned on AUROC, benign FPR, type macro-F1, pointing and IoU](../figures/uiclip/7_backbones_frozen_vs_finetuned.png)
+
+![Validation loss by epoch for each backbone, frozen and fine-tuned](../figures/uiclip/8_validation_loss_by_backbone.png)
+
+![Confusion matrix of predicted vs true mutation type, grouped by family](../figures/uiclip/9_type_confusion.png)
+
+![Training time per 10-epoch run for each setup](../figures/uiclip/10_training_time.png)
 
 ## Code
 
@@ -185,6 +232,13 @@ python scripts/train_uiclip.py --exp siglip_frozen --checkpoint google/siglip-ba
 ### Experiment batch
 
 `scripts/run_uiclip_experiments.sh` runs the planned comparisons (calibrated and uncalibrated UIClip, CLIP, no-benign training, and fine-tuning of the last 4 blocks). It trains each for 10 epochs with seeds 0–2, then writes `outputs/comparison/comparison.md`. See the script header for how to start, monitor and stop it.
+
+`scripts/run_clip_siglip_experiments.sh` runs the follow-up:
+- CLIP with its last 4 blocks fine-tuned (seeds 0–2, cached);
+- SigLIP-512 frozen (seeds 0–2, cached);
+- SigLIP-512 fine-tuned (seed 0, uncached).
+
+It skips the cached SigLIP runs if there isn't room for their ~285 GB cache.
 
 ### Feature caching
 

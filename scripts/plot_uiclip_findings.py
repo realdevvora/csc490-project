@@ -1,10 +1,15 @@
 """Plot the UIClip/CLIP experiment findings as slide-ready PNG figures.
 
-Reads the 10-epoch runs in outputs/ (metrics.json, best_auroc predictions)
-and the scorer's per-run results in outputs/comparison/, and writes figures to
-docs/figures/uiclip/. Rerun after new experiments to refresh them:
+Reads the 10-epoch runs in outputs/ (metrics.json, best_auroc predictions),
+the scorer's per-run results in outputs/comparison/ and the batch logs in
+outputs/logs/, and writes figures to docs/figures/uiclip/:
 
-  python scripts/plot_uiclip_findings.py
+  1-6   first batch (scripts/run_uiclip_experiments.sh)
+  7-10  follow-up batch with CLIP fine-tuning and SigLIP
+        (scripts/run_clip_siglip_experiments.sh)
+
+  python scripts/plot_uiclip_findings.py              # all figures
+  python scripts/plot_uiclip_findings.py --only 7 8   # just some
 
 Requires matplotlib (``pip install -e ".[figures]"``).
 """
@@ -16,15 +21,17 @@ import json
 import re
 import statistics
 import textwrap
+from datetime import datetime
 from collections import defaultdict
 from pathlib import Path
 
 import matplotlib
 
 matplotlib.use("Agg")
+import matplotlib.patches  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
-from matplotlib.patches import Polygon  # noqa: E402
+from matplotlib.patches import Polygon, Rectangle  # noqa: E402
 from matplotlib.transforms import offset_copy  # noqa: E402
 from PIL import Image  # noqa: E402
 
@@ -311,29 +318,226 @@ def fig_curves(root: Path, out: Path) -> None:
     plt.close(fig)
 
 
+# Follow-up batch (scripts/run_clip_siglip_experiments.sh): every backbone, frozen and fine-tuned.
+BACKBONES = [("UIClip", "uiclip_cal", "uiclip_cal_ft4"), ("CLIP", "clip_cal", "clip_cal_ft4"),
+             ("SigLIP-512", "siglip_cal", "siglip_cal_ft4")]
+# Mutation operators grouped by family, so confusions within a family show as blocks.
+FAMILIES = [("Colour", ["background_color", "text_color"]), ("Appearance", ["opacity"]),
+            ("Shape", ["border_radius", "border_width"]),
+            ("Typography", ["font_size", "font_weight", "letter_spacing", "line_height"]),
+            ("Layout", ["margin", "padding", "position", "width"])]
+# Runs whose time includes building a feature cache (excluded from the per-run time).
+CACHE_BUILDS = {"clip_cal_10_epochs_s0", "uiclip_cal_ft4_10_epochs_s0", "siglip_cal_10_epochs_s0",
+                "clip_cal_ft4_10_epochs_s0"}
+
+
+def fig_backbones(results: dict[str, list[dict]], out: Path) -> None:
+    panels = [("AUROC (reg. vs benign)", lambda m: m["auroc"]["regression_vs_benign"], (0.9895, 1.0015), [0.99, 0.995, 1.0], "{:.4f}"),
+              ("Benign FPR", lambda m: m["false_positive_rate"]["benign"], (-0.004, 0.052), [0, 0.02, 0.04], "{:.1%}"),
+              ("Type macro-F1", lambda m: m["type"]["macro_f1"], (0.29, 0.51), [0.3, 0.4, 0.5], "{:.2f}"),
+              ("Pointing accuracy", lambda m: m["localization"]["pointing_accuracy"], (0.37, 0.61), [0.4, 0.5, 0.6], "{:.2f}"),
+              ("Mean box IoU", lambda m: m["localization"]["mean_iou"], (0.145, 0.225), [0.15, 0.2], "{:.2f}")]
+    fig, axes = plt.subplots(1, len(panels), figsize=(13.5, 3.6), sharey=True)
+    top = title(fig, "Fine-tuning matters more than the backbone; finer patches (SigLIP) point better, but boxes don't improve",
+                "Mean of 3 seeds per dot, except SigLIP fine-tuned (1 seed). Each row shows a backbone frozen (light) and "
+                "with its last 4 blocks fine-tuned (dark). Benign FPR: lower is better; all others: higher is better. "
+                "Axes are zoomed to each metric's range.", below_pt=30)
+    for ax, (heading, get, limits, ticks, fmt) in zip(axes, panels):
+        ax.set_title(heading, pad=10, fontsize=11)
+        ax.set_xlim(*limits)
+        ax.set_xticks(ticks, [f"{t:.0%}" for t in ticks] if "%" in fmt else None)
+        ax.grid(axis="x")
+        ax.set_axisbelow(True)
+        ax.spines["left"].set_visible(False)
+        ax.tick_params(axis="y", length=0)
+        for i, (_, frozen, tuned) in enumerate(BACKBONES):
+            y = len(BACKBONES) - 1 - i
+            a, b = (statistics.mean(get(m) for m in results[e]) for e in (frozen, tuned))
+            ax.plot([a, b], [y, y], color=GRID, linewidth=2, zorder=1, solid_capstyle="round")
+            ax.scatter([a], [y], s=70, color=BLUE_LIGHT, zorder=2, edgecolors=SURFACE, linewidths=2)
+            ax.scatter([b], [y], s=70, color=BLUE_DARK, zorder=3, edgecolors=SURFACE, linewidths=2)
+            ax.text(b, y + 0.22, fmt.format(b), ha="center", va="bottom", fontsize=9, color=INK)
+        ax.set_ylim(-0.6, len(BACKBONES) - 0.35)
+        ax.set_yticks(range(len(BACKBONES) - 1, -1, -1), [name for name, _, _ in BACKBONES])
+    handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=8, color=BLUE_LIGHT, label="Frozen encoder"),
+               plt.Line2D([], [], marker="o", linestyle="", markersize=8, color=BLUE_DARK,
+                          label="Last 4 blocks fine-tuned (value shown)")]
+    fig.legend(handles=handles, loc="lower center", ncol=2, fontsize=9.5, bbox_to_anchor=(0.5, 0.0))
+    fig.subplots_adjust(top=top, wspace=0.18, left=0.09, right=0.99, bottom=0.2)
+    fig.savefig(out / "7_backbones_frozen_vs_finetuned.png", dpi=200)
+    plt.close(fig)
+
+
+def fig_curves_by_backbone(root: Path, out: Path) -> None:
+    fig, axes = plt.subplots(1, len(BACKBONES), figsize=(13, 4.2), sharey=True)
+    top = title(fig, "Validation loss bottoms out around epochs 4-7 for every model, then rises",
+                "Line = mean over seeds, band = range across seeds (SigLIP fine-tuned: 1 seed, no band). Dot: lowest mean "
+                "validation loss. Each run keeps its best-AUROC epoch, so the later overfitting is not in the saved models.",
+                below_pt=30)
+    for ax, (name, frozen, tuned) in zip(axes, BACKBONES):
+        ax.set_title(name, pad=10, fontsize=11)
+        for exp, color, label in ((frozen, BLUE_LIGHT, "Frozen encoder"), (tuned, BLUE_DARK, "Last 4 blocks fine-tuned")):
+            runs = sorted(root.glob(f"{exp}_10_epochs_s*/metrics.json"))
+            losses = np.array([[e["val_loss"]["total"] for e in json.loads(r.read_text())["history"]] for r in runs])
+            epochs = np.arange(1, losses.shape[1] + 1)
+            if len(runs) > 1:
+                ax.fill_between(epochs, losses.min(0), losses.max(0), color=color, alpha=0.18, linewidth=0)
+            mean = losses.mean(0)
+            ax.plot(epochs, mean, color=color, linewidth=2, label=label, solid_capstyle="round")
+            best = int(mean.argmin())
+            ax.scatter([epochs[best]], [mean[best]], s=60, color=color, edgecolors=SURFACE, linewidths=2, zorder=3)
+        ax.set_xticks(range(1, 11))
+        ax.set_xlabel("Epoch")
+        ax.grid(axis="y")
+        ax.set_axisbelow(True)
+    axes[0].set_ylabel("Validation loss")
+    axes[-1].legend(loc="upper right", fontsize=9.5)
+    fig.subplots_adjust(top=top, wspace=0.08, left=0.06, right=0.99, bottom=0.14)
+    fig.savefig(out / "8_validation_loss_by_backbone.png", dpi=200)
+    plt.close(fig)
+
+
+def fig_confusion(root: Path, data_root: Path, out: Path, exp: str = "uiclip_cal_ft4") -> None:
+    records = {r["sample_id"]: r for r in json.loads((data_root / "master_dataset_with_benign.json").read_text())}
+    names = [op for _, ops in FAMILIES for op in ops]
+    index = {op: i for i, op in enumerate(names)}
+    counts = np.zeros((len(names), len(names)))
+    runs = sorted(root.glob(f"{exp}_10_epochs_s*/best_auroc/val_predictions.jsonl"))
+    for run in runs:
+        for line in open(run):
+            p = json.loads(line)
+            r = records[p["sample_id"]]
+            if r["label"] == "regression":
+                counts[index[r["operator"]], index[p["op_pred"]]] += 1
+    share = counts / counts.sum(1, keepdims=True)
+    family_of = {op: fam for fam, ops in FAMILIES for op in ops}
+    same_family = sum(counts[i, j] for i in range(len(names)) for j in range(len(names))
+                      if family_of[names[i]] == family_of[names[j]]) / counts.sum()
+    exact = np.trace(counts) / counts.sum()
+
+    fig, ax = plt.subplots(figsize=(10.5, 9))
+    top = title(fig, "Most type errors are between similar-looking changes",
+                f"Mutation type predicted for each true type (rows sum to 100%), UIClip with last 4 blocks fine-tuned, "
+                f"{len(runs)} seeds pooled ({int(counts.sum()):,} regression pairs). Exact type correct: {exact:.0%}; "
+                f"correct family: {same_family:.0%}. Boxes outline the five families. Layout changes are often "
+                "predicted as padding or font size.", below_pt=10)
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+        "blue", ["#f6f9fd", "#cde2fb", "#86b6ef", "#3987e5", "#256abf", "#184f95", "#0d366b"])
+    image = ax.imshow(share, cmap=cmap, vmin=0, vmax=1)
+    for i in range(len(names)):
+        for j in range(len(names)):
+            if share[i, j] >= 0.1:  # label only the cells worth reading
+                ax.text(j, i, f"{share[i, j]:.0%}", ha="center", va="center", fontsize=8.5,
+                        color="#ffffff" if share[i, j] >= 0.45 else INK)
+    start = 0
+    for _, ops in FAMILIES:
+        ax.add_patch(Rectangle((start - 0.5, start - 0.5), len(ops), len(ops), fill=False,
+                               edgecolor=INK_2, linewidth=1.2))
+        start += len(ops)
+    labels = [n.replace("_", " ") for n in names]
+    ax.set_xticks(range(len(names)), labels, rotation=45, ha="right")
+    ax.set_yticks(range(len(names)), labels)
+    ax.set_xlabel("Predicted type")
+    ax.set_ylabel("True type")
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    ax.tick_params(length=0)
+    bar = fig.colorbar(image, ax=ax, fraction=0.035, pad=0.02)
+    bar.set_ticks([0, 0.25, 0.5, 0.75, 1], labels=["0%", "25%", "50%", "75%", "100%"])
+    bar.outline.set_visible(False)
+    bar.ax.tick_params(length=0)
+    fig.subplots_adjust(top=top, left=0.17, right=0.92, bottom=0.17)
+    fig.savefig(out / "9_type_confusion.png", dpi=200)
+    plt.close(fig)
+
+
+def fig_runtime(root: Path, out: Path) -> None:
+    starts, minutes = {}, defaultdict(list)
+    pattern = re.compile(r"^(\S+ \S+) (start|done)\s+(\S+)$")
+    for log in ("all.log", "clip_siglip.log"):
+        path = root / "logs" / log
+        if not path.exists():
+            continue
+        for line in path.read_text().splitlines():
+            match = pattern.match(line.strip())
+            if not match:
+                continue
+            stamp, event, run = match.groups()
+            t = datetime.strptime(stamp, "%Y-%m-%d %H:%M:%S")
+            if event == "start":
+                starts[run] = t
+            elif run in starts and run not in CACHE_BUILDS:
+                minutes[re.sub(r"_10_epochs_s\d+$", "", run)].append((t - starts[run]).total_seconds() / 60)
+    rows = [("UIClip, frozen", "uiclip_cal", True), ("CLIP, frozen", "clip_cal", True),
+            ("SigLIP-512, frozen", "siglip_cal", True), ("UIClip, fine-tuned", "uiclip_cal_ft4", True),
+            ("CLIP, fine-tuned", "clip_cal_ft4", True), ("SigLIP-512, fine-tuned", "siglip_cal_ft4", False)]
+    rows = [r for r in rows if minutes.get(r[1])]
+    fig, ax = plt.subplots(figsize=(10, 4.2))
+    top = title(fig, "SigLIP takes about 4x longer than UIClip/CLIP, even with the cache",
+                "Wall-clock minutes per 10-epoch run on the RTX 5070 Ti (mean over seeds; runs that also built a feature cache "
+                "are excluded). SigLIP fine-tuning ran without the cache.", below_pt=12)
+    longest = max(statistics.mean(minutes[e]) for _, e, _ in rows)
+    ax.set_xlim(0, longest * 1.15)
+    ax.set_ylim(-0.6, len(rows) - 0.4)
+    for i, (label, exp, cached) in enumerate(rows):
+        y = len(rows) - 1 - i
+        value = statistics.mean(minutes[exp])
+        hbar(ax, y, value, 0.5, BLUE if cached else ORANGE)
+        text = f"{value:.0f} min" if value < 120 else f"{value / 60:.1f} h"
+        ax.text(value + longest * 0.012, y, text, va="center", ha="left", fontsize=10, color=INK)
+    ax.set_yticks(range(len(rows) - 1, -1, -1), [r[0] for r in rows])
+    ax.set_xlabel("Minutes per 10-epoch run")
+    ax.grid(axis="x")
+    ax.set_axisbelow(True)
+    ax.spines["left"].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+    handles = [matplotlib.patches.Patch(color=BLUE, label="With feature cache"),
+               matplotlib.patches.Patch(color=ORANGE, label="Without feature cache")]
+    ax.legend(handles=handles, loc="upper right", fontsize=9.5)
+    fig.subplots_adjust(top=top, left=0.2, right=0.97, bottom=0.14)
+    fig.savefig(out / "10_training_time.png", dpi=200)
+    plt.close(fig)
+
+
+FIGURES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--outputs", default="outputs")
     parser.add_argument("--data-root", default="d2c_v2")
     parser.add_argument("--out", default="docs/figures/uiclip")
     parser.add_argument("--identical-seed", type=int, default=0, help="seed of the runs in the identical-pairs figure")
+    parser.add_argument("--only", nargs="+", choices=FIGURES, default=FIGURES,
+                        help="figure numbers to (re)draw; 1-6 cover the first batch, 7-10 the follow-up batch")
     args = parser.parse_args()
 
     root, out = Path(args.outputs), Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     style()
     results = load_results(root)
-    missing = [e for e in EXPERIMENTS if len(results.get(e, [])) != 3]
+    needed = set(EXPERIMENTS) if set(args.only) & set(FIGURES[:6]) else set()
+    if set(args.only) & {"7"}:
+        needed |= {e for _, frozen, tuned in BACKBONES for e in (frozen, tuned)}
+    missing = sorted(e for e in needed if not results.get(e))
     if missing:
-        raise SystemExit(f"expected 3 scored seeds per experiment in {root}/comparison, missing: {missing}")
+        raise SystemExit(f"no scored runs in {root}/comparison for: {missing}")
 
-    fig_experiments(out)
-    fig_benign(results, out)
-    fig_metrics(results, out)
-    fig_identical(root, Path(args.data_root), out, args.identical_seed)
-    fig_types(results, out)
-    fig_curves(root, out)
-    print(f"wrote {len(list(out.glob('*.png')))} figures to {out}")
+    draw = {
+        "1": lambda: fig_experiments(out),
+        "2": lambda: fig_benign(results, out),
+        "3": lambda: fig_metrics(results, out),
+        "4": lambda: fig_identical(root, Path(args.data_root), out, args.identical_seed),
+        "5": lambda: fig_types(results, out),
+        "6": lambda: fig_curves(root, out),
+        "7": lambda: fig_backbones(results, out),
+        "8": lambda: fig_curves_by_backbone(root, out),
+        "9": lambda: fig_confusion(root, Path(args.data_root), out),
+        "10": lambda: fig_runtime(root, out),
+    }
+    for number in args.only:
+        draw[number]()
+    print(f"drew figure(s) {', '.join(args.only)} in {out}")
 
 
 if __name__ == "__main__":
