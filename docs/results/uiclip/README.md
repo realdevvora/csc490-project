@@ -1,4 +1,4 @@
-# UIClip / CLIP experiment results
+# UIClip / CLIP / SigLIP experiment results
 
 Aggregate results of the experiments described in [the UIClip investigation](../../ideas/uiclip-investigation.md), copied from the local `outputs/` folder, which is gitignored. Model weights and feature caches are not committed; see "Not included" below.
 
@@ -10,33 +10,42 @@ Aggregate results of the experiments described in [the UIClip investigation](../
 | `metrics/<run>__best_auroc.metrics.json` | The scorer's full metrics for each row of `comparison.md` |
 | `run_history/<run>/metrics.json` | Every epoch's train/validation loss and validation metrics, plus which epoch was best by AUROC and by F1 |
 | `run_history/<run>/config.json` | The run's exact settings, git commit, PyTorch version and GPU |
-| `predictions/uiclip_cal_ft4_10_epochs_s*__best_auroc.val_predictions.jsonl` | Validation predictions of the best model (UIClip, last 4 blocks fine-tuned), in the [shared prediction format](../../prediction-format.md) |
+| `predictions/*_cal_ft4_10_epochs_s*__best_auroc.val_predictions.jsonl` | Validation predictions of the fine-tuned models (last 4 blocks): UIClip and CLIP for seeds 0–2, SigLIP for seed 0. They follow the [shared prediction format](../../prediction-format.md) |
 
 ## Runs
 
-The batch from `scripts/run_uiclip_experiments.sh`, all validated on the placeholder split (73 pages, 1,108 pairs):
+All runs were trained for 10 epochs (`_10_epochs_s<seed>`) and validated on the placeholder split (73 pages, 1,108 pairs):
 
-- `uiclip_cal`, `uiclip_nocal`, `clip_cal`, `uiclip_cal_nobenign`, `uiclip_cal_ft4`;
-- each trained for 10 epochs, with seeds 0, 1 and 2 (`_10_epochs_s<seed>`).
+- **First batch** (`scripts/run_uiclip_experiments.sh`), seeds 0, 1 and 2: `uiclip_cal`, `uiclip_nocal`, `clip_cal`, `uiclip_cal_nobenign`, `uiclip_cal_ft4`.
+- **Follow-up batch** (`scripts/run_clip_siglip_experiments.sh`):
+  - `siglip_cal` and `clip_cal_ft4`, seeds 0, 1 and 2;
+  - `siglip_cal_ft4`, seed 0 only.
 
 Two exploratory 5-epoch runs are also included, `uiclip_frozen_s1_5_epochs` and `uiclip_cal_s1_5_epochs`. These are the runs behind the identical-pair finding.
 
 ## Reproducing
 
-The 10-epoch runs ran on a clean working tree at commit `ca409c2` on `abdullah-clip-model-evaluation`, as recorded in each `config.json`. They actually ran on an earlier copy of that commit whose message was later rewritten; its files are identical, so its hash in the configs was replaced with `ca409c2`. The 5-epoch runs predate the commits and ran on uncommitted code (`"dirty": true`).
+Commits recorded in each `config.json`:
 
-To reproduce, check out `ca409c2`, then:
-1. unzip the dataset to `d2c_v2/`;
-2. run `scripts/run_uiclip_experiments.sh`.
+- **First batch:** a clean working tree at `ca409c2` on `abdullah-clip-model-evaluation`.
+  - These runs actually used an earlier copy of that commit whose message was later rewritten. Its files are identical, so its hash in the configs was replaced with `ca409c2`.
+- **Follow-up batch:** `0fae2d5`, marked `"dirty": true`.
+  - The only uncommitted file was the new `scripts/run_clip_siglip_experiments.sh` itself. The training code is exactly that commit.
+- **The 5-epoch runs:** these predate the commits and ran on uncommitted code (`"dirty": true`).
+
+To reproduce:
+1. Check out the commit recorded in the run's config.
+2. Unzip the dataset to `d2c_v2/`.
+3. Run the batch script: `scripts/run_uiclip_experiments.sh` or `scripts/run_clip_siglip_experiments.sh`.
 
 The placeholder split is regenerated identically, because it is seeded. Rescore any predictions with:
 
 ```bash
-python scripts/score_predictions.py docs/results/uiclip/predictions/*.jsonl --names ft4_s0 ft4_s1 ft4_s2
+python scripts/score_predictions.py docs/results/uiclip/predictions/uiclip_cal_ft4_*.jsonl --names ft4_s0 ft4_s1 ft4_s2
 ```
 
 ## Not included
 
-- **Model weights** (`outputs/<run>/best_*/model.pt`): 6.6 MB per frozen-encoder run and 115 MB per fine-tuned run. The fine-tuned ones exceed GitHub's 100 MB file limit. Share them outside the repo, e.g. on the team's Google Drive.
-- **Feature caches** (`data/processed/features/`): about 49 GB each. Rebuild them with `--cache-features`.
+- **Model weights** (`outputs/<run>/best_*/model.pt`): 6.6 MB per frozen-encoder run and 115 MB per fine-tuned run, for every backbone. The fine-tuned ones exceed GitHub's 100 MB file limit. Share them outside the repo, e.g. on the team's Google Drive.
+- **Feature caches** (`data/processed/features/`): about 49 GB each for UIClip/CLIP and about 266 GB for SigLIP-512. Rebuild them with `--cache-features`.
 - **Training logs** (`outputs/logs/`).

@@ -5,6 +5,13 @@ Subset: val (data/processed/splits_placeholder_85_15.json; 73 pages, 1,108 pairs
 | clip_cal_10_epochs_s0/best_auroc | 1108 | 0.991 | 0.021 | 0.182 | 0.995 | 0.952 | 0.973 | 0.021 | 0.014 | 0.377 | 0.425 | 0.204 |
 | clip_cal_10_epochs_s1/best_auroc | 1108 | 0.991 | 0.007 | 0.408 | 0.989 | 0.975 | 0.982 | 0.055 | 0.027 | 0.276 | 0.354 | 0.193 |
 | clip_cal_10_epochs_s2/best_auroc | 1108 | 0.995 | 0.000 | 0.177 | 0.990 | 0.973 | 0.981 | 0.041 | 0.041 | 0.369 | 0.431 | 0.220 |
+| clip_cal_ft4_10_epochs_s0/best_auroc | 1108 | 1.000 | 0.000 | 0.209 | 0.994 | 0.997 | 0.996 | 0.014 | 0.041 | 0.472 | 0.507 | 0.203 |
+| clip_cal_ft4_10_epochs_s1/best_auroc | 1108 | 1.000 | 0.000 | 0.270 | 0.993 | 0.993 | 0.993 | 0.021 | 0.041 | 0.422 | 0.494 | 0.192 |
+| clip_cal_ft4_10_epochs_s2/best_auroc | 1108 | 1.000 | 0.000 | 0.343 | 0.996 | 0.997 | 0.996 | 0.007 | 0.041 | 0.311 | 0.452 | 0.184 |
+| siglip_cal_10_epochs_s0/best_auroc | 1108 | 0.998 | 0.007 | 0.326 | 0.996 | 0.930 | 0.962 | 0.007 | 0.027 | 0.378 | 0.524 | 0.197 |
+| siglip_cal_10_epochs_s1/best_auroc | 1108 | 0.999 | 0.000 | 0.488 | 0.996 | 0.952 | 0.974 | 0.000 | 0.041 | 0.335 | 0.511 | 0.214 |
+| siglip_cal_10_epochs_s2/best_auroc | 1108 | 0.998 | 0.014 | 0.278 | 0.992 | 0.988 | 0.990 | 0.027 | 0.041 | 0.367 | 0.471 | 0.204 |
+| siglip_cal_ft4_10_epochs_s0/best_auroc | 1108 | 1.000 | 0.000 | 0.368 | 0.997 | 0.990 | 0.993 | 0.000 | 0.041 | 0.438 | 0.567 | 0.162 |
 | uiclip_cal_10_epochs_s0/best_auroc | 1108 | 0.994 | 0.000 | 0.179 | 0.995 | 0.969 | 0.982 | 0.014 | 0.027 | 0.382 | 0.427 | 0.207 |
 | uiclip_cal_10_epochs_s1/best_auroc | 1108 | 0.991 | 0.014 | 0.326 | 0.991 | 0.972 | 0.981 | 0.041 | 0.027 | 0.327 | 0.438 | 0.201 |
 | uiclip_cal_10_epochs_s2/best_auroc | 1108 | 0.994 | 0.014 | 0.116 | 0.985 | 0.984 | 0.985 | 0.068 | 0.041 | 0.384 | 0.450 | 0.204 |
@@ -21,6 +28,13 @@ Subset: val (data/processed/splits_placeholder_85_15.json; 73 pages, 1,108 pairs
 - clip_cal_10_epochs_s0/best_auroc: threshold max F1 on the scored predictions
 - clip_cal_10_epochs_s1/best_auroc: threshold max F1 on the scored predictions
 - clip_cal_10_epochs_s2/best_auroc: threshold max F1 on the scored predictions
+- clip_cal_ft4_10_epochs_s0/best_auroc: threshold max F1 on the scored predictions
+- clip_cal_ft4_10_epochs_s1/best_auroc: threshold max F1 on the scored predictions
+- clip_cal_ft4_10_epochs_s2/best_auroc: threshold max F1 on the scored predictions
+- siglip_cal_10_epochs_s0/best_auroc: threshold max F1 on the scored predictions
+- siglip_cal_10_epochs_s1/best_auroc: threshold max F1 on the scored predictions
+- siglip_cal_10_epochs_s2/best_auroc: threshold max F1 on the scored predictions
+- siglip_cal_ft4_10_epochs_s0/best_auroc: threshold max F1 on the scored predictions
 - uiclip_cal_10_epochs_s0/best_auroc: threshold max F1 on the scored predictions
 - uiclip_cal_10_epochs_s1/best_auroc: threshold max F1 on the scored predictions
 - uiclip_cal_10_epochs_s2/best_auroc: threshold max F1 on the scored predictions
