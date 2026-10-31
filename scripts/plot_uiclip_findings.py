@@ -2,14 +2,14 @@
 
 Reads the 10-epoch runs in outputs/ (metrics.json, best_auroc predictions),
 the scorer's per-run results in outputs/comparison/ and the batch logs in
-outputs/logs/, and writes figures to docs/figures/uiclip/:
+outputs/logs/, and writes figures to two folders under docs/figures/uiclip/:
 
-  1-6   first batch (scripts/run_uiclip_experiments.sh)
-  7-10  follow-up batch with CLIP fine-tuning and SigLIP
-        (scripts/run_clip_siglip_experiments.sh)
+  first_batch/      results of the first batch only (scripts/run_uiclip_experiments.sh)
+  all_experiments/  results of both batches, including CLIP fine-tuning and SigLIP
+                    (scripts/run_clip_siglip_experiments.sh)
 
-  python scripts/plot_uiclip_findings.py              # all figures
-  python scripts/plot_uiclip_findings.py --only 7 8   # just some
+  python scripts/plot_uiclip_findings.py                        # both folders
+  python scripts/plot_uiclip_findings.py --only all_experiments # just one
 
 Requires matplotlib (``pip install -e ".[figures]"``).
 """
@@ -318,6 +318,51 @@ def fig_curves(root: Path, out: Path) -> None:
     plt.close(fig)
 
 
+# Every experiment of both batches: name -> (label, backbone, encoder, benign pairs, calibration, seeds, batch)
+ALL_EXPERIMENTS = {
+    "uiclip_cal": ("UIClip, frozen", "UIClip", "Frozen", "Yes", "On", "3", "First"),
+    "uiclip_nocal": ("UIClip, frozen, no calibration", "UIClip", "Frozen", "Yes", "Off", "3", "First"),
+    "uiclip_cal_nobenign": ("UIClip, frozen, no benign pairs", "UIClip", "Frozen", "No", "On", "3", "First"),
+    "clip_cal": ("CLIP, frozen", "CLIP", "Frozen", "Yes", "On", "3", "First"),
+    "siglip_cal": ("SigLIP-512, frozen", "SigLIP-512", "Frozen", "Yes", "On", "3", "Follow-up"),
+    "uiclip_cal_ft4": ("UIClip, fine-tuned", "UIClip", "Last 4 of 12 blocks trained", "Yes", "On", "3", "First"),
+    "clip_cal_ft4": ("CLIP, fine-tuned", "CLIP", "Last 4 of 12 blocks trained", "Yes", "On", "3", "Follow-up"),
+    "siglip_cal_ft4": ("SigLIP-512, fine-tuned", "SigLIP-512", "Last 4 of 12 blocks trained", "Yes", "On", "1", "Follow-up"),
+}
+
+
+def fig_all_experiments(out: Path) -> None:
+    fig, ax = plt.subplots(figsize=(11.5, 5.0))
+    top = title(fig, "Eight experiments across two batches, 22 training runs",
+                "10 epochs per run; validated on 73 pages (1,108 pairs). Highlighted cells: settings that differ from "
+                "the first row. SigLIP-512 uses 512 px tiles and 16 px patches; UIClip and CLIP use 224 px tiles and 32 px patches.")
+    fig.subplots_adjust(top=top, bottom=0.04, left=0.02, right=0.98)
+    ax.axis("off")
+    columns = ["Experiment", "Backbone", "Encoder", "Benign pairs\nin training", "Self-\ncalibration", "Seeds", "Batch"]
+    rows = [list(v) for v in ALL_EXPERIMENTS.values()]
+    baseline = rows[0]
+    table = ax.table(cellText=rows, colLabels=columns, loc="center", cellLoc="left", colLoc="left",
+                     colWidths=[0.25, 0.11, 0.22, 0.12, 0.11, 0.07, 0.10], bbox=[0, 0, 1, 1])
+    table.auto_set_font_size(False)
+    for (r, c), cell in table.get_celld().items():
+        cell.set_edgecolor(GRID)
+        cell.set_linewidth(1)
+        cell.set_facecolor(SURFACE)
+        cell.PAD = 0.04
+        text = cell.get_text()
+        text.set_fontsize(10.5)
+        if r == 0:
+            text.set_color(INK_2)
+            text.set_fontweight("bold")
+            continue
+        text.set_color(INK)
+        if 1 <= c <= 4 and rows[r - 1][c] != baseline[c]:  # a setting this experiment varies
+            text.set_fontweight("bold")
+            cell.set_facecolor("#eef4fc")
+    fig.savefig(out / "1_experiments.png", dpi=200, bbox_inches="tight")
+    plt.close(fig)
+
+
 # Follow-up batch (scripts/run_clip_siglip_experiments.sh): every backbone, frozen and fine-tuned.
 BACKBONES = [("UIClip", "uiclip_cal", "uiclip_cal_ft4"), ("CLIP", "clip_cal", "clip_cal_ft4"),
              ("SigLIP-512", "siglip_cal", "siglip_cal_ft4")]
@@ -364,7 +409,7 @@ def fig_backbones(results: dict[str, list[dict]], out: Path) -> None:
                           label="Last 4 blocks fine-tuned (value shown)")]
     fig.legend(handles=handles, loc="lower center", ncol=2, fontsize=9.5, bbox_to_anchor=(0.5, 0.0))
     fig.subplots_adjust(top=top, wspace=0.18, left=0.09, right=0.99, bottom=0.2)
-    fig.savefig(out / "7_backbones_frozen_vs_finetuned.png", dpi=200)
+    fig.savefig(out / "2_backbones_frozen_vs_finetuned.png", dpi=200)
     plt.close(fig)
 
 
@@ -393,11 +438,11 @@ def fig_curves_by_backbone(root: Path, out: Path) -> None:
     axes[0].set_ylabel("Validation loss")
     axes[-1].legend(loc="upper right", fontsize=9.5)
     fig.subplots_adjust(top=top, wspace=0.08, left=0.06, right=0.99, bottom=0.14)
-    fig.savefig(out / "8_validation_loss_by_backbone.png", dpi=200)
+    fig.savefig(out / "3_validation_loss_by_backbone.png", dpi=200)
     plt.close(fig)
 
 
-def fig_confusion(root: Path, data_root: Path, out: Path, exp: str = "uiclip_cal_ft4") -> None:
+def fig_confusion(root: Path, data_root: Path, out: Path, exp: str, label: str, filename: str) -> None:
     records = {r["sample_id"]: r for r in json.loads((data_root / "master_dataset_with_benign.json").read_text())}
     names = [op for _, ops in FAMILIES for op in ops]
     index = {op: i for i, op in enumerate(names)}
@@ -416,11 +461,14 @@ def fig_confusion(root: Path, data_root: Path, out: Path, exp: str = "uiclip_cal
     exact = np.trace(counts) / counts.sum()
 
     fig, ax = plt.subplots(figsize=(10.5, 9))
-    top = title(fig, "Most type errors are between similar-looking changes",
-                f"Mutation type predicted for each true type (rows sum to 100%), UIClip with last 4 blocks fine-tuned, "
-                f"{len(runs)} seeds pooled ({int(counts.sum()):,} regression pairs). Exact type correct: {exact:.0%}; "
-                f"correct family: {same_family:.0%}. Boxes outline the five families. Layout changes are often "
-                "predicted as padding or font size.", below_pt=10)
+    off = [(share[i, j], names[i], names[j]) for i in range(len(names)) for j in range(len(names)) if i != j]
+    worst, true_name, predicted_name = max(off)
+    seeds = f"{len(runs)} seeds pooled" if len(runs) > 1 else "1 seed"
+    top = title(fig, f"{label}: most type errors are between similar-looking changes",
+                f"Mutation type predicted for each true type (rows sum to 100%), {label}, {seeds} "
+                f"({int(counts.sum()):,} regression pairs). Exact type correct: {exact:.0%}; correct family: "
+                f"{same_family:.0%}. Most common mistake: {true_name.replace('_', ' ')} predicted as "
+                f"{predicted_name.replace('_', ' ')} ({worst:.0%}). Boxes outline the five families.", below_pt=10)
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
         "blue", ["#f6f9fd", "#cde2fb", "#86b6ef", "#3987e5", "#256abf", "#184f95", "#0d366b"])
     image = ax.imshow(share, cmap=cmap, vmin=0, vmax=1)
@@ -447,7 +495,7 @@ def fig_confusion(root: Path, data_root: Path, out: Path, exp: str = "uiclip_cal
     bar.outline.set_visible(False)
     bar.ax.tick_params(length=0)
     fig.subplots_adjust(top=top, left=0.17, right=0.92, bottom=0.17)
-    fig.savefig(out / "9_type_confusion.png", dpi=200)
+    fig.savefig(out / filename, dpi=200)
     plt.close(fig)
 
 
@@ -495,49 +543,52 @@ def fig_runtime(root: Path, out: Path) -> None:
                matplotlib.patches.Patch(color=ORANGE, label="Without feature cache")]
     ax.legend(handles=handles, loc="upper right", fontsize=9.5)
     fig.subplots_adjust(top=top, left=0.2, right=0.97, bottom=0.14)
-    fig.savefig(out / "10_training_time.png", dpi=200)
+    fig.savefig(out / "5_training_time.png", dpi=200)
     plt.close(fig)
 
 
-FIGURES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+GROUPS = ["first_batch", "all_experiments"]
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--outputs", default="outputs")
     parser.add_argument("--data-root", default="d2c_v2")
-    parser.add_argument("--out", default="docs/figures/uiclip")
+    parser.add_argument("--out", default="docs/figures/uiclip", help="parent of the first_batch/ and all_experiments/ folders")
     parser.add_argument("--identical-seed", type=int, default=0, help="seed of the runs in the identical-pairs figure")
-    parser.add_argument("--only", nargs="+", choices=FIGURES, default=FIGURES,
-                        help="figure numbers to (re)draw; 1-6 cover the first batch, 7-10 the follow-up batch")
+    parser.add_argument("--only", nargs="+", choices=GROUPS, default=GROUPS, help="which figure folder(s) to draw")
     args = parser.parse_args()
 
-    root, out = Path(args.outputs), Path(args.out)
-    out.mkdir(parents=True, exist_ok=True)
+    root, data_root = Path(args.outputs), Path(args.data_root)
     style()
     results = load_results(root)
-    needed = set(EXPERIMENTS) if set(args.only) & set(FIGURES[:6]) else set()
-    if set(args.only) & {"7"}:
-        needed |= {e for _, frozen, tuned in BACKBONES for e in (frozen, tuned)}
+    needed = set(EXPERIMENTS) if "first_batch" in args.only else set()
+    if "all_experiments" in args.only:
+        needed |= set(ALL_EXPERIMENTS)
     missing = sorted(e for e in needed if not results.get(e))
     if missing:
         raise SystemExit(f"no scored runs in {root}/comparison for: {missing}")
 
-    draw = {
-        "1": lambda: fig_experiments(out),
-        "2": lambda: fig_benign(results, out),
-        "3": lambda: fig_metrics(results, out),
-        "4": lambda: fig_identical(root, Path(args.data_root), out, args.identical_seed),
-        "5": lambda: fig_types(results, out),
-        "6": lambda: fig_curves(root, out),
-        "7": lambda: fig_backbones(results, out),
-        "8": lambda: fig_curves_by_backbone(root, out),
-        "9": lambda: fig_confusion(root, Path(args.data_root), out),
-        "10": lambda: fig_runtime(root, out),
-    }
-    for number in args.only:
-        draw[number]()
-    print(f"drew figure(s) {', '.join(args.only)} in {out}")
+    if "first_batch" in args.only:
+        out = Path(args.out) / "first_batch"
+        out.mkdir(parents=True, exist_ok=True)
+        fig_experiments(out)
+        fig_benign(results, out)
+        fig_metrics(results, out)
+        fig_identical(root, data_root, out, args.identical_seed)
+        fig_types(results, out)
+        fig_curves(root, out)
+    if "all_experiments" in args.only:
+        out = Path(args.out) / "all_experiments"
+        out.mkdir(parents=True, exist_ok=True)
+        fig_all_experiments(out)
+        fig_backbones(results, out)
+        fig_curves_by_backbone(root, out)
+        for suffix, (exp, label) in zip("abc", [("uiclip_cal_ft4", "UIClip fine-tuned"), ("clip_cal_ft4", "CLIP fine-tuned"),
+                                                ("siglip_cal_ft4", "SigLIP-512 fine-tuned")]):
+            fig_confusion(root, data_root, out, exp, label, f"4{suffix}_type_confusion_{label.split()[0].split('-')[0].lower()}.png")
+        fig_runtime(root, out)
+    print(f"drew {', '.join(args.only)} figures under {args.out}")
 
 
 if __name__ == "__main__":
