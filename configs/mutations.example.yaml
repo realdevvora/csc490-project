@@ -1,0 +1,32 @@
+schema_version: 1
+
+render:
+  browser: chromium
+  viewport:
+    width: 1280
+    height: 800
+  device_scale_factor: 1.0
+
+generation:
+  random_seed: 490
+  mutations_per_page: null  # Deliberately unresolved; set per experiment.
+
+mutations:
+  font_size:
+    family: typography
+    status: planned
+    enabled: false
+  color:
+    family: appearance
+    status: planned
+    enabled: false
+  border_radius:
+    family: appearance
+    status: planned
+    enabled: false
+
+quality_gates:
+  require_candidate_image: true
+  require_visible_pixel_change: true
+  require_target_location: true
+  require_matching_dimensions: true

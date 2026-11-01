@@ -1,117 +1,98 @@
 # Regression Lens
 
-**Nuisance-Aware Semantic Visual Regression Detection for Web Interfaces**
+**Nuisance-aware semantic visual regression detection for web interfaces**
 
-CSC490 — Machine Learning for Vision
+Regression Lens is a CSC490 Machine Learning for Vision capstone project. Given a reference screenshot and a candidate screenshot of the same webpage, the project investigates whether a paired-image system can:
 
-## Problem Statement
+1. detect a meaningful visual regression;
+2. localize the changed region; and
+3. classify the kind of UI change.
 
-Visual regression testing is still largely a manual process: QA engineers and developers eyeball updated webpages looking for meaningful differences. This is slow, tedious, and error-prone.
+**Current phase:** repository bootstrap and data-pipeline design. No production data generator or model training pipeline exists yet.
 
-The core difficulty is that not every pixel difference is a bug. Browsers can render fonts, images, or anti-aliasing slightly differently even when a page is functioning correctly, while a small shift in a button's position, spacing, font size, opacity, or border radius can represent a genuine regression. A naive pixel-diff approach can't tell these apart.
+## Current direction
 
-This project asks a more useful question than "are these two images different?":
+- Design2Code webpages will provide source HTML for generated training and internal-evaluation pairs.
+- DiffSpot is reserved as an independent external generalization benchmark and is not training or model-selection data.
+- Intentional visible CSS/DOM mutations are regressions, regardless of whether the numerical change is small.
+- Benign/no-change examples are generated and labelled separately.
+- All examples derived from one source webpage belong to one dataset split.
+- Candidate approaches remain open: pixel difference, SSIM, LPIPS, DINOv2-based methods, ChangeFormer, and nuisance-aware variants.
 
-> **Is this difference meaningful, where is it, and what changed?**
+These commitments and their rationale are recorded in the [architecture decision records](docs/adr/README.md). Current unknowns and priorities are tracked in [project status](docs/project-status.md).
 
-We propose a model that, given an expected (reference) and actual (rendered) screenshot of the same web page, distinguishes benign rendering variation from real CSS/layout regressions, localizes the change, and classifies what kind of change it is (typography, layout, appearance, shape/chrome). The model is trained on programmatically mutated pairs generated from the [Design2Code](https://github.com/NoviScl/Design2Code) dataset and evaluated against the independent [DiffSpot](https://huggingface.co/datasets/tencent/DiffSpot) benchmark, with the goal of generalizing to web pages it has never seen before.
+## Intended pipeline
 
-## Team — Regression Lens
+```text
+Design2Code source webpage
+        -> controlled HTML/CSS mutation
+        -> reproducible Playwright rendering
+        -> reference/candidate screenshot pair
+        -> visibility and quality checks
+        -> structured metadata and page-level split
+        -> candidate model training and internal evaluation
+        -> frozen model
+        -> DiffSpot external evaluation
+```
+
+The project proposal is available at [Regression_Lens_CSC490_Project_Report_Final_Illustrated.pdf](Regression_Lens_CSC490_Project_Report_Final_Illustrated.pdf).
+
+## Repository layout
+
+```text
+.
+|- configs/                       # versioned example configuration
+|- data/README.md                 # local-data policy (datasets stay out of Git)
+|- docs/                          # architecture, data, evaluation, status, scope, ADRs
+|- src/regression_lens/
+|  |- data/                       # generated-pair metadata contract
+|  |- mutations/                  # mutation provenance and interface
+|  |- rendering/                  # reproducible render configuration
+|  |- models/                     # future paired-image model adapters
+|  `- evaluation/                 # future metric adapters
+|- tests/                         # tests for the stable scaffold contracts
+`- .github/pull_request_template.md
+```
+
+Generated data, browser artifacts, experiment outputs, and checkpoints are ignored by Git. The repository should contain code, versioned configuration, manifests, aggregate results, and documentation—not screenshot corpora or model weights.
+
+## Setup
+
+Python 3.10 or newer is required. The current package has no runtime dependencies; the development extra installs the tools needed for scaffold validation.
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+python -m pytest
+```
+
+Playwright and data/model dependencies will be added with the first implementation that uses them. Dataset downloads are intentionally not automated during this bootstrap phase.
+
+## Documentation
+
+- [Project overview](docs/project-overview.md)
+- [Architecture](docs/architecture.md)
+- [Data design](docs/data-design.md)
+- [Experiment protocol](docs/experiment-protocol.md)
+- [Project status](docs/project-status.md)
+- [Scope and roadmap](docs/scope-and-roadmap.md)
+- [Architecture decision records](docs/adr/README.md)
+
+## Team
 
 - Abuzar Ansari
 - Abdullah Safi
 - Zehao Fan
 - Dev Vora
 
-## Repository Conventions
+## Collaboration conventions
 
-### Branch Naming
+Use `<name>-<work-item>` in kebab case for branches, for example `abdullah-mutation-pipeline`. Use concise imperative commit summaries and include a body when the decision or experiment context is not obvious from the diff.
 
-Branches must be prefixed with your name, followed by what you're working on, in **kebab-case**:
+Open pull requests into `main`, complete the pull-request checklist, and obtain at least one team review before merging. Changes to dataset roles, label semantics, split strategy, evaluation protocol, or committed scope must update the relevant documentation and usually require an ADR.
 
-```
-<name>-<what-you-are-working-on>
-```
+## Next milestone
 
-Example:
-
-```
-abdullah-data-mutation-pipeline
-```
-
-### Commit Message Conventions
-
-Include a meaningful description of the change, with an optional body. Keep the description short and in the imperative mood (e.g. "add", not "added" or "adds"). Use the commit body for additional context when needed.
-
-#### Examples
-
-Simple, one-line commit:
-
-```
-Update README with data setup instructions
-```
-
-Commits with a body for extra context:
-
-```
-Filter out mutations with no visible pixel change
-
-Some CSS mutations (e.g. tiny opacity shifts) produced no
-detectable difference after rendering. These were polluting
-the labeled dataset, so we now discard them during generation.
-```
-
-### Pull Requests
-
-- Open a pull request (PR) into `main` when your branch is ready for review.
-- Follow the pull request template (to be created)
-- Squashing commits is optional but highly recommended if you have many small commits that will add lots of clutter to the commit history.
-- At least one other team member should review before merging.
-
-## Installation
-
-> _TODO: Fill in once the environment and dependencies are finalized._
-
-```bash
-# TODO: clone the repo
-# TODO: create and activate virtual environment
-# TODO: pip install -r requirements.txt
-```
-
-## Data Setup
-
-> _TODO: Instructions for downloading/generating Design2Code and DiffSpot data, and running the mutation pipeline._
-
-```bash
-# TODO: download Design2Code dataset
-# TODO: download DiffSpot dataset
-# TODO: run mutation generation script (Playwright-based)
-```
-
-## Usage
-
-> _TODO: Add examples once training/inference scripts exist._
-
-```bash
-# TODO: train a model
-# TODO: run evaluation on DiffSpot
-# TODO: run inference on a single image pair
-```
-
-## Repository Structure
-
-> _TODO: Fill in once the repo layout is settled (e.g. `data/`, `models/`, `scripts/`, `eval/`)._
-
-```
-.
-├── README.md
-├── TODO/
-```
-
-## Models
-
-> _TODO: List models under active investigation (DINOv2, ChangeFormer, and variants) and where their code/configs live._
-
-## Evaluation
-
-> _TODO: Document metrics (accuracy, localization IoU, change-type classification accuracy, etc.) and how to reproduce results._
+Render a manually inspected subset of 10–20 Design2Code pages with Playwright and implement one controlled mutation end to end. Do not scale generation until rendering reproducibility, metadata, source-page splits, and visible-change checks are trusted.
