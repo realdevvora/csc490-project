@@ -1,8 +1,9 @@
 import json
+from pathlib import Path
 
 import pytest
 
-from regression_lens.data.splits import load_or_create_split, make_page_split
+from regression_lens.data.splits import TEAM_SPLIT, load_or_create_split, load_split, make_page_split
 
 
 def _records(n_pages: int) -> list[dict[str, str]]:
@@ -38,3 +39,16 @@ def test_load_or_create_split_rejects_overlap(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="both"):
         load_or_create_split(path, _records(2))
+
+
+def test_load_split_requires_the_file(tmp_path) -> None:
+    with pytest.raises(FileNotFoundError):
+        load_split(tmp_path / "missing.json", _records(2))
+
+
+def test_team_split_is_page_disjoint_and_complete() -> None:
+    split = json.loads((Path(__file__).parents[1] / TEAM_SPLIT).read_text())
+
+    assert len(split["train"]) == 411 and len(split["val"]) == 73
+    assert not set(split["train"]) & set(split["val"])
+    assert len(set(split["train"]) | set(split["val"])) == 484

@@ -64,7 +64,7 @@ from torch.utils.data import DataLoader
 
 from regression_lens.data.feature_cache import FeatureCache, build_feature_cache
 from regression_lens.data.pairs import PairDataset, first_item, load_records, operator_names, patches_to_cells
-from regression_lens.data.splits import load_or_create_split
+from regression_lens.data.splits import TEAM_SPLIT, load_split
 from regression_lens.evaluation.metrics import largest_component_box, peak_point
 from regression_lens.evaluation.scoring import FORMAT_VERSION, score_predictions, write_predictions
 from regression_lens.models.uiclip import UICLIP_CHECKPOINT, SiameseDetector, detector_loss, encoder_info
@@ -74,8 +74,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--exp", required=True, help="run name under outputs/")
     parser.add_argument("--data-root", default="d2c_v2")
-    parser.add_argument("--split", default="data/processed/splits_placeholder_85_15.json",
-                        help="page split JSON; created (seeded 85/15) if it does not exist")
+    parser.add_argument("--split", default=TEAM_SPLIT, help="page split JSON (default: the team split)")
     parser.add_argument("--checkpoint", default=UICLIP_CHECKPOINT)
     parser.add_argument("--train-last-n", type=int, default=0, help="encoder blocks to fine-tune")
     parser.add_argument("--no-self-calibration", action="store_true",
@@ -212,7 +211,7 @@ def main() -> None:
     out.mkdir(parents=True, exist_ok=True)
 
     records = load_records(args.data_root)
-    split = load_or_create_split(args.split, records)
+    split = load_split(args.split, records)
     train_pages, val_pages = split["train"], split["val"]
     if args.limit_pages:
         train_pages, val_pages = train_pages[: args.limit_pages], val_pages[: args.limit_pages]
