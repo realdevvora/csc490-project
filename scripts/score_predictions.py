@@ -31,6 +31,7 @@ from typing import Any
 import numpy as np
 
 from regression_lens.data.pairs import load_records, operator_names
+from regression_lens.data.splits import TEAM_SPLIT
 from regression_lens.evaluation.metrics import best_f1_threshold
 from regression_lens.evaluation.scoring import load_predictions, score_predictions
 
@@ -40,7 +41,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("predictions", nargs="+", help="JSON Lines prediction files")
     parser.add_argument("--names", nargs="+", help="display names (default: parent folder or file stem)")
     parser.add_argument("--data-root", default="d2c_v2")
-    parser.add_argument("--split", default="data/processed/splits_placeholder_85_15.json")
+    parser.add_argument("--split", default=TEAM_SPLIT, help="page split JSON (default: the team split)")
     parser.add_argument("--subset", default="val",
                         help="split key the predictions must cover, or 'all' for every pair")
     thresholds = parser.add_mutually_exclusive_group()
@@ -121,8 +122,8 @@ def main() -> None:
         if args.subset not in split:
             sys.exit(f"split file has no {args.subset!r} key (has: {', '.join(split)})")
         pages = set(split[args.subset])
+        # Keep every record so pairs outside the subset are reported as such, not as unknown.
         expected_ids = [r["sample_id"] for r in records if r["parent_id"] in pages]
-        records = [r for r in records if r["parent_id"] in pages]
 
     fixed = per_file(args.threshold, len(paths), "--threshold")
     sources = per_file(args.threshold_from, len(paths), "--threshold-from")
