@@ -48,7 +48,7 @@ The network learns from a per-pixel answer key. We have to build it.
 | Image-level label only | Nothing per pixel | Drops the model's main training signal; needs extra parts |
 | **Exact pixel diff (chosen)** | Every pixel that differs | Covers moved content for layout changes |
 
-**What label (not built yet):** 14 classes instead of the original yes/no. Class 0 is "not a regression"; classes 1–13 are the regression types. The model is set up with `SiamUnet_diff(3, 14)`. The notebook currently trains the 2-class version.
+**What label:** 14 classes instead of the original yes/no. Class 0 is "not a regression"; classes 1–13 are the regression types. The model is set up with `SiamUnet_diff(3, 14)`.
 
 **Rule.**
 - In a regression pair, each pixel where any colour channel differs gets that pair's regression type.
@@ -58,7 +58,7 @@ The network learns from a per-pixel answer key. We have to build it.
 - **The "where" reproduces the dataset's own numbers.** The pixel-diff rule gives exactly the `changed_px` and `diff_bbox` values on all 7,271 pairs. So the target is the dataset's existing definition of change, not a threshold we picked.
 - **Benign differences are labelled "not a regression".** That's the core teaching signal: it tells the model that browser differences don't count.
 - **13 types, not yes/no, to flag only what's on the list.** A difference that resembles none of the types falls into class 0.
-- **It fixes an imbalance in the yes/no setup.** On training pages, padding, width and margin make up 54% of all changed pixels; text_color, font_weight and border_radius together make up 2.5%. A single "changed" class is effectively trained on layout changes. With one class per type and its own loss weight (section 2.4), a text-colour change counts as much as a padding change.
+- **It fixes an imbalance in the yes/no setup.** On training pages, padding, width and margin make up 54% of all changed pixels; text_color, font_weight and border_radius together make up 2.5%. A single "changed" class is effectively trained on layout changes. With one class per type and its own loss weight (section 2.4), rare types like text-colour changes are no longer drowned out by padding changes.
 - **It gives the `category` output for free**, with no extra model head.
 
 **Trade-offs.**
@@ -78,8 +78,8 @@ Screenshots are up to 1304 × 3278 px; a typical regression covers about 50 × 5
 
 | Option | How it works | Trade-off |
 |---|---|---|
-| **Squares where the images differ (chosen; not built yet)** | 16 squares of 96 × 96 px per pair, centred on differing pixels | Full detail; training time goes to differences, including browser noise |
-| Random squares (current notebook default) | 16 random 96 × 96 px squares per pair per pass | Full detail; fast; most squares show no change |
+| **Squares where the images differ (chosen, default)** | 16 squares of 96 × 96 px per pair, centred on differing pixels | Full detail; training time goes to differences, including browser noise |
+| Random squares (baseline) | 16 random 96 × 96 px squares per pair per pass | Full detail; fast; most squares show no change |
 | All squares (original code) | Every 96 px square, overlapping by half; about 780 per pair | Full detail, but 49× more work per pass (4.8M squares) |
 | Whole page, shrunk | Page resized to 1024 × 512 | Fast and simple, but small changes shrink to a few pixels |
 
@@ -95,12 +95,15 @@ All modes sit behind one setting (`INPUT_MODE`), so we can switch and compare wi
 
 ### 2.4 Training recipe and guardrails
 - **Recipe from the original notebook:** weighted per-pixel loss, Adam with weight decay 1e-4, learning rate decaying 5% per pass, batch 32, 50 passes.
-- **Loss weights per type (not built yet).** The original formula weights two classes. We extend it to one weight per type, computed from the same `changed_px` counts on training pages only. That's about 5 lines of new code. The current 2-class version weights a changed pixel about 10× as much as an unchanged one (`FP_MODIFIER = 10`).
+- **Loss weights per type, tunable.** The original formula weights two classes: "not a regression" at 0.20 and "changed" at 1.98 on our training pages (`FP_MODIFIER = 10`). We keep the "not a regression" weight and split the "changed" weight across the 13 types, using the `changed_px` counts on training pages only. The combined weight on regression pixels stays the same as in the original formula.
+  - `TYPE_WEIGHT_POWER` sets how strongly rare types are boosted. At 0 every type gets 1.98, as in the original. At 1 each type carries the same total weight, which gives padding 0.62 and border_radius 165. The default of 0.5 gives padding 1.26, text_color 6.6 and border_radius 20.
+  - `TYPE_WEIGHT_OVERRIDE` sets one type's weight by hand, e.g. `{'border_radius': 20}`.
+  - Both are tuned on validation pages using per-type accuracy, and changing them needs retraining.
 - **Split by page, from `splits_85_15.json`:** 411 training pages, 73 validation pages. Every variant of a page stays on one side, consistent with ADR 0003.
 - **Pixels only.** The network receives image tensors and nothing else. File names (which contain the label), sizes and browser names are used only to build targets. Every image is converted to plain RGB, which removes a leak we found: all Firefox and WebKit screenshots carry a transparency channel that no other screenshot has.
 - **Model selection on validation pages**, not on training data as the original notebook did. The best checkpoint is chosen by pixel-level F1.
 
-### 2.5 The pixel diff as a veto at evaluation (not built yet)
+### 2.5 The pixel diff as a veto at evaluation
 The raw pixel diff can stop a flag, never cause one. Behind a `GATE_WITH_DIFF` switch, so results are reported with and without it:
 - **No difference, no flag.** This is exact on this dataset: all 484 `no_change` pairs have zero differing pixels, and every regression has at least one.
 - **No flag on identical pixels.** The model's output is limited to pixels that differ, since the training target never marks an identical pixel. This removes stray flags, which would otherwise raise the page's score and stretch its box.
@@ -112,7 +115,7 @@ Whether a difference is a regression, and which type, is always the model's deci
 ## 3. Results, cost and risks
 
 ### 3.1 What has been run
-A smoke test only: the three built input modes, 2 passes, 4–6 pairs, on a laptop CPU, with the 2-class target. It confirms that the pieces connect, masks match the dataset on a random sample, checkpoints save, and the metrics compute. Resuming from a checkpoint has not been exercised yet. **It says nothing about model quality.**
+A smoke test only: all four input modes, 1 pass, 3–6 training pairs and 5 validation pairs, on a laptop CPU, with the 14-class target. It confirms that the pieces connect, targets match the dataset on a random sample, checkpoints save, the metrics compute, and the prediction file has one line per validation pair. Resuming from a checkpoint has not been exercised yet. **It says nothing about model quality.**
 
 ### 3.2 What to expect from a small first run
 Run first on a small subset (e.g. 20 pages) before the full set.
@@ -130,7 +133,7 @@ Run first on a small subset (e.g. 20 pages) before the full set.
   - Type macro-F1.
   - Pointing accuracy and box overlap with `diff_bbox`.
   - Recall by family, change size and reflow.
-- Our own extra: family-level accuracy and a margin/padding confusion check (not built yet).
+- Our own extra, logged every pass: type and family accuracy, per-type accuracy, and the share of correctly flagged pixels with the right type. A margin/padding confusion check is not built yet.
 
 ### 3.3 Time and resources for the full run
 Target machine: RTX 4080 (16 GB), i7-13700, 64 GB RAM.
@@ -155,14 +158,14 @@ Data loading, not the GPU, is the expected bottleneck.
 4. **The white padding band can still reveal a size mismatch**, which correlates with the label. The design doc's audits (size-stratified accuracy, metadata-only baseline) should be run before results are trusted.
 5. **Dataset-specific shortcut.** "Different browser means benign" holds for every benign pair here, but not in DiffSpot. Good validation scores that collapse on DiffSpot would point to this.
 6. **No internal test set.** Validation pages select the checkpoint, tune N and the pixel threshold, and report results, so DiffSpot is the only unbiased score.
-7. **Third-party code license.** The upstream repo has no license, so `siamunet_diff.py` is not committed. The team needs to decide whether to vendor it with attribution.
+7. **Third-party code license.** The upstream repo has no license. `siamunet_diff.py` is included unmodified with attribution to its source, for coursework use.
 
 ## 4. Out of scope for this change
 Description text, the size and metadata audits, and DiffSpot evaluation. These follow once a full training run exists. Pixel-level overlap scores are not in the shared scorer yet, so mask quality is reported only in our own notebook.
 
 ---
 
-## 5. Output specification (not built yet)
+## 5. Output specification
 After training, the model is run on every validation page and its output is written in the team's shared prediction format, so it is scored by the same scorer as the other three models. That format and its metrics are defined in the shared scoring spec; this section only says how FC-Siam-diff fills it.
 
 ### 5.1 From the model to the file

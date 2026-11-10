@@ -1,0 +1,7 @@
+# Install torch first from the wheel index matching the machine's CUDA version (see README)
+torch>=2.6
+numpy>=2.2
+pillow>=12.0
+scipy>=1.15
+tqdm>=4.67
+jupyter
