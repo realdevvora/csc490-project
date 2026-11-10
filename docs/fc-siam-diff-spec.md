@@ -26,7 +26,7 @@ The model code and training recipe are reused as-is. Our work is in the data lay
 2. At each level, the network takes the absolute difference between the two images' descriptions. Differences in *features*, not raw pixels, are what let it learn that some pixel differences (anti-aliasing, font hinting) don't matter.
 3. A decoder turns those differences back into a full-resolution map that labels every pixel as "not a regression" or one of the 13 types.
 
-**From map to verdict.** The model outputs, for every pixel, a confidence for each of the 14 classes. Separate, swappable rules turn that into one regression score per page, the most likely type, and where the change is (section 2.6). The yes/no threshold on the score is set by the shared scorer on validation pages, not by us. Description text stays with the later stages in the high-level design.
+**From map to verdict.** The model outputs, for every pixel, a confidence for each of the 14 classes. Separate, swappable rules turn that into one regression score per page, the most likely type, and where the change is (section 5). The yes/no threshold on the score is set by the shared scorer on validation pages, not by us. Description text stays with the later stages in the high-level design.
 
 **Why this model.** It is small (1.35M parameters), fully convolutional (works on any page size), and designed for exactly this "two images, what changed" setup. It takes the number of output classes as a setting, so a 13-type classifier needs no change to the model code. It is the cheapest credible learned baseline to compare against pixel diff, SSIM and the larger models on the roadmap.
 
@@ -34,7 +34,7 @@ The model code and training recipe are reused as-is. Our work is in the data lay
 
 ## 2. Adapting the model to web screenshots
 
-The original code expects satellite image pairs that are the same size, with a hand-drawn yes/no change map. Our data has neither: screenshot sizes often differ, there are no change maps, and we need 13 types rather than yes/no, and the result has to fit the team's prediction format. Six decisions follow.
+The original code expects satellite image pairs that are the same size, with a hand-drawn yes/no change map. Our data has neither: screenshot sizes often differ, there are no change maps, and we need 13 types rather than yes/no. Five decisions follow.
 
 ### 2.1 What the model learns to mark (the training target)
 The network learns from a per-pixel answer key. We have to build it.
@@ -107,30 +107,6 @@ The raw pixel diff can stop a flag, never cause one. Behind a `GATE_WITH_DIFF` s
 
 Whether a difference is a regression, and which type, is always the model's decision.
 
-### 2.6 From the pixel map to the prediction file (not built yet)
-Every model on the team writes the same prediction file: one JSON line per validation pair with `sample_id`, `score`, `op_pred`, `box` and `point`. The shared scorer (`scripts/score_predictions.py`, currently on the `abdullah-clip-model-evaluation` branch) computes the metrics. Our model ends at a confidence map of 14 × page height × page width. Each field comes from it through its own rule, chosen by a setting, so rules can be swapped without retraining.
-
-A pixel's *regression confidence* is 1 minus its "not a regression" probability. A pixel is *flagged* if its regression confidence is above a pixel threshold.
-
-| Field | Default rule | Alternatives to compare |
-|---|---|---|
-| `score` | Mean regression confidence of the N most confident pixels | Highest single pixel; confidence-weighted count of flagged pixels |
-| `op_pred` | Type with the largest share of flagged pixels | Vote weighted by confidence; type of the most confident region |
-| `box` | Box around all flagged pixels | Box around the largest connected region (`largest_component_box` in the shared code, at 1 px per cell) |
-| `point` | Most confident flagged pixel | Centre of the topmost flagged region |
-
-**Why.**
-- **The score must be continuous.** The scorer's main numbers (AUROC, regression vs benign; benign false-alarm rate at 95% recall) don't use a threshold, and it picks the yes/no threshold itself from validation predictions. A flagged-pixel count with a fixed cut-off would throw that information away. Averaging the top N pixels instead of taking the single highest keeps one stray pixel from deciding the page.
-- **One type per page is enough here.** Every regression pair in the dataset has exactly one mutation, so the largest share is a fair rule. `op_pred` must be one of the 13 names. Family-level fallbacks and second-choice types can go in extra fields, which the scorer ignores, for our own analysis.
-- **Box around all flagged pixels by default.** `diff_bbox` is the box around every differing pixel (section 2.1), so boxing every flagged pixel should overlap it better than boxing only the largest region. This is an expectation, not a measurement; both are compared.
-- **Topmost region as a point option, for reflow.** For pairs where content was pushed down, the scorer checks the point against the edited element's new position (`bbox_after`), not the whole moved area. The edit sits above what it pushes, so the topmost region should find it.
-
-**Rules the prediction file imposes.**
-- **No labels at prediction time.** The training loader uses the pair's label to build its target. The prediction writer must load only the two images. Otherwise it would break the format's rule to predict every pair without seeing its label.
-- **Every validation pair, once.** 1,083 lines: 864 regression, 73 `no_change` and 146 `benign`.
-- **Coordinates in original pixels.** Padding is anchored at the top-left and pages aren't resized, so map pixels are screenshot pixels as they are. The exception is whole-page training mode, which shrinks pages, so its coordinates must be scaled back.
-- **Tuned on validation pages only.** N and the pixel threshold are chosen on validation pages. For test or DiffSpot predictions, the scorer takes the yes/no threshold from our validation file (`--threshold-from`).
-
 ---
 
 ## 3. Results, cost and risks
@@ -183,3 +159,58 @@ Data loading, not the GPU, is the expected bottleneck.
 
 ## 4. Out of scope for this change
 Description text, the size and metadata audits, and DiffSpot evaluation. These follow once a full training run exists. Pixel-level overlap scores are not in the shared scorer yet, so mask quality is reported only in our own notebook.
+
+---
+
+## 5. Output specification (not built yet)
+After training, the model is run on every validation page and its output is written in the team's shared prediction format, so it is scored by the same scorer as the other three models. That format and its metrics are defined in the shared scoring spec; this section only says how FC-Siam-diff fills it.
+
+### 5.1 From the model to the file
+1. **Model output.** For each pair, a confidence map of 14 × page height × page width: for every pixel, a probability for "not a regression" and each of the 13 types, summing to 1. The network gives log-probabilities, so they are exponentiated first.
+2. **Veto (optional, section 2.5).** With `GATE_WITH_DIFF` on, pixels where the two screenshots are identical are set to "not a regression".
+3. **Evaluation rules.** Four swappable rules (section 5.3) reduce the map to one line of the file.
+4. **File.** One JSON line per pair, written to `fc_siam_diff_val.jsonl` (and `fc_siam_diff_test.jsonl` when there is a test subset).
+
+### 5.2 Fields
+| Field | Type | What FC-Siam-diff writes |
+|---|---|---|
+| `sample_id` | string | The pair's `sample_id` from the metadata |
+| `score` | number in [0, 1] | Regression confidence of the page (rule below) |
+| `op_pred` | one of the 13 type names | Most likely regression type; written for every pair, but scored only on true regressions |
+| `box` | `[x, y, w, h]` | Main changed region, in original screenshot pixels; `null` if no pixel is flagged |
+| `point` | `[x, y]` | Single most likely changed location, in original screenshot pixels; `null` if no pixel is flagged |
+| `model` | string | `"fc_siam_diff"` plus the run name; ignored by the scorer |
+| `op_family`, `op_second` | string | Family of `op_pred` and second-choice type, for our own analysis; ignored by the scorer |
+
+### 5.3 Evaluation rules
+A pixel's *regression confidence* is 1 minus its "not a regression" probability. A pixel is *flagged* if its regression confidence is above a pixel threshold.
+
+| Field | Default rule | Alternatives to compare |
+|---|---|---|
+| `score` | Mean regression confidence of the N most confident pixels | Highest single pixel; confidence-weighted count of flagged pixels |
+| `op_pred` | Type with the largest share of flagged pixels | Vote weighted by confidence; type of the most confident region |
+| `box` | Box around all flagged pixels | Box around the largest connected region (`largest_component_box` in the shared code, at 1 px per cell) |
+| `point` | Most confident flagged pixel | Centre of the topmost flagged region |
+
+Each rule is chosen by a setting, so rules can be swapped and compared without retraining. If no pixel is flagged, `op_pred` falls back to the type with the highest total confidence over the page.
+
+**Why.**
+- **The score must be continuous.** The scorer's main numbers (AUROC, regression vs benign; benign false-alarm rate at 95% recall) don't use a threshold, and it picks the yes/no threshold itself from validation predictions. Averaging the top N pixels instead of taking the single highest keeps one stray pixel from deciding the page.
+- **One type per page is enough here.** Every regression pair in the dataset has exactly one mutation, so the largest share is a fair rule.
+- **Box around all flagged pixels by default.** `diff_bbox` is the box around every differing pixel (section 2.1), so boxing every flagged pixel should overlap it better than boxing only the largest region. This is an expectation, not a measurement; both are compared.
+- **Topmost region as a point option, for reflow.** For pairs where content was pushed down, the scorer checks the point against the edited element's new position (`bbox_after`), not the whole moved area. The edit sits above what it pushes, so the topmost region should find it.
+
+### 5.4 Requirements on the output
+- **No labels at prediction time.** The training loader uses the pair's label to build its target. The prediction step loads only the two images.
+- **Every validation pair, exactly once.** 1,083 lines: 864 regression, 73 `no_change` and 146 `benign`.
+- **Coordinates in original pixels.** Padding is anchored at the top-left and pages aren't resized, so map pixels are screenshot pixels as they are. In whole-page training mode, pages are shrunk, so coordinates are scaled back before writing.
+- **Settings tuned on validation pages only.** N, the pixel threshold and the rule choices are picked on validation pages. For test or DiffSpot predictions, the scorer takes the yes/no threshold from our validation file (`--threshold-from`).
+- **Settings recorded.** The run's `config.json` stores the rule choices, N and the pixel threshold next to the prediction file.
+
+### 5.5 Example lines
+Illustrative values only.
+```json
+{"sample_id": "d2c_000_font_weight", "score": 0.94, "op_pred": "font_weight", "box": [212.0, 388.0, 340.0, 42.0], "point": [301.0, 405.0], "model": "fc_siam_diff", "op_family": "typography", "op_second": "font_size"}
+{"sample_id": "d2c_000_firefox", "score": 0.12, "op_pred": "padding", "box": null, "point": null, "model": "fc_siam_diff", "op_family": "layout", "op_second": "margin"}
+{"sample_id": "d2c_000_identical", "score": 0.0, "op_pred": "padding", "box": null, "point": null, "model": "fc_siam_diff", "op_family": "layout", "op_second": "margin"}
+```
