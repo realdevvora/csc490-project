@@ -46,23 +46,29 @@ The network learns from a per-pixel answer key. We have to build it.
 | Rectangle around all differing pixels (`diff_bbox`) | A filled box | Coarse; for a layout change it covers most of the page |
 | Rectangle around the edited element (`bbox_before`/`after`) | Only the mutated element | Misses content that moved as a result |
 | Image-level label only | Nothing per pixel | Drops the model's main training signal; needs extra parts |
-| **Exact pixel diff (chosen)** | Every pixel that differs | Covers moved content for layout changes |
+| Exact pixel diff (run 1) | Every pixel that differs | Moved content outvotes the edit and teaches the wrong types (section 3.1) |
+| **Pixel diff inside the edited element (chosen)** | Differing pixels inside `bbox_before` or `bbox_after`; other differing pixels get no answer | Moved content is neither rewarded nor punished |
 
 **What label:** 14 classes instead of the original yes/no. Class 0 is "not a regression"; classes 1–13 are the regression types. The model is set up with `SiamUnet_diff(3, 14)`.
 
 **Rule.**
-- In a regression pair, each pixel where any colour channel differs gets that pair's regression type.
-- Everything else is class 0, including every difference in `benign` and `no_change` pairs.
+- In a regression pair, each differing pixel inside the edited element's box, before or after the edit, gets that pair's regression type. A pixel differs if any colour channel differs.
+- Differing pixels outside that box (content that only moved) get no answer: they add nothing to the loss and are left out of pixel metrics.
+- Every differing pixel in a `benign` or `no_change` pair is class 0 with its own loss weight (section 2.4).
+- Identical pixels are class 0.
+- `LABEL_MOVED_CONTENT = True` restores the run-1 rule, where every differing pixel of a regression gets its type.
 
 **Why.**
 - **The "where" reproduces the dataset's own numbers.** The pixel-diff rule gives exactly the `changed_px` and `diff_bbox` values on all 7,271 pairs. So the target is the dataset's existing definition of change, not a threshold we picked.
 - **Benign differences are labelled "not a regression".** That's the core teaching signal: it tells the model that browser differences don't count.
+- **Moved content gets no answer.** In run 1 every moved pixel was labelled with the edit's type. Moved text looks the same whatever moved it, so the model learned to call it `letter_spacing` or `position`, and those labels outvoted the edit on most layout pages: margin and padding were never predicted. Labelling moved content "not a regression" instead would contradict the type label on the same kind of pixels in other pairs. So it gets no answer either way. On the dataset, the median share of a regression's differing pixels inside the element's box is 100% for non-reflow pairs and 4.4% for reflow pairs. 120 regressions (2%) have no differing pixels inside the box and contribute no type labels.
 - **13 types, not yes/no, to flag only what's on the list.** A difference that resembles none of the types falls into class 0.
 - **It fixes an imbalance in the yes/no setup.** On training pages, padding, width and margin make up 54% of all changed pixels; text_color, font_weight and border_radius together make up 2.5%. A single "changed" class is effectively trained on layout changes. With one class per type and its own loss weight (section 2.4), rare types like text-colour changes are no longer drowned out by padding changes.
 - **It gives the `category` output for free**, with no extra model head.
 
 **Trade-offs.**
-- For layout regressions that push content down (about 6% of regressions), the target covers everything that moved, not only the edited element. Localization will be broad for those cases.
+- The model is never told what moved content is. At test time it may still flag it, with any type, so localization and the page vote can be noisy for layout regressions that push content down (about 6% of regressions). The `region` and `topmost` rules (section 5.3) are the fallback.
+- The element boxes come from the mutation records. When a box misses the visible change (the 120 pairs above), that pair teaches no type.
 - Look-alike types such as margin and padding may be confused. Results are reported at both type and family level.
 - border_radius is thin (171 training pairs, 0.1% of changed pixels) and will be the least reliable type.
 
@@ -78,27 +84,30 @@ Screenshots are up to 1304 × 3278 px; a typical regression covers about 50 × 5
 
 | Option | How it works | Trade-off |
 |---|---|---|
-| **Squares where the images differ (chosen, default)** | 16 squares of 96 × 96 px per pair, centred on differing pixels | Full detail; training time goes to differences, including browser noise |
-| Random squares (baseline) | 16 random 96 × 96 px squares per pair per pass | Full detail; fast; most squares show no change |
-| All squares (original code) | Every 96 px square, overlapping by half; about 780 per pair | Full detail, but 49× more work per pass (4.8M squares) |
+| **Squares where the images differ (chosen, default)** | 16 squares per pair, centred on differing pixels that have an answer | Full detail; training time goes to edits and browser noise |
+| Random squares (baseline) | 16 random squares per pair per pass | Full detail; fast; most squares show no change |
+| All squares (original code) | Every square, overlapping by half; about 780 per pair at 96 px | Full detail, but 49× more work per pass at 96 px |
 | Whole page, shrunk | Page resized to 1024 × 512 | Fast and simple, but small changes shrink to a few pixels |
 
 All modes sit behind one setting (`INPUT_MODE`), so we can switch and compare without code changes. Whatever the training mode, evaluation always runs the model on whole pages (shrunk, in whole-page mode), because the network accepts any image size.
 
-**Rule.** All 16 squares per pair are centred on pixels where the two screenshots differ. `no_change` pairs where nothing differs (467 of 484) fall back to random squares, so the model still sees "identical means not a regression". A setting can mix in random squares if the model misbehaves on unchanged areas; it starts at 0.
+**Rule.** All 16 squares per pair are centred on pixels where the two screenshots differ and that have an answer, so moved content doesn't use them up. Pairs with no such pixel, such as the 467 identical `no_change` pairs, fall back to random squares, so the model still sees "identical means not a regression". A setting can mix in random squares if the model misbehaves on unchanged areas; it starts at 0.
+
+**Square size: 192 px (run 1 used the original 96).** A 96 px square around a margin, padding or font-size edit often shows only "text moved"; telling them apart needs the element's edges and where the shift starts. A 192 px square shows 4× the area. The model is fully convolutional, so the size is a setting (`SQUARE`, a multiple of 16).
 
 **Why.**
 - **Random squares waste most of the training.** Only about 1% of training pixels are changed, so random squares mostly land where nothing differs. Loss weighting doesn't fix that: it only makes changed pixels count more once a square happens to contain them.
-- **Squares are chosen by the raw difference, not the label.** That gives the model the examples that matter: real changes in regression pairs, and browser noise labelled "not a regression" in benign pairs. Choosing by the regression label would put "something differs" squares only in regression pairs and teach the shortcut "any visible difference is a regression".
+- **Squares are chosen by the difference, not the regression label.** That gives the model the examples that matter: real edits in regression pairs, and browser noise labelled "not a regression" in benign pairs. Choosing by the regression label would put "something differs" squares only in regression pairs and teach the shortcut "any visible difference is a regression". Only moved content without an answer is skipped.
 
 **Trade-off.** Pairs with large differences (benign, layout) give their squares more places to land, but a small text edit still gets 16 squares because the count per pair is fixed. The difference map is already computed when a pair loads, so the extra cost is negligible. Random squares stay in the notebook as the baseline.
 
 ### 2.4 Training recipe and guardrails
 - **Recipe from the original notebook:** weighted per-pixel loss, Adam with weight decay 1e-4, learning rate decaying 5% per pass, batch 32, 50 passes.
 - **Loss weights per type, tunable.** The original formula weights two classes: "not a regression" at 0.20 and "changed" at 1.98 on our training pages (`FP_MODIFIER = 10`). We keep the "not a regression" weight and split the "changed" weight across the 13 types, using the `changed_px` counts on training pages only. The combined weight on regression pixels stays the same as in the original formula.
-  - `TYPE_WEIGHT_POWER` sets how strongly rare types are boosted. At 0 every type gets 1.98, as in the original. At 1 each type carries the same total weight, which gives padding 0.62 and border_radius 165. The default of 0.5 gives padding 1.26, text_color 6.6 and border_radius 20.
+  - `TYPE_WEIGHT_POWER` sets how strongly rare types are boosted. At 0 (default) every type gets 1.98, as in the original. At 1 each type carries the same total weight, which gives padding 0.62 and border_radius 165. Run 1 used 0.5 (padding 1.26, text_color 6.6, border_radius 20), and the boosted types became the model's default labels: `text_color`, `letter_spacing` and `position` were predicted 2–4× more often than they occur, so it now starts at 0.
   - `TYPE_WEIGHT_OVERRIDE` sets one type's weight by hand, e.g. `{'border_radius': 20}`.
   - Both are tuned on validation pages using per-type accuracy, and changing them needs retraining.
+- **Browser noise has its own weight (`BENIGN_DIFF_WEIGHT`, default 2.0).** In run 1, a differing pixel in a benign pair carried the "not a regression" weight of 0.20, while a missed regression pixel cost 1.3–20. Flagging browser noise was 6–100× cheaper than missing an edit, and the model flagged 98% of benign differing pixels. These pixels now weigh about as much as a type, so false alarms cost as much as misses. Unchanged pixels keep 0.20. The loss is the notebook's weighted per-pixel loss with this one extra weight and no loss on pixels without an answer.
 - **Split by page, from `splits_85_15.json`:** 411 training pages, 73 validation pages. Every variant of a page stays on one side, consistent with ADR 0003.
 - **Pixels only.** The network receives image tensors and nothing else. File names (which contain the label), sizes and browser names are used only to build targets. Every image is converted to plain RGB, which removes a leak we found: all Firefox and WebKit screenshots carry a transparency channel that no other screenshot has.
 - **Blank renders.** Two Firefox screenshots (`d2c_324_firefox` in train, `d2c_183_firefox` in val) are a single flat colour: failed renders. The train pair is dropped, since it would teach "page went blank means not a regression". The val pair stays, because the prediction file must cover every pair. Normalizing a flat image divides by zero, so the notebook guards it; the first full-machine run went NaN on exactly this pair.
@@ -117,6 +126,13 @@ Whether a difference is a regression, and which type, is always the model's deci
 
 ### 3.1 What has been run
 A smoke test only: all four input modes, 1 pass, 3–6 training pairs and 5 validation pairs, on a laptop CPU, with the 14-class target. It confirms that the pieces connect, targets match the dataset on a random sample, checkpoints save, the metrics compute, and the prediction file has one line per validation pair. Resuming from a checkpoint has not been exercised yet. **It says nothing about model quality.**
+
+**Run 1 (ThinkStation, diagnosed at its pass-20 checkpoint).** Exact pixel diff target, 96 px squares, `TYPE_WEIGHT_POWER = 0.5`, browser noise at the 0.20 weight. About 140 s per pass. Best pixel F1 was 0.47, and it plateaued from pass 4.
+- **Detection failed on benign pages.** The model flagged 98% of benign differing pixels. AUROC for regression vs benign was 0.157: benign pages scored *higher* than regressions, because they have far more differing pixels.
+- **Types collapsed onto three default labels.** Type accuracy was 0.26 and family accuracy 0.49. `letter_spacing` was predicted 290 times for 70 true pages, `text_color` 256 for 71, and `position` 153 for 72. Margin, padding and border_radius were never predicted; opacity went to text_color 67 of 70 times.
+- **Changing the type rule didn't help** (`share` 0.262, `weighted` 0.265, `region` 0.267), so the problem was training, not the rule.
+
+Run 2 changes the target (section 2.1), the square size (2.3), and the loss weights (2.4) in response.
 
 ### 3.2 What to expect from a small first run
 Run first on a small subset (e.g. 20 pages) before the full set.
@@ -152,8 +168,10 @@ Target machine: RTX 4080 (16 GB), i7-13700, 64 GB RAM.
 
 Data loading, not the GPU, is the expected bottleneck.
 
+**Measured in run 1:** about 140 s per pass with 96 px squares (training plus validation), so about 2 hours for 50 passes. Run 2's 192 px squares mean 4× the training pixels per pass; validation is unchanged.
+
 ### 3.4 Roadblocks to expect
-1. **Benign pairs vs layout regressions send conflicting signals.** 47% of benign training pairs have different heights, so content shifts down the page and is labelled "not a regression". A layout regression that shifts content is labelled with its type. The model has to tell a browser shift from a CSS shift by what the shifted content looks like. This is the hardest part of the task and the most likely reason for high false alarms on benign pairs.
+1. **Benign pairs vs layout regressions send conflicting signals.** 47% of benign training pairs have different heights, so content shifts down the page and is labelled "not a regression". A layout regression that shifts content is labelled with its type. The model has to tell a browser shift from a CSS shift by what the shifted content looks like. This is the hardest part of the task. Run 1 confirmed it as the main failure (section 3.1); run 2's no-answer rule for moved content and the browser-noise weight are the response.
 2. **Scattered false pixels can inflate the score and stretch the box.** The top-N score limits the effect of single pixels, and the veto (section 2.5) removes flags on identical pixels but not on differing ones. Expect to tune N and the pixel threshold on validation pages.
 3. **The veto depends on pixel-identical re-renders.** That holds for 467 of 484 `no_change` pairs here (17 re-renders differ slightly), and on DiffSpot or live sites an unchanged page may differ more often. Then the veto rarely triggers and the model carries the whole decision.
 4. **The white padding band can still reveal a size mismatch**, which correlates with the label. The design doc's audits (size-stratified accuracy, metadata-only baseline) should be run before results are trusted.
