@@ -85,7 +85,7 @@ Screenshots are up to 1304 × 3278 px; a typical regression covers about 50 × 5
 
 All modes sit behind one setting (`INPUT_MODE`), so we can switch and compare without code changes. Whatever the training mode, evaluation always runs the model on whole pages (shrunk, in whole-page mode), because the network accepts any image size.
 
-**Rule.** All 16 squares per pair are centred on pixels where the two screenshots differ. `no_change` pairs, where nothing differs, fall back to random squares, so the model still sees "identical means not a regression". A setting can mix in random squares if the model misbehaves on unchanged areas; it starts at 0.
+**Rule.** All 16 squares per pair are centred on pixels where the two screenshots differ. `no_change` pairs where nothing differs (467 of 484) fall back to random squares, so the model still sees "identical means not a regression". A setting can mix in random squares if the model misbehaves on unchanged areas; it starts at 0.
 
 **Why.**
 - **Random squares waste most of the training.** Only about 1% of training pixels are changed, so random squares mostly land where nothing differs. Loss weighting doesn't fix that: it only makes changed pixels count more once a square happens to contain them.
@@ -101,11 +101,12 @@ All modes sit behind one setting (`INPUT_MODE`), so we can switch and compare wi
   - Both are tuned on validation pages using per-type accuracy, and changing them needs retraining.
 - **Split by page, from `splits_85_15.json`:** 411 training pages, 73 validation pages. Every variant of a page stays on one side, consistent with ADR 0003.
 - **Pixels only.** The network receives image tensors and nothing else. File names (which contain the label), sizes and browser names are used only to build targets. Every image is converted to plain RGB, which removes a leak we found: all Firefox and WebKit screenshots carry a transparency channel that no other screenshot has.
+- **Blank renders.** Two Firefox screenshots (`d2c_324_firefox` in train, `d2c_183_firefox` in val) are a single flat colour: failed renders. The train pair is dropped, since it would teach "page went blank means not a regression". The val pair stays, because the prediction file must cover every pair. Normalizing a flat image divides by zero, so the notebook guards it; the first full-machine run went NaN on exactly this pair.
 - **Model selection on validation pages**, not on training data as the original notebook did. The best checkpoint is chosen by pixel-level F1.
 
 ### 2.5 The pixel diff as a veto at evaluation
 The raw pixel diff can stop a flag, never cause one. Behind a `GATE_WITH_DIFF` switch, so results are reported with and without it:
-- **No difference, no flag.** This is exact on this dataset: all 484 `no_change` pairs have zero differing pixels, and every regression has at least one.
+- **No difference, no flag.** Every regression has at least one differing pixel, so the veto never hides a real regression. 467 of the 484 `no_change` pairs are pixel-identical and can never be flagged. The other 17 differ slightly between re-renders (median 2,560 px changed), so the model has to judge those, like benign pairs.
 - **No flag on identical pixels.** The model's output is limited to pixels that differ, since the training target never marks an identical pixel. This removes stray flags, which would otherwise raise the page's score and stretch its box.
 
 Whether a difference is a regression, and which type, is always the model's decision.
@@ -154,7 +155,7 @@ Data loading, not the GPU, is the expected bottleneck.
 ### 3.4 Roadblocks to expect
 1. **Benign pairs vs layout regressions send conflicting signals.** 47% of benign training pairs have different heights, so content shifts down the page and is labelled "not a regression". A layout regression that shifts content is labelled with its type. The model has to tell a browser shift from a CSS shift by what the shifted content looks like. This is the hardest part of the task and the most likely reason for high false alarms on benign pairs.
 2. **Scattered false pixels can inflate the score and stretch the box.** The top-N score limits the effect of single pixels, and the veto (section 2.5) removes flags on identical pixels but not on differing ones. Expect to tune N and the pixel threshold on validation pages.
-3. **The veto depends on pixel-identical re-renders.** That holds here, but on DiffSpot or live sites an unchanged page may still differ slightly. Then the veto rarely triggers and the model carries the whole decision.
+3. **The veto depends on pixel-identical re-renders.** That holds for 467 of 484 `no_change` pairs here (17 re-renders differ slightly), and on DiffSpot or live sites an unchanged page may differ more often. Then the veto rarely triggers and the model carries the whole decision.
 4. **The white padding band can still reveal a size mismatch**, which correlates with the label. The design doc's audits (size-stratified accuracy, metadata-only baseline) should be run before results are trusted.
 5. **Dataset-specific shortcut.** "Different browser means benign" holds for every benign pair here, but not in DiffSpot. Good validation scores that collapse on DiffSpot would point to this.
 6. **No internal test set.** Validation pages select the checkpoint, tune N and the pixel threshold, and report results, so DiffSpot is the only unbiased score.
