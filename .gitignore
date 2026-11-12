@@ -31,6 +31,8 @@ runs/
 checkpoints/
 playwright-report/
 test-results/
+d2c_v2
+d2c_v3.zip
 
 AGENTS.md
 Regression_Lens_Codex_Bootstrap_Instructions.md
