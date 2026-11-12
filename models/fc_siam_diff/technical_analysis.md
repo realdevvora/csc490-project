@@ -1,6 +1,6 @@
 # FC-Siam-diff for Visual Regression Detection: Technical Analysis
 
-How FC-Siam-diff is used to detect and name CSS regressions between two screenshots, how its output is interpreted, how well it works, and where it is and isn't feasible for this problem. Design decisions are in `spec.md`. Results are on the 1,083 validation pairs (864 regression, 146 benign, 73 no-change) of the earlier split, from the best checkpoint of run 2. The team split now excludes 25 pages (ADR 0004), so these numbers will be replaced after retraining on it.
+How FC-Siam-diff is used to detect and name CSS regressions between two screenshots, how its output is interpreted, how well it works, and where it is and isn't feasible for this problem. Design decisions are in `spec.md`. Results are from run 3, on the 1,033 validation pairs of the team split (826 regression, 138 benign, 69 no-change; ADR 0004), at its best checkpoint. Headline numbers come from the team's shared scorer (`scripts/score_predictions.py`); per-type numbers come from our own diagnostic. Earlier runs are summarised in section 7.
 
 ---
 
@@ -47,21 +47,27 @@ Each step turns the map into one line of the team's shared prediction format: sc
 | 1. Veto | Pixels identical in both screenshots are forced to "not a regression". The raw pixel difference can stop a flag but never cause one | on |
 | 2. Pixel confidence | Regression confidence of a pixel = 1 − P(not a regression) | |
 | 3. Flag pixels | A pixel is flagged when its regression confidence is above the threshold | 0.5 |
-| 4. Page score | How likely the page is to contain a regression, 0–1 | mean of the 50 most confident pixels (alternative: mean confidence over differing pixels) |
-| 5. Type | Which of the 13 types | type with the largest share of flagged pixels (alternative: confidence-weighted vote) |
+| 4. Page score | How likely the page is to contain a regression, 0–1 | mean regression confidence over the pixels that differ |
+| 5. Type | Which of the 13 types | vote over flagged pixels, weighted by confidence |
 | 6. Box | Where the change is | box around all flagged pixels |
 | 7. Point | The single most likely changed location | most confident flagged pixel |
 
 If no pixel is flagged, the box and point are empty, and the type comes from the whole page's confidence.
 
-**How it is scored.**
-- **Detection:**
-  - **AUROC** of the page score, regression vs benign: how often a regression page scores above a benign one, with no threshold needed.
-  - **Flag rate:** share of pages with any flagged pixel.
-- **Type:** the predicted type compared with the true type, and with the true family.
-- **Location:** whether the predicted point lands inside the edited element.
+**How it is scored.** The team's shared scorer reads the prediction file and reports the same metrics for all four models:
+- **Detection without a threshold:**
+  - **AUROC, regression vs benign:** how often a regression page scores above a benign one. This is the main comparison number.
+  - **Benign false-alarm rate at 95% recall:** the share of benign pages flagged when the threshold is set to catch 95% of regressions.
+- **Detection at a threshold:** precision, recall, F1 and false-alarm rates, at the threshold that maximises F1 on validation.
+- **Type:** macro-F1 over the 13 types, on true regressions.
+- **Location:**
+  - **Pointing accuracy:** is the point inside the changed area? That's `diff_bbox`, or for reflowed changes the edited element's new box.
+  - **Mean box IoU:** overlap of the box with `diff_bbox`.
 
-The shared scorer uses the same prediction file to compare all four models.
+Our own diagnostic adds:
+- per-type detection and type accuracy;
+- a stricter pointing check: is the point on the edited element itself, before or after the edit?
+- a no-model baseline that ranks pages by how many pixels differ.
 
 ---
 
@@ -70,90 +76,109 @@ The shared scorer uses the same prediction file to compare all four models.
 ### 4.1 Detection: does it find the regression?
 | Measure | Value |
 |---|---|
-| Regression pages flagged | 84% |
-| Benign pages flagged (false alarm) | 99% |
-| No-change pages flagged (false alarm) | 3% |
-| AUROC regression vs benign, top-50 score (current default) | 0.27 |
-| AUROC regression vs benign, mean confidence over differing pixels | **0.69** |
-| AUROC regression vs benign, counting differing pixels (no model) | 0.91 |
-| Pixel precision / recall | about 0.8 / 0.1 |
+| AUROC regression vs benign | **0.725** |
+| AUROC regression vs all (benign + no-change) | 0.817 |
+| Benign false-alarm rate at 95% recall | 0.949 |
+| No-change pages flagged | 0% |
+| Benign pages with any flagged pixel | 100% |
+| Page score, median: regression / benign / no-change | 0.71 / 0.48 / 0.00 |
+| AUROC regression vs benign, counting differing pixels (no model) | 0.923 |
 
-The top-50 score saturates on benign pages, which have about 100,000 differing pixels to choose from, so it ranks them *above* regressions. Averaging over the differing pixels uses the same model output and separates the two much better.
+**At the scorer's threshold, the result is the same as flagging everything that differs.**
+- The threshold that maximises F1 is 0.082. Every regression page scores above it, and so does every benign page.
+- That gives recall 1.00, benign false-alarm rate 1.00, precision 0.857 and F1 0.923.
+- 0.857 is simply the share of regressions among pages that differ at all. So these numbers measure the veto, not the model, and should not be reported as model skill.
+- The threshold-free numbers, AUROC 0.725 and 95% of benign pages flagged at 95% recall, are the honest summary.
 
 ### 4.2 Type: does it name the right regression?
 | | Ours | Chance or simple baseline |
 |---|---|---|
-| Exact type (13 options) | **33%** | 8% |
-| Family (5 options) | **53%** | 33% (always guess "layout") |
+| Exact type, accuracy (13 options) | **35%** | 8% |
+| Exact type, macro-F1 (shared scorer) | 0.29 | |
+| Family (5 options) | **56%** | 33% (always guess "layout") |
 
-### 4.3 By regression type
+### 4.3 Location: does it find where?
+| Measure | Value |
+|---|---|
+| Pointing accuracy (shared scorer: point inside `diff_bbox`, or the new element box for reflow) | 0.94 |
+| Mean box IoU with `diff_bbox` (shared scorer) | 0.92 |
+| Point on the edited element itself (our diagnostic) | 0.65 |
+| Share of a regression's differing pixels that are flagged, median | 0.93 |
+
+**These location numbers are largely inherited from the pixel difference.**
+- The veto means only differing pixels can be flagged, and the model flags a median 93% of them on regression pages.
+- So the box around flagged pixels nearly reproduces `diff_bbox`, the box around all differing pixels.
+- The stricter check, whether the point is on the edited element itself, is 0.65.
+
+### 4.4 By regression type
 - **Flagged:** share of that type's pages with any flagged pixel.
-- **AUROC:** that type's pages vs benign pages, using mean confidence over differing pixels.
-- **Point on element:** share of pages whose predicted point lands inside the edited element.
-- **Colour change:** median change of a differing pixel, 0–255. Browser noise between browsers is **67**.
+- **AUROC:** that type's pages vs benign pages.
+- **Point on element:** share of pages whose point lands on the edited element itself.
+- **Colour change:** median change of a differing pixel, 0–255, over the whole dataset. Browser noise between browsers is **67**.
 
 | Type | Flagged | AUROC vs benign | Point on element | Type right | Colour change |
 |---|---|---|---|---|---|
-| letter_spacing | 1.00 | 0.90 | 0.80 | 0.74 | 115 |
-| font_size | 0.98 | 0.85 | 0.70 | 0.02 | 115 |
-| margin | 0.97 | 0.84 | 0.54 | 0.00 | 114 |
-| position | 0.99 | 0.84 | 0.96 | 0.24 | 120 |
-| border_width | 0.97 | 0.81 | 0.66 | 0.46 | 130 |
-| font_weight | 0.90 | 0.78 | 0.76 | 0.35 | 102 |
-| padding | 1.00 | 0.75 | 0.50 | 0.00 | 117 |
-| width | 0.93 | 0.75 | 0.53 | 0.18 | 125 |
-| line_height | 0.90 | 0.68 | 0.56 | 0.10 | 92 |
-| background_color | 0.85 | 0.54 | 0.82 | 0.86 | 52 |
-| border_radius | 0.76 | 0.39 | 0.76 | 0.00 | 45 |
-| text_color | 0.42 | 0.35 | 0.39 | 0.35 | 35 |
-| opacity | **0.23** | 0.25 | 0.20 | 0.79 | 46 |
+| letter_spacing | 1.00 | 0.94 | 0.70 | 0.86 | 115 |
+| position | 1.00 | 0.90 | 0.96 | 0.22 | 120 |
+| font_size | 0.98 | 0.89 | 0.72 | 0.14 | 115 |
+| margin | 1.00 | 0.89 | 0.62 | 0.00 | 114 |
+| width | 0.98 | 0.84 | 0.66 | 0.16 | 125 |
+| border_width | 0.99 | 0.84 | 0.81 | 0.59 | 130 |
+| padding | 1.00 | 0.83 | 0.44 | 0.09 | 117 |
+| font_weight | 0.93 | 0.82 | 0.67 | 0.04 | 102 |
+| line_height | 1.00 | 0.77 | 0.45 | 0.36 | 92 |
+| background_color | 0.90 | 0.54 | 0.88 | 0.84 | 52 |
+| border_radius | 0.80 | 0.53 | 0.76 | 0.00 | 45 |
+| text_color | 0.48 | 0.32 | 0.48 | 0.45 | 35 |
+| opacity | **0.41** | **0.22** | 0.39 | 0.59 | 46 |
+| **All** | 0.88 | 0.73 | 0.65 | 0.35 | |
 
-An unflagged page still gets a type from the whole page's confidence, which is why opacity is named correctly far more often than it is flagged.
+An unflagged page still gets a type from the whole page's confidence, so a type can be named correctly more often than it is flagged.
 
 **Main type confusions:**
 | True type | Most often called | Why they look alike |
 |---|---|---|
-| text_color | opacity | Text gets lighter or darker either way |
-| font_size, font_weight, margin, width | letter_spacing | Text gets wider or shifts sideways |
-| padding, margin, line_height | position | Content shifts |
+| font_weight (57 of 69), margin (36 of 69), font_size, padding | letter_spacing | Text gets wider or shifts sideways |
+| text_color (36 of 69) | opacity | Text gets lighter or darker either way |
+| opacity (25 of 69) | text_color | Same, in the other direction |
+| width, line_height, font_size | position | Content shifts |
 
 ---
 
 ## 5. Strengths and weaknesses
 
 ### Strengths
-- **Finds changes that move things.** letter_spacing, font_size, position, margin, border_width and padding are flagged on 97–100% of pages and rank well above browser noise (AUROC 0.75–0.90).
-- **Says where.** The output is a map, not just a yes/no, so every verdict comes with a location. For position changes, the predicted point lands on the edited element 96% of the time.
-- **Almost never flags an unchanged page.** 3% of no-change pages, likely the few "identical" pairs that actually differ.
-- **Interpretation is separate from the model.** Score, type, box and point rules can be changed and compared without retraining. Switching the score rule alone took AUROC from 0.27 to 0.69.
+- **Finds changes that move things.** All nine geometric and text-layout types are flagged on 93–100% of pages, and rank well above browser noise (AUROC 0.77–0.94). letter_spacing reaches 0.94.
+- **Never flags an unchanged page.** 0% of no-change pages. Every one is pixel-identical, so the veto stops them all.
+- **Says where.** Every verdict comes with a box and a point. For position changes, the point lands on the edited element 96% of the time.
+- **Interpretation is separate from the model.** Score, type, box and point rules can be changed and compared without retraining. Switching the score rule alone took AUROC from 0.27 to 0.69 on run 2's checkpoint.
 
 ### Weaknesses
 These are genuine limits of the model, not tuning issues.
 1. **It cannot detect minute changes.**
-   - opacity (23% flagged), text_color (42%), border_radius (AUROC 0.39) and background_color (AUROC 0.54) rank below or near browser noise.
-   - Their pixel changes (35–52) are fainter than the anti-aliasing noise between browsers (67). The model learned that faint change means harmless.
-   - So it flags regressions with large pixel differences but misses subtle ones, which are exactly the ones a person would also miss.
-2. **It cannot reject browser noise at page level.**
-   - 99% of benign pages have at least one flagged pixel. Browser differences cover about 100,000 pixels, so some always get through, even though the model rejects most of them.
-   - Making browser noise more costly in training cut flagged noise pixels from 98% to 42%, but made weakness 1 worse.
-3. **A pixel count beats it at detection.** Counting differing pixels separates regression from benign pages with AUROC 0.91, against the model's 0.69. In this dataset, benign pairs change the whole page and regressions change one element. That's a dataset shortcut rather than a skill.
+   - opacity (41% flagged, AUROC 0.22), text_color (48%, 0.32), border_radius (0.53) and background_color (0.54) rank below or near browser noise.
+   - Their pixel changes (35–52 on a 0–255 scale) are fainter than the anti-aliasing noise between browsers (67). The model learned that faint change means harmless.
+   - So it flags regressions with large pixel differences well, but misses subtle ones, which are exactly the ones a person would also miss.
+2. **It cannot reject browser noise.**
+   - Every benign page has flagged pixels. Catching 95% of regressions means flagging 95% of benign pages.
+   - It flags about half of each benign page's differing pixels (median 0.47), against 0.93 on regression pages. That's a real signal, but too weak to separate them.
+3. **A pixel count beats it at detection.** Counting differing pixels separates regression from benign pages with AUROC 0.92, against the model's 0.73. In this dataset, benign pairs change the whole page and regressions change one element. That's a dataset shortcut rather than a skill.
 4. **It can't tell look-alike types apart.**
-   - margin, padding and font_size are flagged reliably but almost never named correctly; they lose to position and letter_spacing.
+   - margin, font_weight, padding and font_size are flagged reliably but almost never named correctly; they lose to letter_spacing and position.
    - What separates them is page context: margin pushes neighbours, padding grows the box, font size changes height. The model sees local pixels and doesn't get that context.
-5. **It marks only a few pixels of each edit.** Pixel recall is about 10%, so boxes are small.
-6. **For layout types it points at moved content, not the edit.** The point lands on the edited element only 50–56% of the time for padding, margin, width and line_height.
+5. **Its location numbers mostly come from the pixel difference.** Pointing 0.94 and box IoU 0.92 are high because only differing pixels can be flagged. Whether the point lands on the edited element itself is 0.65, and only 0.44–0.45 for padding and line_height, where it lands on moved content.
 
 ---
 
 ## 6. Usefulness and feasibility
 
 **Where it is useful.**
-- As a **change locator**: given two renders in the same browser, it reliably shows where something geometric changed and roughly what family it is.
-- As a **first-pass filter** for layout and typography regressions, where it catches nearly all cases.
+- As a **change locator**: given two renders in the same browser, it shows where something changed and, for geometric changes, roughly what family it is.
+- As a **detector for layout and typography regressions**: nearly all are flagged, and they rank well above browser noise.
 - As the **cheapest learned baseline**: small, fast, and it produces a per-pixel map that larger models don't give for free.
 
 **Where it is not feasible.**
-- **Telling a regression from a browser difference on its own.** The core requirement, not flagging Firefox or WebKit differences, is not met: benign pages are flagged on 99% of pages, and a plain pixel count ranks better.
+- **Telling a regression from a browser difference on its own.** The core requirement, not flagging Firefox or WebKit differences, is not met. At 95% recall, 95% of benign pages are flagged, and a plain pixel count ranks better.
 - **Subtle colour and opacity regressions.** Their signal sits below browser noise, and a pixel-difference model can't separate them by strength alone.
 - **Exact type naming for layout regressions.** Without page-level context, margin vs padding vs position is a coin toss at best.
 
@@ -177,7 +202,7 @@ All training runs used an RTX 4080 (ThinkStation), 50 passes, Adam with the lear
 | Type weights | Rare types boosted (power 0.5) | Same | Same | All equal | All equal |
 | Browser-noise weight | 0.20 | 0.20 | 0.20 | 2.0 | 2.0 |
 | Page score / type rule | top-50 mean / share | Same | Same | Same | Mean confidence over differing pixels / confidence-weighted vote |
-| Outcome | All 4 input modes run end to end on a laptop CPU, with 3–6 training pairs | Loss became NaN in the first pass | Plateaued from pass 4; diagnosed at pass 20 | Finished; best at pass 40 | In progress |
+| Outcome | All 4 input modes run end to end on a laptop CPU, with 3–6 training pairs | Loss became NaN in the first pass | Plateaued from pass 4; diagnosed at pass 20 | Finished; best at pass 40 | Finished; scored with the shared scorer |
 
 ### 7.2 What each run showed
 - **Smoke tests.** Targets matched the dataset's own `changed_px` and `diff_bbox`, and the prediction file had one line per validation pair. Nothing about quality.
@@ -193,12 +218,13 @@ All training runs used an RTX 4080 (ThinkStation), 50 passes, Adam with the lear
   - Benign differing pixels flagged dropped from 98% to 42%. Type accuracy rose to 0.33 and family accuracy to 0.53. Most of the default labels broke up.
   - margin, padding, font_size and border_radius were still never predicted.
   - opacity and text_color detection fell (23% and 42% flagged): the higher browser-noise weight taught the model that faint change means harmless.
-  - Pixel recall stayed at about 0.10.
   - Passes 40–50 were flat, so more passes would not help.
-- **Run 3: same model on clean data (pass 19 of 50 so far).**
-  - No-change false alarms went from 2.7% to 0: every remaining no-change pair is pixel-identical, so the veto stops all of them.
-  - Type accuracy 0.32 and family 0.54, level with run 2.
-  - The per-type pattern is unchanged, which confirms that the weaknesses come from the model, not the split.
+- **Run 3: same model, clean data, new page rules.**
+  - AUROC regression vs benign 0.725, type accuracy 0.35, family 0.56: the best of all runs.
+  - No-change false alarms went from 2.7% to 0.
+  - Faint types improved slightly but stayed weak: opacity 23% → 41% flagged, text_color 42% → 48%.
+  - font_weight's type accuracy collapsed (0.35 → 0.04, mostly called letter_spacing), while border_width (0.46 → 0.59) and line_height (0.10 → 0.36) improved. Look-alike types trade places between runs rather than becoming separable.
+  - The overall pattern is unchanged, which confirms that the weaknesses come from the model, not the split.
 
 ### 7.3 Analyses on run 2 (no retraining)
 | Analysis | Question | Finding |
