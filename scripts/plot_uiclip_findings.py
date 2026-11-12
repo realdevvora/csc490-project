@@ -376,40 +376,75 @@ CACHE_BUILDS = {"clip_cal_10_epochs_s0", "uiclip_cal_ft4_10_epochs_s0", "siglip_
                 "clip_cal_ft4_10_epochs_s0"}
 
 
+BACKBONE_PANELS = [
+    ("AUROC (reg. vs benign)", lambda m: m["auroc"]["regression_vs_benign"], (0.9895, 1.0015), [0.99, 0.995, 1.0], "{:.4f}"),
+    ("Benign FPR", lambda m: m["false_positive_rate"]["benign"], (-0.004, 0.052), [0, 0.02, 0.04], "{:.1%}"),
+    ("Type macro-F1", lambda m: m["type"]["macro_f1"], (0.29, 0.51), [0.3, 0.4, 0.5], "{:.2f}"),
+    ("Pointing accuracy", lambda m: m["localization"]["pointing_accuracy"], (0.37, 0.61), [0.4, 0.5, 0.6], "{:.2f}"),
+    ("Mean box IoU", lambda m: m["localization"]["mean_iou"], (0.145, 0.225), [0.15, 0.2], "{:.2f}"),
+]
+
+
+def backbone_panel(ax: plt.Axes, results: dict[str, list[dict]], panel: tuple, heading_size: float = 11,
+                   value_size: float = 9, dot_size: float = 70) -> None:
+    """One metric: a frozen-to-fine-tuned dumbbell per backbone, labelled at the fine-tuned end."""
+
+    heading, get, limits, ticks, fmt = panel
+    ax.set_title(heading, pad=10, fontsize=heading_size)
+    ax.set_xlim(*limits)
+    ax.set_xticks(ticks, [f"{t:.0%}" for t in ticks] if "%" in fmt else None)
+    ax.grid(axis="x")
+    ax.set_axisbelow(True)
+    ax.spines["left"].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+    for i, (_, frozen, tuned) in enumerate(BACKBONES):
+        y = len(BACKBONES) - 1 - i
+        a, b = (statistics.mean(get(m) for m in results[e]) for e in (frozen, tuned))
+        ax.plot([a, b], [y, y], color=GRID, linewidth=2, zorder=1, solid_capstyle="round")
+        ax.scatter([a], [y], s=dot_size, color=BLUE_LIGHT, zorder=2, edgecolors=SURFACE, linewidths=2)
+        ax.scatter([b], [y], s=dot_size, color=BLUE_DARK, zorder=3, edgecolors=SURFACE, linewidths=2)
+        ax.text(b, y + 0.22, fmt.format(b), ha="center", va="bottom", fontsize=value_size, color=INK)
+    ax.set_ylim(-0.6, len(BACKBONES) - 0.35)
+    ax.set_yticks(range(len(BACKBONES) - 1, -1, -1), [name for name, _, _ in BACKBONES])
+
+
+def backbone_legend_handles(marker_size: float = 8, tuned_label: str = "Last 4 blocks fine-tuned (value shown)") -> list:
+    return [plt.Line2D([], [], marker="o", linestyle="", markersize=marker_size, color=BLUE_LIGHT, label="Frozen encoder"),
+            plt.Line2D([], [], marker="o", linestyle="", markersize=marker_size, color=BLUE_DARK, label=tuned_label)]
+
+
 def fig_backbones(results: dict[str, list[dict]], out: Path) -> None:
-    panels = [("AUROC (reg. vs benign)", lambda m: m["auroc"]["regression_vs_benign"], (0.9895, 1.0015), [0.99, 0.995, 1.0], "{:.4f}"),
-              ("Benign FPR", lambda m: m["false_positive_rate"]["benign"], (-0.004, 0.052), [0, 0.02, 0.04], "{:.1%}"),
-              ("Type macro-F1", lambda m: m["type"]["macro_f1"], (0.29, 0.51), [0.3, 0.4, 0.5], "{:.2f}"),
-              ("Pointing accuracy", lambda m: m["localization"]["pointing_accuracy"], (0.37, 0.61), [0.4, 0.5, 0.6], "{:.2f}"),
-              ("Mean box IoU", lambda m: m["localization"]["mean_iou"], (0.145, 0.225), [0.15, 0.2], "{:.2f}")]
-    fig, axes = plt.subplots(1, len(panels), figsize=(13.5, 3.6), sharey=True)
+    fig, axes = plt.subplots(1, len(BACKBONE_PANELS), figsize=(13.5, 3.6), sharey=True)
     top = title(fig, "Fine-tuning matters more than the backbone; finer patches (SigLIP) point better, but boxes don't improve",
                 "Mean of 3 seeds per dot, except SigLIP fine-tuned (1 seed). Each row shows a backbone frozen (light) and "
                 "with its last 4 blocks fine-tuned (dark). Benign FPR: lower is better; all others: higher is better. "
                 "Axes are zoomed to each metric's range.", below_pt=30)
-    for ax, (heading, get, limits, ticks, fmt) in zip(axes, panels):
-        ax.set_title(heading, pad=10, fontsize=11)
-        ax.set_xlim(*limits)
-        ax.set_xticks(ticks, [f"{t:.0%}" for t in ticks] if "%" in fmt else None)
-        ax.grid(axis="x")
-        ax.set_axisbelow(True)
-        ax.spines["left"].set_visible(False)
-        ax.tick_params(axis="y", length=0)
-        for i, (_, frozen, tuned) in enumerate(BACKBONES):
-            y = len(BACKBONES) - 1 - i
-            a, b = (statistics.mean(get(m) for m in results[e]) for e in (frozen, tuned))
-            ax.plot([a, b], [y, y], color=GRID, linewidth=2, zorder=1, solid_capstyle="round")
-            ax.scatter([a], [y], s=70, color=BLUE_LIGHT, zorder=2, edgecolors=SURFACE, linewidths=2)
-            ax.scatter([b], [y], s=70, color=BLUE_DARK, zorder=3, edgecolors=SURFACE, linewidths=2)
-            ax.text(b, y + 0.22, fmt.format(b), ha="center", va="bottom", fontsize=9, color=INK)
-        ax.set_ylim(-0.6, len(BACKBONES) - 0.35)
-        ax.set_yticks(range(len(BACKBONES) - 1, -1, -1), [name for name, _, _ in BACKBONES])
-    handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=8, color=BLUE_LIGHT, label="Frozen encoder"),
-               plt.Line2D([], [], marker="o", linestyle="", markersize=8, color=BLUE_DARK,
-                          label="Last 4 blocks fine-tuned (value shown)")]
-    fig.legend(handles=handles, loc="lower center", ncol=2, fontsize=9.5, bbox_to_anchor=(0.5, 0.0))
+    for ax, panel in zip(axes, BACKBONE_PANELS):
+        backbone_panel(ax, results, panel)
+    fig.legend(handles=backbone_legend_handles(), loc="lower center", ncol=2, fontsize=9.5, bbox_to_anchor=(0.5, 0.0))
     fig.subplots_adjust(top=top, wspace=0.18, left=0.09, right=0.99, bottom=0.2)
     fig.savefig(out / "2_backbones_frozen_vs_finetuned.png", dpi=200)
+    plt.close(fig)
+
+
+def fig_backbones_slide(results: dict[str, list[dict]], out: Path) -> None:
+    """The backbone comparison for a slide: no title or caption, 3 panels over 2, 16:9, transparent."""
+
+    fig, axes = plt.subplots(2, 3, figsize=(13.33, 7.5), sharey=True)
+    for ax, panel in zip(axes.flat, BACKBONE_PANELS):
+        # With no subtitle here, the direction of the one lower-is-better metric goes in its heading.
+        heading = "Benign FPR (lower is better)" if panel[0] == "Benign FPR" else panel[0]
+        backbone_panel(ax, results, (heading, *panel[1:]), heading_size=16, value_size=13, dot_size=130)
+        ax.tick_params(axis="both", labelsize=14)
+    legend_cell = axes[1, 2]
+    legend_cell.axis("off")
+    handles = backbone_legend_handles(marker_size=11, tuned_label="Last 4 blocks fine-tuned\n(value shown)")
+    legend_cell.legend(handles=handles, loc="center", fontsize=14, labelspacing=1.0,
+                       handletextpad=0.4, borderaxespad=0)
+    axes[0, 0].tick_params(axis="y", labelleft=True)
+    axes[1, 0].tick_params(axis="y", labelleft=True)
+    fig.subplots_adjust(top=0.93, bottom=0.06, left=0.1, right=0.98, hspace=0.32, wspace=0.14)
+    fig.savefig(out / "2b_backbones_frozen_vs_finetuned_slide.png", dpi=200, transparent=True)
     plt.close(fig)
 
 
@@ -583,6 +618,7 @@ def main() -> None:
         out.mkdir(parents=True, exist_ok=True)
         fig_all_experiments(out)
         fig_backbones(results, out)
+        fig_backbones_slide(results, out)
         fig_curves_by_backbone(root, out)
         for suffix, (exp, label) in zip("abc", [("uiclip_cal_ft4", "UIClip fine-tuned"), ("clip_cal_ft4", "CLIP fine-tuned"),
                                                 ("siglip_cal_ft4", "SigLIP-512 fine-tuned")]):
