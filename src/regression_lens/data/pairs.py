@@ -14,7 +14,6 @@ Requires the ``uiclip`` extra (torch, Pillow).
 
 from __future__ import annotations
 
-import json
 import math
 from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
@@ -28,18 +27,6 @@ if TYPE_CHECKING:
     from regression_lens.data.feature_cache import FeatureCache
 
 LABELS = ("regression", "no_change", "benign")
-
-
-def load_records(data_root: str | Path) -> list[dict[str, Any]]:
-    """Load every pair record from ``master_dataset_with_benign.json``."""
-
-    return json.loads((Path(data_root) / "master_dataset_with_benign.json").read_text())
-
-
-def operator_names(records: Iterable[Mapping[str, Any]]) -> list[str]:
-    """Return the sorted mutation operators, the class order of the type head."""
-
-    return sorted({record["operator"] for record in records if record["operator"]})
 
 
 def first_item(batch: list[Any]) -> Any:

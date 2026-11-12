@@ -63,7 +63,8 @@ import torch
 from torch.utils.data import DataLoader
 
 from regression_lens.data.feature_cache import FeatureCache, build_feature_cache
-from regression_lens.data.pairs import PairDataset, first_item, load_records, operator_names, patches_to_cells
+from regression_lens.data.pairs import PairDataset, first_item, patches_to_cells
+from regression_lens.data.records import load_records, operator_names
 from regression_lens.data.splits import TEAM_SPLIT, load_split
 from regression_lens.evaluation.metrics import largest_component_box, peak_point
 from regression_lens.evaluation.scoring import FORMAT_VERSION, score_predictions, write_predictions
