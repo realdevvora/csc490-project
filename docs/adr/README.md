@@ -24,6 +24,7 @@ Architecture Decision Records (ADRs) preserve consequential research and enginee
 | [0001](0001-training-and-external-evaluation-datasets.md) | Training and external-evaluation datasets | Accepted |
 | [0002](0002-regression-and-benign-label-policy.md) | Regression and benign label policy | Accepted |
 | [0003](0003-source-page-disjoint-splits.md) | Source-page-disjoint splits | Accepted |
+| [0004](0004-exclude-pages-with-broken-no-change-pairs.md) | Exclude pages with a broken no-change pair | Accepted |
 
 ## Template
 
