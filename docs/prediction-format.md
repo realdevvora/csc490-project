@@ -79,7 +79,7 @@ python scripts/score_predictions.py preds/uiclip_test.jsonl preds/dinov3_test.js
     --threshold-from preds/uiclip_val.jsonl preds/dinov3_val.jsonl
 ```
 
-`--split` (default: `data/processed/splits_placeholder_85_15.json`) and `--subset` (default: `val`) define which pairs must be covered. `--subset all` requires every pair in the dataset. Everyone in the group must use the same split file.
+`--split` (default: the team split, `data/splits/splits_85_15.json`) and `--subset` (default: `val`) define which pairs must be covered. `--subset all` requires every pair in the dataset. Everyone in the group must use the same split file.
 
 ## Not covered yet
 

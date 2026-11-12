@@ -4,8 +4,9 @@ Every variant of a page (mutations, re-render, browser renders) shares the
 page's ``parent_id``, so splitting on ``parent_id`` keeps all of them in the
 same partition (see ADR 0003).
 
-The default split produced here is a placeholder: a seeded 85/15 shuffle. Pass
-a real split file to ``load_or_create_split`` once the team has frozen one.
+The team's split is ``TEAM_SPLIT`` (411 train / 73 validation pages); load it
+with ``load_split``. ``make_page_split`` builds the older seeded placeholder,
+kept for reproducing the first experiments and for tests.
 """
 
 from __future__ import annotations
@@ -16,6 +17,7 @@ from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
 
+TEAM_SPLIT = "data/splits/splits_85_15.json"
 PLACEHOLDER_SEED = 490
 PLACEHOLDER_VAL_FRACTION = 0.15
 
@@ -47,24 +49,37 @@ def make_page_split(
     }
 
 
+def load_split(
+    path: str | Path,
+    records: Iterable[Mapping[str, Any]],
+) -> dict[str, list[str]]:
+    """Load and check a ``{"train": [...], "val": [...]}`` page split.
+
+    Other keys (notes, seeds) are ignored. Raises if the file is missing, or if
+    the split overlaps or leaves out any page in ``records``.
+    """
+
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"split file {path} not found")
+    return _checked(path, json.loads(path.read_text()), list(records))
+
+
 def load_or_create_split(
     path: str | Path,
     records: Iterable[Mapping[str, Any]],
 ) -> dict[str, list[str]]:
-    """Load a ``{"train": [...], "val": [...]}`` page split, creating it if absent.
-
-    A newly created split is written to ``path`` so later runs reuse it.
-    """
+    """Like ``load_split``, but write a seeded placeholder split if ``path`` is absent."""
 
     path = Path(path)
     records = list(records)
-    if path.exists():
-        split = json.loads(path.read_text())
-    else:
-        split = make_page_split(records)
+    if not path.exists():
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(split, indent=2))
+        path.write_text(json.dumps(make_page_split(records), indent=2))
+    return load_split(path, records)
 
+
+def _checked(path: Path, split: Mapping[str, Any], records: list[Mapping[str, Any]]) -> dict[str, list[str]]:
     train, val = set(split["train"]), set(split["val"])
     if train & val:
         raise ValueError(f"{path}: pages appear in both train and val")
