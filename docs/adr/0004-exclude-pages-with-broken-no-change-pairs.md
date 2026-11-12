@@ -11,8 +11,8 @@
 Every source page has one `no_change` pair: the page re-rendered under the same conditions, which should be pixel-identical to its reference. Models rely on these pairs to learn, and to show, that an unchanged page is not a regression. The no-change false-positive rate is measured on them.
 
 25 of the 484 `no_change` pairs are not identical:
-- 11 differ in height by 1 to 30 px;
-- the other 14 are the same size but have changed pixels, from 240 to 177,358.
+- 15 differ in height, by 1 to 30 px;
+- the other 10 are the same size but have changed pixels, from 240 to 177,358.
 
 The re-render is evidently not always deterministic. For example, fonts or images may load differently. This was found when a model with an exact-identity guarantee still flagged two validation `no_change` pairs: both turned out to differ from their reference.
 
@@ -32,7 +32,7 @@ The rule is implemented in `regression_lens.data.splits.broken_no_change_pages`.
 ## Rationale
 
 - Excluding the whole page keeps every remaining page complete: one reference, its mutations, its benign variants and a valid no-change pair. Per-page counts stay consistent.
-- Dropping only the broken pair would leave 25 pages without a no-change example, and a test now asserts that every page has one.
+- Dropping only the broken pair would leave 25 pages without a no-change example.
 - A deterministic, metadata-only rule is auditable and can be rerun after the dataset is regenerated.
 
 ## Alternatives considered
