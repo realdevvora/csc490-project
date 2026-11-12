@@ -14,7 +14,7 @@ Aggregate results of the experiments described in [the UIClip investigation](../
 
 ## Runs
 
-All runs were trained for 10 epochs (`_10_epochs_s<seed>`) and validated on the placeholder split (73 pages, 1,108 pairs):
+All runs were trained for 10 epochs (`_10_epochs_s<seed>`) and validated on the **old placeholder split** (73 pages, 1,108 pairs). They were not run on the team split (`data/splits/splits_85_15.json`), which shares no validation pages with it:
 
 - **First batch** (`scripts/run_uiclip_experiments.sh`), seeds 0, 1 and 2: `uiclip_cal`, `uiclip_nocal`, `clip_cal`, `uiclip_cal_nobenign`, `uiclip_cal_ft4`.
 - **Follow-up batch** (`scripts/run_clip_siglip_experiments.sh`):
@@ -38,10 +38,11 @@ To reproduce:
 2. Unzip the dataset to `d2c_v2/`.
 3. Run the batch script: `scripts/run_uiclip_experiments.sh` or `scripts/run_clip_siglip_experiments.sh`.
 
-The placeholder split is regenerated identically, because it is seeded. Rescore any predictions with:
+At those commits the training script regenerates the placeholder split identically, because it is seeded. The scripts now default to the team split, so rescoring these predictions needs the placeholder passed explicitly. It's kept locally as `data/processed/DO_NOT_USE_splits_placeholder_85_15.json`; if it's missing, recreate it with `regression_lens.data.splits.make_page_split`:
 
 ```bash
-python scripts/score_predictions.py docs/results/uiclip/predictions/uiclip_cal_ft4_*.jsonl --names ft4_s0 ft4_s1 ft4_s2
+python scripts/score_predictions.py docs/results/uiclip/predictions/uiclip_cal_ft4_*.jsonl --names ft4_s0 ft4_s1 ft4_s2 \
+    --split data/processed/DO_NOT_USE_splits_placeholder_85_15.json
 ```
 
 ## Not included
