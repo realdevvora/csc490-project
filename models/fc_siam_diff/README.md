@@ -7,6 +7,7 @@ Per-pixel regression detector for d2c_v3, adapted from Daudt et al., "Fully Conv
 | `train_fc_siam_diff.ipynb` | Training, validation and the prediction file |
 | `siamunet_diff.py` | Model, unmodified from [rcdaudt/fully_convolutional_change_detection](https://github.com/rcdaudt/fully_convolutional_change_detection) (no license upstream; included with attribution for coursework) |
 | `spec.md` | Design decisions, expected results and output format |
+| `plot_training.py` | Charts of a run's validation metrics pass by pass (`python3 plot_training.py [runs/<id>/metrics.jsonl]`, writes `runs/<id>/plots/`) |
 | `technical_analysis.md` | How the output is interpreted, results per regression type, strengths, weaknesses and feasibility |
 | `requirements.txt` | Python dependencies |
 
