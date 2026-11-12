@@ -1,1 +1,1 @@
-"""Future internal and external evaluation adapters."""
+"""Internal and external evaluation metrics (see ``evaluation.metrics``)."""
