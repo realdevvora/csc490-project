@@ -160,3 +160,60 @@ These are genuine limits of the model, not tuning issues.
 **Scope.** FC-Siam-diff is feasible as a localisation component and as a detector for geometric regressions in same-browser comparisons. On its own it is not sufficient for the full problem. Two things would extend it:
 - page-level reasoning for type, such as whole-page input or a second stage working from page features;
 - a way to see the *shape* of a change rather than its strength. Browser noise is scattered along text edges, while a colour regression is a uniform shift over a solid area.
+
+---
+
+## 7. Experiments
+
+All training runs used an RTX 4080 (ThinkStation), 50 passes, Adam with the learning rate decaying 5% per pass, and the best checkpoint by pixel F1 on validation pages.
+
+### 7.1 Training runs
+| | Smoke tests | Run 0 | Run 1 | Run 2 | Run 3 |
+|---|---|---|---|---|---|
+| Purpose | Check the pieces connect | First full run | First full run, after the fix | Fix run 1's failures | Retrain on the team split |
+| Split | Old (411/73 pages) | Old | Old | Old | Team split, ADR 0004 (390/69 pages, 25 excluded) |
+| Training target | Every differing pixel of a regression | Same | Same | Only differing pixels inside the edited element; moved content gets no answer | Same as run 2 |
+| Square size | 96 px | 96 px | 96 px | 192 px | 192 px |
+| Type weights | Rare types boosted (power 0.5) | Same | Same | All equal | All equal |
+| Browser-noise weight | 0.20 | 0.20 | 0.20 | 2.0 | 2.0 |
+| Page score / type rule | top-50 mean / share | Same | Same | Same | Mean confidence over differing pixels / confidence-weighted vote |
+| Outcome | All 4 input modes run end to end on a laptop CPU, with 3–6 training pairs | Loss became NaN in the first pass | Plateaued from pass 4; diagnosed at pass 20 | Finished; best at pass 40 | In progress |
+
+### 7.2 What each run showed
+- **Smoke tests.** Targets matched the dataset's own `changed_px` and `diff_bbox`, and the prediction file had one line per validation pair. Nothing about quality.
+- **Run 0: NaN loss.**
+  - A failed Firefox render (`d2c_324_firefox`) is a single flat colour. Scaling it to unit spread divides by zero.
+  - Fix: guard the scaling and drop blank renders from training. A scan of all 7,755 screenshots found one more (`d2c_183_firefox`).
+- **Run 1: flagged browser noise, collapsed onto three types.**
+  - 98% of benign differing pixels flagged; AUROC regression vs benign 0.16.
+  - Type accuracy 0.26, family 0.49. letter_spacing, text_color and position were predicted 2–4× more often than they occur.
+  - margin, padding and border_radius were never predicted.
+  - Changing the type rule made no difference (0.262–0.267), so the problem was training.
+- **Run 2: less noise flagged, types spread out, faint changes lost.**
+  - Benign differing pixels flagged dropped from 98% to 42%. Type accuracy rose to 0.33 and family accuracy to 0.53. Most of the default labels broke up.
+  - margin, padding, font_size and border_radius were still never predicted.
+  - opacity and text_color detection fell (23% and 42% flagged): the higher browser-noise weight taught the model that faint change means harmless.
+  - Pixel recall stayed at about 0.10.
+  - Passes 40–50 were flat, so more passes would not help.
+- **Run 3: same model on clean data (pass 19 of 50 so far).**
+  - No-change false alarms went from 2.7% to 0: every remaining no-change pair is pixel-identical, so the veto stops all of them.
+  - Type accuracy 0.32 and family 0.54, level with run 2.
+  - The per-type pattern is unchanged, which confirms that the weaknesses come from the model, not the split.
+
+### 7.3 Analyses on run 2 (no retraining)
+| Analysis | Question | Finding |
+|---|---|---|
+| Page score comparison | Does the score rule, not the model, cause the benign false alarms? | AUROC regression vs benign: top-50 mean 0.27, flagged ÷ differing pixels 0.65, **mean confidence over differing pixels 0.69**. Made the default in run 3 |
+| Type rule comparison | Which rule names the type best? | Confidence-weighted vote 0.33, pixel share 0.31, most confident region 0.30. Made the default in run 3 |
+| No-model baseline | How far does counting differing pixels get? | AUROC 0.91. Benign pairs change the whole page (median 101,564 px), regressions one element (median 2,434 px) |
+| Detection by type | Which regressions are found? | 97–100% flagged for letter_spacing, font_size, position, margin, border_width and padding; 23% for opacity, 42% for text_color |
+| Colour-change strength | Why are some types missed? | Missed types change colour by 35–52 (0–255), less than browser noise (67); well-detected types by 92–130. Pixel count does not explain it |
+| Labelled pixels per type | Are the never-predicted types starved of training signal? | Only border_radius (0.1% of labelled pixels). margin (5.4%) and padding (7.3%) have more than letter_spacing (2.6%), so they lose to look-alikes, not for lack of data |
+| Point on the edited element | Does the predicted point find the edit? | 96% for position; 50–56% for padding, margin, width and line_height, where it lands on moved content |
+
+### 7.4 Data audit
+- Of the 484 no-change pairs, 25 were not pixel-identical:
+  - 10 have content differences, from 240 to 177,358 px;
+  - 15 differ in height by 1–30 px.
+- Run 2's two no-change false alarms were among them.
+- The team's ADR 0004 now excludes those 25 pages with all their pairs, and run 3 uses that split.
