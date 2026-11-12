@@ -91,7 +91,7 @@ Screenshots are up to 1304 × 3278 px; a typical regression covers about 50 × 5
 
 All modes sit behind one setting (`INPUT_MODE`), so we can switch and compare without code changes. Whatever the training mode, evaluation always runs the model on whole pages (shrunk, in whole-page mode), because the network accepts any image size.
 
-**Rule.** All 16 squares per pair are centred on pixels where the two screenshots differ and that have an answer, so moved content doesn't use them up. Pairs with no such pixel, such as the 467 identical `no_change` pairs, fall back to random squares, so the model still sees "identical means not a regression". A setting can mix in random squares if the model misbehaves on unchanged areas; it starts at 0.
+**Rule.** All 16 squares per pair are centred on pixels where the two screenshots differ and that have an answer, so moved content doesn't use them up. Pairs with no such pixel, such as the identical `no_change` pairs, fall back to random squares, so the model still sees "identical means not a regression". A setting can mix in random squares if the model misbehaves on unchanged areas; it starts at 0.
 
 **Square size: 192 px (run 1 used the original 96).** A 96 px square around a margin, padding or font-size edit often shows only "text moved"; telling them apart needs the element's edges and where the shift starts. A 192 px square shows 4× the area. The model is fully convolutional, so the size is a setting (`SQUARE`, a multiple of 16).
 
@@ -108,14 +108,14 @@ All modes sit behind one setting (`INPUT_MODE`), so we can switch and compare wi
   - `TYPE_WEIGHT_OVERRIDE` sets one type's weight by hand, e.g. `{'border_radius': 20}`.
   - Both are tuned on validation pages using per-type accuracy, and changing them needs retraining.
 - **Browser noise has its own weight (`BENIGN_DIFF_WEIGHT`, default 2.0).** In run 1, a differing pixel in a benign pair carried the "not a regression" weight of 0.20, while a missed regression pixel cost 1.3–20. Flagging browser noise was 6–100× cheaper than missing an edit, and the model flagged 98% of benign differing pixels. These pixels now weigh about as much as a type, so false alarms cost as much as misses. Unchanged pixels keep 0.20. The loss is the notebook's weighted per-pixel loss with this one extra weight and no loss on pixels without an answer.
-- **Split by page, from `splits_85_15.json`:** 411 training pages, 73 validation pages. Every variant of a page stays on one side, consistent with ADR 0003.
+- **Split by page, from the team split `data/splits/splits_85_15.json`:** 390 training pages, 69 validation pages. Every variant of a page stays on one side, consistent with ADR 0003. The 25 pages whose `no_change` pair is not pixel-identical are left out with all their pairs (ADR 0004). Runs 1 and 2 used the earlier split (411/73 pages, nothing excluded), so their results are not comparable with later runs.
 - **Pixels only.** The network receives image tensors and nothing else. File names (which contain the label), sizes and browser names are used only to build targets. Every image is converted to plain RGB, which removes a leak we found: all Firefox and WebKit screenshots carry a transparency channel that no other screenshot has.
-- **Blank renders.** Two Firefox screenshots (`d2c_324_firefox` in train, `d2c_183_firefox` in val) are a single flat colour: failed renders. The train pair is dropped, since it would teach "page went blank means not a regression". The val pair stays, because the prediction file must cover every pair. Normalizing a flat image divides by zero, so the notebook guards it; the first full-machine run went NaN on exactly this pair.
+- **Blank renders.** Two Firefox screenshots (`d2c_324_firefox` and `d2c_183_firefox`, both in train under the team split) are a single flat colour: failed renders. They are dropped from training, since they would teach "page went blank means not a regression". A blank pair in val would stay, because the prediction file must cover every pair. Normalizing a flat image divides by zero, so the notebook guards it; the first full-machine run went NaN on exactly this pair.
 - **Model selection on validation pages**, not on training data as the original notebook did. The best checkpoint is chosen by pixel-level F1.
 
 ### 2.5 The pixel diff as a veto at evaluation
 The raw pixel diff can stop a flag, never cause one. Behind a `GATE_WITH_DIFF` switch, so results are reported with and without it:
-- **No difference, no flag.** Every regression has at least one differing pixel, so the veto never hides a real regression. 467 of the 484 `no_change` pairs are pixel-identical and can never be flagged. The other 17 differ slightly between re-renders (median 2,560 px changed), so the model has to judge those, like benign pairs.
+- **No difference, no flag.** Every regression has at least one differing pixel, so the veto never hides a real regression. Every `no_change` pair in the team split is pixel-identical (ADR 0004 excludes the 25 that are not), so none can be flagged.
 - **No flag on identical pixels.** The model's output is limited to pixels that differ, since the training target never marks an identical pixel. This removes stray flags, which would otherwise raise the page's score and stretch its box.
 
 Whether a difference is a regression, and which type, is always the model's decision.
@@ -160,7 +160,7 @@ Target machine: RTX 4080 (16 GB), i7-13700, 64 GB RAM.
 | Loading and preparing one pair | About 40 ms per worker | Measured on the laptop |
 | Data loading per pass (6,188 pairs, 12 workers) | About 20–30 s | From the above |
 | GPU work per pass (16 squares per pair) | Seconds to a minute | Small model, 99k small squares; not yet measured |
-| Validation per pass (1,083 whole pages) | About 1 minute | Not yet measured |
+| Validation per pass (1,033 whole pages) | About 1 minute | Not yet measured |
 | **50 passes, 16 squares per pair** | **Roughly 1–3 hours** | Same for random or diff squares, and for 2 or 14 classes; to be confirmed by a 2–3 pass timing run |
 | 50 passes, all squares | Likely days | 49× the squares of the 16-square modes |
 | GPU memory | Well under 16 GB | Training squares are tiny; whole-page validation is the peak |
@@ -173,7 +173,7 @@ Data loading, not the GPU, is the expected bottleneck.
 ### 3.4 Roadblocks to expect
 1. **Benign pairs vs layout regressions send conflicting signals.** 47% of benign training pairs have different heights, so content shifts down the page and is labelled "not a regression". A layout regression that shifts content is labelled with its type. The model has to tell a browser shift from a CSS shift by what the shifted content looks like. This is the hardest part of the task. Run 1 confirmed it as the main failure (section 3.1); run 2's no-answer rule for moved content and the browser-noise weight are the response.
 2. **Scattered false pixels can inflate the score and stretch the box.** The top-N score limits the effect of single pixels, and the veto (section 2.5) removes flags on identical pixels but not on differing ones. Expect to tune N and the pixel threshold on validation pages.
-3. **The veto depends on pixel-identical re-renders.** That holds for 467 of 484 `no_change` pairs here (17 re-renders differ slightly), and on DiffSpot or live sites an unchanged page may differ more often. Then the veto rarely triggers and the model carries the whole decision.
+3. **The veto depends on pixel-identical re-renders.** That held for only 459 of 484 `no_change` pairs here (25 re-renders differ, so ADR 0004 excludes their pages), and on DiffSpot or live sites an unchanged page may differ more often. Then the veto rarely triggers and the model carries the whole decision.
 4. **The white padding band can still reveal a size mismatch**, which correlates with the label. The design doc's audits (size-stratified accuracy, metadata-only baseline) should be run before results are trusted.
 5. **Dataset-specific shortcut.** "Different browser means benign" holds for every benign pair here, but not in DiffSpot. Good validation scores that collapse on DiffSpot would point to this.
 6. **No internal test set.** Validation pages select the checkpoint, tune N and the pixel threshold, and report results, so DiffSpot is the only unbiased score.
@@ -209,22 +209,22 @@ A pixel's *regression confidence* is 1 minus its "not a regression" probability.
 
 | Field | Default rule | Alternatives to compare |
 |---|---|---|
-| `score` | Mean regression confidence of the N most confident pixels | Highest single pixel; confidence-weighted count of flagged pixels |
-| `op_pred` | Type with the largest share of flagged pixels | Vote weighted by confidence; type of the most confident region |
+| `score` | Mean regression confidence over the pixels that differ | Mean of the N most confident pixels; highest single pixel; confidence-weighted count of flagged pixels |
+| `op_pred` | Vote over flagged pixels, weighted by confidence | Type with the largest share of flagged pixels; type of the most confident region |
 | `box` | Box around all flagged pixels | Box around the largest connected region (`largest_component_box` in the shared code, at 1 px per cell) |
 | `point` | Most confident flagged pixel | Centre of the topmost flagged region |
 
 Each rule is chosen by a setting, so rules can be swapped and compared without retraining. If no pixel is flagged, `op_pred` falls back to the type with the highest total confidence over the page.
 
 **Why.**
-- **The score must be continuous.** The scorer's main numbers (AUROC, regression vs benign; benign false-alarm rate at 95% recall) don't use a threshold, and it picks the yes/no threshold itself from validation predictions. Averaging the top N pixels instead of taking the single highest keeps one stray pixel from deciding the page.
-- **One type per page is enough here.** Every regression pair in the dataset has exactly one mutation, so the largest share is a fair rule.
+- **The score must be continuous.** The scorer's main numbers (AUROC, regression vs benign; benign false-alarm rate at 95% recall) don't use a threshold, and it picks the yes/no threshold itself from validation predictions. Averaging over every differing pixel keeps one stray pixel from deciding the page. It also stops pages with many differing pixels from saturating the score. In run 2, the mean of the 50 most confident pixels ranked benign pages *above* regressions (AUROC 0.27), because a benign page has about 100,000 differing pixels to pick 50 from. Averaging over the differing pixels raised AUROC to 0.69 on the same checkpoint.
+- **One type per page is enough here.** Every regression pair in the dataset has exactly one mutation, so a single vote is a fair rule. Weighting by confidence was slightly better than counting pixels in run 2 (type accuracy 0.33 vs 0.31).
 - **Box around all flagged pixels by default.** `diff_bbox` is the box around every differing pixel (section 2.1), so boxing every flagged pixel should overlap it better than boxing only the largest region. This is an expectation, not a measurement; both are compared.
 - **Topmost region as a point option, for reflow.** For pairs where content was pushed down, the scorer checks the point against the edited element's new position (`bbox_after`), not the whole moved area. The edit sits above what it pushes, so the topmost region should find it.
 
 ### 5.4 Requirements on the output
 - **No labels at prediction time.** The training loader uses the pair's label to build its target. The prediction step loads only the two images.
-- **Every validation pair, exactly once.** 1,083 lines: 864 regression, 73 `no_change` and 146 `benign`.
+- **Every validation pair, exactly once.** 1,033 lines under the team split: 826 regression, 69 `no_change` and 138 `benign`.
 - **Coordinates in original pixels.** Padding is anchored at the top-left and pages aren't resized, so map pixels are screenshot pixels as they are. In whole-page training mode, pages are shrunk, so coordinates are scaled back before writing.
 - **Settings tuned on validation pages only.** N, the pixel threshold and the rule choices are picked on validation pages. For test or DiffSpot predictions, the scorer takes the yes/no threshold from our validation file (`--threshold-from`).
 - **Settings recorded.** The run's `config.json` stores the rule choices, N and the pixel threshold next to the prediction file.

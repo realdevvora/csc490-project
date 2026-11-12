@@ -1,6 +1,6 @@
 # FC-Siam-diff for Visual Regression Detection: Technical Analysis
 
-How FC-Siam-diff is used to detect and name CSS regressions between two screenshots, how its output is interpreted, how well it works, and where it is and isn't feasible for this problem. Design decisions are in `spec.md`. Results are on the 1,083 validation pairs (864 regression, 146 benign, 73 no-change), from the best checkpoint of run 2.
+How FC-Siam-diff is used to detect and name CSS regressions between two screenshots, how its output is interpreted, how well it works, and where it is and isn't feasible for this problem. Design decisions are in `spec.md`. Results are on the 1,083 validation pairs (864 regression, 146 benign, 73 no-change) of the earlier split, from the best checkpoint of run 2. The team split now excludes 25 pages (ADR 0004), so these numbers will be replaced after retraining on it.
 
 ---
 
