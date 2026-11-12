@@ -54,6 +54,32 @@ Each step turns the map into one line of the team's shared prediction format: sc
 
 If no pixel is flagged, the box and point are empty, and the type comes from the whole page's confidence.
 
+### 3.1 From confidences to a verdict
+Each pixel *p* has 14 probabilities: P₀(p) for "not a regression" and P₁(p)…P₁₃(p) for the 13 types. Its regression confidence is r(p) = 1 − P₀(p), the total probability of all 13 types together.
+
+**Is it a regression?**
+- **Page score** = the mean of r(p) over the pixels that differ between the two screenshots. A page whose differing pixels mostly look like regressions scores near 1; one whose differences look like browser noise scores lower. Pages with no differing pixel score 0.
+- **Yes or no** = page score above a threshold. We don't pick this threshold. The shared scorer chooses it on validation pages (the one that maximises F1), and its main numbers (AUROC, false alarms at 95% recall) don't need a threshold at all.
+- Averaging over the differing pixels, rather than taking the most confident ones, stops a page with many differing pixels from scoring high just because some of them are confident. Benign pages have about 100,000 differing pixels. With a mean of the 50 most confident pixels, they outscored regressions (AUROC 0.27 vs 0.69, on run 2).
+
+**Which type?** A confidence-weighted vote over the flagged pixels, those with r(p) > 0.5:
+1. For each type *k*, add up Pₖ(p) over all flagged pixels.
+2. The type with the largest total is the verdict (`op_pred`); the next largest is the runner-up (`op_second`).
+3. If no pixel is flagged, the same sum runs over every pixel of the page.
+
+Every flagged pixel counts towards every type in proportion to its probability. A pixel that is 60% letter_spacing and 30% font_size adds to both, not only its top choice. A confident pixel counts more than a borderline one.
+
+**Where?** The box surrounds all flagged pixels. The point is the pixel with the highest r(p).
+
+**Type rules compared** (run 3, validation pages; each can be selected with `OP_RULE` without retraining):
+| Rule | How it decides | Type accuracy | Family accuracy |
+|---|---|---|---|
+| **Confidence-weighted vote (used)** | Sum of each type's probability over all flagged pixels | **0.354** | **0.558** |
+| Pixel share | Each flagged pixel votes once for its most likely type; most votes wins | 0.332 | 0.533 |
+| Most confident region | Take the connected group of flagged pixels around the most confident pixel and count votes only inside it, to ignore content pushed around elsewhere | 0.322 | 0.545 |
+
+The three rules differ by about 3 points. How votes are counted barely matters; what limits type naming is the model's per-pixel probabilities (section 5).
+
 **How it is scored.** The team's shared scorer reads the prediction file and reports the same metrics for all four models:
 - **Detection without a threshold:**
   - **AUROC, regression vs benign:** how often a regression page scores above a benign one. This is the main comparison number.
