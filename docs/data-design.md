@@ -77,6 +77,8 @@ source webpage -> exactly one of train, validation, or internal test
 
 Reference renders, every mutation, and every benign variant derived from that page remain in the same split. Split assignment should be generated once from a recorded seed, versioned as a manifest, and reused by all model comparisons. See [ADR 0003](adr/0003-source-page-disjoint-splits.md).
 
+A page whose `no_change` pair is not pixel-identical (different size or `changed_px > 0`) is excluded from every split, together with all its pairs. Its re-render is not a true no-change example, and the difference is not necessarily benign either (a colour can differ), so it is not relabelled. The team split (`data/splits/splits_85_15.json`) lists these 25 pages under `excluded` and splits the remaining 459 pages 85/15 by seed 490 (390 train / 69 validation). `scripts/make_team_split.py` regenerates it.
+
 ## Mutation taxonomy
 
 The taxonomy is provisional. `Implemented` means available in the main branch with tests; therefore no mutation operator is currently implemented.
