@@ -9,6 +9,7 @@ Per-pixel regression detector for d2c_v3, adapted from Daudt et al., "Fully Conv
 | `spec.md` | Design decisions, expected results and output format |
 | `plot_training.py` | Charts of a run's validation metrics pass by pass (`python3 plot_training.py [runs/<id>/metrics.jsonl]`, writes `runs/<id>/plots/`) |
 | `save_predictions.py` | Predictions of the best checkpoint for every pair in the team format (`python3 save_predictions.py [runs/<id>/ckpt_best.pt]`, writes `fc_siam_diff_all.jsonl`, `_train.jsonl` and `_val.jsonl` to `outputs/fc_siam_diff/`) |
+| `results/` | Run 3 (`20261111-210302`, best checkpoint at pass 33): val predictions, the team scorer's metrics and comparison table, and the training charts in `plots/` |
 | `technical_analysis.md` | How the output is interpreted, results per regression type, strengths, weaknesses and feasibility |
 | `requirements.txt` | Python dependencies |
 

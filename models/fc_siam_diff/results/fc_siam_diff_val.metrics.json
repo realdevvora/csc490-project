@@ -1,0 +1,113 @@
+{
+  "predictions": "outputs/fc_siam_diff/fc_siam_diff_val.jsonl",
+  "format_version": "1",
+  "threshold_selection": "max F1 on the scored predictions",
+  "threshold": 0.08158037811517715,
+  "n": 1033,
+  "n_by_label": {
+    "benign": 138,
+    "no_change": 69,
+    "regression": 826
+  },
+  "detection": {
+    "precision": 0.8568464730290456,
+    "recall": 1.0,
+    "f1": 0.9229050279329608,
+    "accuracy": 0.8664085188770572
+  },
+  "false_positive_rate": {
+    "benign": 1.0,
+    "no_change": 0.0
+  },
+  "auroc": {
+    "regression_vs_benign": 0.7250412324104292,
+    "regression_vs_all_negatives": 0.8166941549402861
+  },
+  "benign_fpr_at_95_recall": {
+    "threshold": 0.2125329077243805,
+    "recall": 0.950363196125908,
+    "fpr": 0.9492753623188406
+  },
+  "type": {
+    "n": 826,
+    "macro_f1": 0.29214633826668385,
+    "per_class": {
+      "background_color": {
+        "f1": 0.6951219512195121,
+        "support": 68
+      },
+      "border_radius": {
+        "f1": 0.0,
+        "support": 25
+      },
+      "border_width": {
+        "f1": 0.5394736842105263,
+        "support": 69
+      },
+      "font_size": {
+        "f1": 0.1875,
+        "support": 65
+      },
+      "font_weight": {
+        "f1": 0.08,
+        "support": 69
+      },
+      "letter_spacing": {
+        "f1": 0.37579617834394907,
+        "support": 69
+      },
+      "line_height": {
+        "f1": 0.46511627906976744,
+        "support": 56
+      },
+      "margin": {
+        "f1": 0.0,
+        "support": 69
+      },
+      "opacity": {
+        "f1": 0.49101796407185627,
+        "support": 69
+      },
+      "padding": {
+        "f1": 0.14814814814814814,
+        "support": 68
+      },
+      "position": {
+        "f1": 0.17751479289940827,
+        "support": 68
+      },
+      "text_color": {
+        "f1": 0.47692307692307695,
+        "support": 69
+      },
+      "width": {
+        "f1": 0.16129032258064516,
+        "support": 62
+      }
+    }
+  },
+  "localization": {
+    "n_box": 729,
+    "mean_iou": 0.9165749758907947,
+    "n_point": 729,
+    "pointing_accuracy": 0.9368998628257887
+  },
+  "recall_by": {
+    "family": {
+      "appearance": 1.0,
+      "colour": 1.0,
+      "layout": 1.0,
+      "shape": 1.0,
+      "typography": 1.0
+    },
+    "magnitude": {
+      "large": 1.0,
+      "medium": 1.0,
+      "small": 1.0
+    },
+    "reflow": {
+      "False": 1.0,
+      "True": 1.0
+    }
+  }
+}
