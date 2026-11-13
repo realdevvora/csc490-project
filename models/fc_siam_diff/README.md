@@ -8,6 +8,7 @@ Per-pixel regression detector for d2c_v3, adapted from Daudt et al., "Fully Conv
 | `siamunet_diff.py` | Model, unmodified from [rcdaudt/fully_convolutional_change_detection](https://github.com/rcdaudt/fully_convolutional_change_detection) (no license upstream; included with attribution for coursework) |
 | `spec.md` | Design decisions, expected results and output format |
 | `plot_training.py` | Charts of a run's validation metrics pass by pass (`python3 plot_training.py [runs/<id>/metrics.jsonl]`, writes `runs/<id>/plots/`) |
+| `save_predictions.py` | Predictions of the best checkpoint for every pair in the team format (`python3 save_predictions.py [runs/<id>/ckpt_best.pt]`, writes `fc_siam_diff_all.jsonl`, `_train.jsonl` and `_val.jsonl` to `outputs/fc_siam_diff/`) |
 | `technical_analysis.md` | How the output is interpreted, results per regression type, strengths, weaknesses and feasibility |
 | `requirements.txt` | Python dependencies |
 
@@ -42,4 +43,5 @@ From the repo root, with the team scorer (`docs/prediction-format.md`):
 PYTHONPATH=src python3 scripts/score_predictions.py models/fc_siam_diff/runs/<id>/fc_siam_diff_val.jsonl \
     --data-root data/processed/d2c_v3 --names fc_siam_diff --out outputs/fc_siam_diff
 ```
+To score the files from `save_predictions.py`, pass `outputs/fc_siam_diff/fc_siam_diff_<subset>.jsonl` with `--subset all`, `train` or `val`; train scores are on pages the model learned from, so they overstate results.
 The prediction file must cover exactly the val pairs of the split it was trained with; files from runs on the old split (411/73 pages) are rejected.
