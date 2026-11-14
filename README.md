@@ -13,7 +13,7 @@ Regression Lens is a CSC490 Machine Learning for Vision capstone project. Given 
 ## Current direction
 
 - Design2Code webpages will provide source HTML for generated training and internal-evaluation pairs.
-- DiffSpot is reserved as an independent external generalization benchmark and is not training or model-selection data.
+- DiffSpot is never training data. Half of it is used to compare and choose models; the other half is reserved for one final evaluation of the integrated system (ADR 0005).
 - Intentional visible CSS/DOM mutations are regressions, regardless of whether the numerical change is small.
 - Benign/no-change examples are generated and labelled separately.
 - All examples derived from one source webpage belong to one dataset split.
@@ -48,8 +48,9 @@ The project proposal is available at [Regression_Lens_CSC490_Project_Report_Fina
 |  |- data/                       # generated-pair metadata contract
 |  |- mutations/                  # mutation provenance and interface
 |  |- rendering/                  # reproducible render configuration
-|  |- models/                     # future paired-image model adapters
-|  `- evaluation/                 # future metric adapters
+|  |- models/                     # paired-image models (UIClip/CLIP/SigLIP)
+|  `- evaluation/                 # protocol metrics
+|- scripts/                       # training and evaluation entry points
 |- tests/                         # tests for the stable scaffold contracts
 `- .github/pull_request_template.md
 ```
@@ -76,6 +77,7 @@ Playwright and data/model dependencies will be added with the first implementati
 - [Architecture](docs/architecture.md)
 - [Data design](docs/data-design.md)
 - [Experiment protocol](docs/experiment-protocol.md)
+- [Prediction format and shared scoring](docs/prediction-format.md)
 - [Project status](docs/project-status.md)
 - [Scope and roadmap](docs/scope-and-roadmap.md)
 - [Architecture decision records](docs/adr/README.md)
