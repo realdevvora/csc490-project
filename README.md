@@ -13,7 +13,7 @@ Regression Lens is a CSC490 Machine Learning for Vision capstone project. Given 
 ## Current direction
 
 - Design2Code webpages will provide source HTML for generated training and internal-evaluation pairs.
-- DiffSpot is reserved as an independent external generalization benchmark and is not training or model-selection data.
+- DiffSpot is never training data. Half of it is used to compare and choose models; the other half is reserved for one final evaluation of the integrated system (ADR 0005).
 - Intentional visible CSS/DOM mutations are regressions, regardless of whether the numerical change is small.
 - Benign/no-change examples are generated and labelled separately.
 - All examples derived from one source webpage belong to one dataset split.

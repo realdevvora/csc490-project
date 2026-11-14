@@ -1,6 +1,6 @@
 # ADR 0001: Training and external-evaluation datasets
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR 0005](0005-diffspot-comparison-and-final-evaluation-halves.md)
 - **Date:** 2026-10-06
 - **Owners:** Regression Lens team
 - **Supersedes:** None
