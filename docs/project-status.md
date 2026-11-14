@@ -10,9 +10,9 @@
 - shared metadata loading, a committed 390/69 train/validation page split, and the 25-page exclusion rule in ADR 0004;
 - shared prediction JSONL format, scoring code, and tests;
 - model investigations on separate team branches; and
-- the first five cells of `notebooks/dino_exploration.ipynb`: environment readout, deterministic matched-sample selection, frozen 448 x 448 crop geometry, and one model-input preview.
+- two checkpoints in `notebooks/dino_exploration.ipynb`: a fixed 13-trio sample and crop geometry, followed by frozen DINOv2 inference, token inspection, cosine/L2 heatmaps, and raw statistics for one trio.
 
-The team has completed general dataset validation and manual inspection. The DINO notebook starts from those results. At this checkpoint no DINO weights are loaded, no feature heatmaps have been produced, and no head is trained. A shared DiffSpot adapter is still pending.
+The team has completed general dataset validation and manual inspection. The DINO notebook starts from those results. DINOv2 has run locally on the font-size regression and its matched benign/no-change controls. The regression response is localized, but benign browser variation produces larger responses; the no-change L2 distance is zero. These are single-trio preliminary observations, not operator-wide or full-page results. See the [pilot notes](results/dino/README.md). No head is trained. A shared DiffSpot adapter is still pending.
 
 ## Confirmed decisions
 
@@ -29,7 +29,7 @@ The team has completed general dataset validation and manual inspection. The DIN
 - Which mutation examples produce concentrated versus diffuse DINO patch-feature responses?
 - How do regression distances compare with matched benign and no-change controls?
 - How much do the 14 px versus 16 px patch sizes affect localization?
-- Does original-scale 448 x 448 crop inference run quickly enough locally for this sample?
+- Does the initial local timing (approximately 3 seconds per image) hold across the remaining fixed sample?
 - Does DINOv3 improve the same examples after access to its weights is granted?
 
 ## Blockers
@@ -38,9 +38,8 @@ No dataset-location blocker: local metadata and screenshots are under `D:\csc409
 
 ## Next milestones
 
-1. Run and understand the first notebook checkpoint: 13 matched trios (39 pair/crop evaluations), selected from official training pages.
-2. Inspect frozen DINOv2 spatial tokens and cosine/L2 heatmaps for one trio, retaining raw distance statistics.
-3. Run the fixed sample and record tentative operator-specific strengths and weaknesses.
-4. Repeat the same samples and crops with DINOv3; reserve head training and external evaluation for later work.
+1. Review checkpoint 2's patch tensors, heatmaps, raw statistics, and tight-box pointing miss for the font-size trio.
+2. Run the remaining fixed sample and record tentative operator-specific strengths and weaknesses.
+3. Repeat the same samples and crops with DINOv3; reserve head training and external evaluation for later work.
 
 The crops are guided by known mutation locations. These observations study local feature sensitivity and must not be reported as full-page detection performance. The sample/crop manifest and local artifacts live under ignored `outputs/dino_fit/`. See the [notebook guide](../notebooks/README.md).
