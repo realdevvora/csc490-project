@@ -50,3 +50,4 @@ For a proposed scope or direction change:
 | Date | Change | Reason | ADR / issue |
 |---|---|---|---|
 | 2026-10-06 | Established the documented bootstrap scope: webpage pairs from Design2Code, source-page-disjoint internal evaluation, and DiffSpot-only external evaluation. | Create a reproducible baseline before data or model work expands. | ADR 0001–0003 |
+| 2026-11-14 | Prioritized a local, zero-shot DINOv2 patch-feature study with matched regression/benign/no-change crops, followed by identical DINOv3 inputs. Head training is deferred until feature sensitivity is understood. | General dataset validation is complete; establish DINO-specific evidence and explain intermediate tensors before training. | [Notebook guide](../notebooks/README.md); existing dataset/label/split ADRs remain unchanged |

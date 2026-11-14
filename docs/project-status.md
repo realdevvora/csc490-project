@@ -1,18 +1,18 @@
 # Project status
 
-**Last updated:** 2026-10-06  
-**Phase:** Repository bootstrap / data-pipeline design
+**Last updated:** 2026-11-14
+
+**Phase:** Shared evaluation / DINO dataset-fit exploration
 
 ## What exists
 
-- project proposal and bootstrap brief;
-- project and collaboration overview in the root README;
-- conceptual data, architecture, evaluation, scope, and decision documentation;
-- lightweight Python contracts for mutation provenance, rendering configuration, and generated-sample metadata;
-- an example mutation/render configuration and foundational tests; and
-- an exploratory Colab mutation notebook on `zehao-data-mutation-pipeline`, not yet integrated into `main`.
+- project, architecture, data, scope, and ADR documentation;
+- shared metadata loading, a committed 390/69 train/validation page split, and the 25-page exclusion rule in ADR 0004;
+- shared prediction JSONL format, scoring code, and tests;
+- model investigations on separate team branches; and
+- the first five cells of `notebooks/dino_exploration.ipynb`: environment readout, deterministic matched-sample selection, frozen 448 x 448 crop geometry, and one model-input preview.
 
-No dataset acquisition, Playwright renderer, mutation operator, quality-gate implementation, baseline, training loop, or DiffSpot adapter exists on `main` yet.
+The team has completed general dataset validation and manual inspection. The DINO notebook starts from those results. At this checkpoint no DINO weights are loaded, no feature heatmaps have been produced, and no head is trained. A shared DiffSpot adapter is still pending.
 
 ## Confirmed decisions
 
@@ -26,23 +26,21 @@ No dataset acquisition, Playwright renderer, mutation operator, quality-gate imp
 
 ## Open questions
 
-- Which single mutation type should be implemented first?
-- What selector strategy produces controlled, representative targets?
-- How many accepted mutations per source page are useful after filtering?
-- Which benign variations are realistic, reproducible, and genuinely non-regressive?
-- Should localization use bounding boxes, masks, or both in the first dataset version?
-- What is the first stable change-category taxonomy?
-- How should asset-loading failures and web-font availability be detected?
-- Which candidate models will individual team members own?
-- Is natural-language regression description useful enough to remain in scope?
+- Which mutation examples produce concentrated versus diffuse DINO patch-feature responses?
+- How do regression distances compare with matched benign and no-change controls?
+- How much do the 14 px versus 16 px patch sizes affect localization?
+- Does original-scale 448 x 448 crop inference run quickly enough locally for this sample?
+- Does DINOv3 improve the same examples after access to its weights is granted?
 
 ## Blockers
 
-None for the next pilot. Before data generation, the team must select and record an exact Design2Code revision and confirm how its HTML/assets are made available to the renderer.
+No dataset-location blocker: local metadata and screenshots are under `D:\csc409-data\d2c_v3`. DINOv3 weight access is not yet available; DINOv2 can proceed first. Lab runtime and CUDA availability will be inspected when moving beyond local CPU inference.
 
 ## Next milestones
 
-1. Render clean references for a fixed, manually selected set of 10–20 Design2Code pages.
-2. Implement one controlled mutation with complete metadata and visible-change validation.
-3. Freeze a page-level split manifest for the pilot and manually review every accepted pair.
-4. Run a simple pixel-difference or SSIM baseline only after the pilot data is trusted.
+1. Run and understand the first notebook checkpoint: 13 matched trios (39 pair/crop evaluations), selected from official training pages.
+2. Inspect frozen DINOv2 spatial tokens and cosine/L2 heatmaps for one trio, retaining raw distance statistics.
+3. Run the fixed sample and record tentative operator-specific strengths and weaknesses.
+4. Repeat the same samples and crops with DINOv3; reserve head training and external evaluation for later work.
+
+The crops are guided by known mutation locations. These observations study local feature sensitivity and must not be reported as full-page detection performance. The sample/crop manifest and local artifacts live under ignored `outputs/dino_fit/`. See the [notebook guide](../notebooks/README.md).

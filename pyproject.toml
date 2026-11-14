@@ -20,6 +20,15 @@ evaluation = [
     "scipy>=1.11",
 ]
 
+dino = [
+    "torch>=2.8,<2.9",
+    "torchvision>=0.23,<0.24",
+    "transformers>=4.56,<5",
+    "Pillow>=10",
+    "matplotlib>=3.9",
+    "ipykernel>=6",
+]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

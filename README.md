@@ -8,7 +8,7 @@ Regression Lens is a CSC490 Machine Learning for Vision capstone project. Given 
 2. localize the changed region; and
 3. classify the kind of UI change.
 
-**Current phase:** repository bootstrap and data-pipeline design. No production data generator or model training pipeline exists yet.
+**Current phase:** shared evaluation tooling and model investigations. This branch is beginning a pretrained DINO dataset-fit study; see the [notebook guide](notebooks/README.md).
 
 ## Current direction
 
@@ -44,6 +44,7 @@ The project proposal is available at [Regression_Lens_CSC490_Project_Report_Fina
 |- configs/                       # versioned example configuration
 |- data/README.md                 # local-data policy (datasets stay out of Git)
 |- docs/                          # architecture, data, evaluation, status, scope, ADRs
+|- notebooks/                     # incremental DINO feature exploration
 |- src/regression_lens/
 |  |- data/                       # generated-pair metadata contract
 |  |- mutations/                  # mutation provenance and interface
@@ -79,6 +80,7 @@ Playwright and data/model dependencies will be added with the first implementati
 - [Project status](docs/project-status.md)
 - [Scope and roadmap](docs/scope-and-roadmap.md)
 - [Architecture decision records](docs/adr/README.md)
+- [DINO exploration setup and checkpoints](notebooks/README.md)
 
 ## Team
 
@@ -95,4 +97,4 @@ Open pull requests into `main`, complete the pull-request checklist, and obtain 
 
 ## Next milestone
 
-Render a manually inspected subset of 10–20 Design2Code pages with Playwright and implement one controlled mutation end to end. Do not scale generation until rendering reproducibility, metadata, source-page splits, and visible-change checks are trusted.
+On `abu-dino-model`, study frozen DINOv2 patch-feature differences on a fixed sample of regressions, benign pairs, and no-change controls. Repeat identical crops with DINOv3 after its weight access is available. General dataset validation and manual inspection are already complete; this stage studies model sensitivity before head training.
