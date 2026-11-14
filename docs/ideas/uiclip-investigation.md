@@ -2,6 +2,8 @@
 
 Track 4 of the [model investigation plan](model-investigation-plan.md).
 
+> **Current results:** every experiment has been rerun on the team split, which leaves out the 25 pages with a broken no-change pair. See [UIClip / CLIP / SigLIP on the team split](uiclip-team-split-findings.md). The findings, results and figures in this document are from the old placeholder split and are kept for reference. The model, method and setup described here still apply.
+
 ## Model
 
 UIClip (Wu et al., UIST 2024, [arXiv 2404.12500](https://huggingface.co/papers/2404.12500)) is OpenAI CLIP ViT-B/32 fine-tuned on JitterWeb (synthetic web pages with injected design defects) to score UI design quality. Only weights are public, on [Hugging Face (BIG Lab, MIT licence)](https://huggingface.co/biglab); there is no official training repo. Checkpoints load as standard `CLIPModel` weights and use the `openai/clip-vit-base-patch32` preprocessing:
@@ -24,6 +26,8 @@ cand tiles ──┘   patch tokens [T,49,768] └─> type logits (13 operators
 ```
 
 ## Main findings
+
+> These findings are from the old placeholder split. For the current results, see [the team-split findings](uiclip-team-split-findings.md).
 
 **Setup of these results:**
 - **Runs:** two batches, all trained for 10 epochs.

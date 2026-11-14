@@ -1,5 +1,7 @@
 # UIClip / CLIP / SigLIP experiment results
 
+> These are the results on the **old placeholder split**, kept for reference. The current results, with every experiment rerun on the team split, are in [`docs/results/uiclip_team_split/`](../uiclip_team_split/README.md).
+
 Aggregate results of the experiments described in [the UIClip investigation](../../ideas/uiclip-investigation.md), copied from the local `outputs/` folder, which is gitignored. Model weights and feature caches are not committed; see "Not included" below.
 
 ## Contents
