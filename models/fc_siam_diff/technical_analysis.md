@@ -99,6 +99,8 @@ Our own diagnostic adds:
 
 ## 4. Metrics
 
+Charts of these results (score spread by label, regression-vs-benign curve, per-type detection and naming, and the type confusion matrix) are in `results/plots/`, made by `plot_results.py` from `results/fc_siam_diff_val.jsonl`.
+
 ### 4.1 Detection: does it find the regression?
 | Measure | Value |
 |---|---|
@@ -228,7 +230,7 @@ All training runs used an RTX 4080 (ThinkStation), 50 passes, Adam with the lear
 | Type weights | Rare types boosted (power 0.5) | Same | Same | All equal | All equal |
 | Browser-noise weight | 0.20 | 0.20 | 0.20 | 2.0 | 2.0 |
 | Page score / type rule | top-50 mean / share | Same | Same | Same | Mean confidence over differing pixels / confidence-weighted vote |
-| Outcome | All 4 input modes run end to end on a laptop CPU, with 3–6 training pairs | Loss became NaN in the first pass | Plateaued from pass 4; diagnosed at pass 20 | Finished; best at pass 40 | Finished; scored with the shared scorer |
+| Outcome | All 4 input modes run end to end on a laptop CPU, with 3–6 training pairs | Loss became NaN in the first pass | Plateaued from pass 4; diagnosed at pass 20 | Finished; best at pass 40 | Finished; best at pass 33; scored with the shared scorer |
 
 ### 7.2 What each run showed
 - **Smoke tests.** Targets matched the dataset's own `changed_px` and `diff_bbox`, and the prediction file had one line per validation pair. Nothing about quality.
