@@ -1,15 +1,18 @@
 """Plot the UIClip/CLIP experiment findings as slide-ready PNG figures.
 
-Reads the 10-epoch runs in outputs/ (metrics.json, best_auroc predictions),
-the scorer's per-run results in outputs/comparison/ and the batch logs in
-outputs/logs/, and writes figures to two folders under docs/figures/uiclip/:
+Reads the 10-epoch runs (metrics.json, best_auroc predictions), the scorer's
+per-run results in <runs>/comparison/ and the batch logs, and writes figures to
+folders under docs/figures/uiclip/:
 
-  first_batch/      results of the first batch only (scripts/run_uiclip_experiments.sh)
-  all_experiments/  results of both batches, including CLIP fine-tuning and SigLIP
-                    (scripts/run_clip_siglip_experiments.sh)
+  first_batch/      old placeholder split: the first batch only (scripts/run_uiclip_experiments.sh),
+                    runs in outputs/
+  all_experiments/  old placeholder split: both batches, including CLIP fine-tuning and
+                    SigLIP (scripts/run_clip_siglip_experiments.sh), runs in outputs/
+  team_split/       team split: every experiment rerun in one batch
+                    (scripts/run_all_experiments.sh), runs in outputs/team_split/
 
-  python scripts/plot_uiclip_findings.py                        # both folders
-  python scripts/plot_uiclip_findings.py --only all_experiments # just one
+  python scripts/plot_uiclip_findings.py --only team_split      # the current results
+  python scripts/plot_uiclip_findings.py                        # every folder
 
 Requires matplotlib (``pip install -e ".[figures]"``).
 """
@@ -22,7 +25,7 @@ import re
 import statistics
 import textwrap
 from datetime import datetime
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 import matplotlib
@@ -203,7 +206,10 @@ def fig_metrics(results: dict[str, list[dict]], out: Path) -> None:
     plt.close(fig)
 
 
-def fig_identical(root: Path, data_root: Path, out: Path, seed: int) -> None:
+IDENTICAL_HEADLINE = "Self-calibration gives every identical screenshot pair the same score"
+
+
+def fig_identical(root: Path, data_root: Path, out: Path, seed: int, headline: str = IDENTICAL_HEADLINE) -> None:
     records = {r["sample_id"]: r for r in json.loads((data_root / "master_dataset_with_benign.json").read_text())}
 
     def truly_identical(r: dict) -> bool:
@@ -213,7 +219,7 @@ def fig_identical(root: Path, data_root: Path, out: Path, seed: int) -> None:
 
     rows = [("Without self-calibration", "uiclip_nocal"), ("With self-calibration", "uiclip_cal")]
     fig, ax = plt.subplots(figsize=(10, 4.0))
-    top = title(fig, "Self-calibration gives every identical screenshot pair the same score",
+    top = title(fig, headline,
                 f"Regression score of each validation 'no-change' pair (UIClip frozen, seed {seed}). "
                 "Pairs to the right of a row's threshold mark are flagged as regressions.", below_pt=12)
     identity: dict[str, bool] = {}
@@ -245,9 +251,10 @@ def fig_identical(root: Path, data_root: Path, out: Path, seed: int) -> None:
     ax.set_axisbelow(True)
     ax.spines["left"].set_visible(False)
     ax.tick_params(axis="y", length=0)
-    handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=7, color=BLUE, label="Pixel-identical pair"),
-               plt.Line2D([], [], marker="o", linestyle="", markersize=7, color=ORANGE,
-                          label="Labelled no-change, but pixels differ (dataset issue)")]
+    handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=7, color=BLUE, label="Pixel-identical pair")]
+    if not all(identity.values()):
+        handles.append(plt.Line2D([], [], marker="o", linestyle="", markersize=7, color=ORANGE,
+                                  label="Labelled no-change, but pixels differ (dataset issue)"))
     ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.45, -0.28), ncol=2, fontsize=9.5)
     fig.subplots_adjust(top=top, left=0.2, right=0.83, bottom=0.28)
     fig.savefig(out / "4_identical_pairs.png", dpi=200)
@@ -331,18 +338,25 @@ ALL_EXPERIMENTS = {
 }
 
 
-def fig_all_experiments(out: Path) -> None:
+ALL_EXPERIMENTS_TEXT = ("Eight experiments across two batches, 22 training runs",
+                        "10 epochs per run; validated on 73 pages (1,108 pairs). Highlighted cells: settings that differ from "
+                        "the first row. SigLIP-512 uses 512 px tiles and 16 px patches; UIClip and CLIP use 224 px tiles and "
+                        "32 px patches.")
+
+
+def fig_all_experiments(out: Path, text: tuple[str, str] = ALL_EXPERIMENTS_TEXT, batch_column: bool = True) -> None:
     fig, ax = plt.subplots(figsize=(11.5, 5.0))
-    top = title(fig, "Eight experiments across two batches, 22 training runs",
-                "10 epochs per run; validated on 73 pages (1,108 pairs). Highlighted cells: settings that differ from "
-                "the first row. SigLIP-512 uses 512 px tiles and 16 px patches; UIClip and CLIP use 224 px tiles and 32 px patches.")
+    top = title(fig, *text)
     fig.subplots_adjust(top=top, bottom=0.04, left=0.02, right=0.98)
     ax.axis("off")
     columns = ["Experiment", "Backbone", "Encoder", "Benign pairs\nin training", "Self-\ncalibration", "Seeds", "Batch"]
+    widths = [0.25, 0.11, 0.22, 0.12, 0.11, 0.07, 0.10]
     rows = [list(v) for v in ALL_EXPERIMENTS.values()]
+    if not batch_column:
+        columns, widths, rows = columns[:-1], [0.28, 0.12, 0.25, 0.13, 0.12, 0.08], [r[:-1] for r in rows]
     baseline = rows[0]
     table = ax.table(cellText=rows, colLabels=columns, loc="center", cellLoc="left", colLoc="left",
-                     colWidths=[0.25, 0.11, 0.22, 0.12, 0.11, 0.07, 0.10], bbox=[0, 0, 1, 1])
+                     colWidths=widths, bbox=[0, 0, 1, 1])
     table.auto_set_font_size(False)
     for (r, c), cell in table.get_celld().items():
         cell.set_edgecolor(GRID)
@@ -385,6 +399,18 @@ BACKBONE_PANELS = [
 ]
 
 
+# The team-split results span a wider range (frozen CLIP's benign FPR is about 10%).
+TEAM_SPLIT_BACKBONE_PANELS = [
+    ("AUROC (reg. vs benign)", lambda m: m["auroc"]["regression_vs_benign"], (0.984, 1.0015), [0.985, 0.99, 0.995, 1.0], "{:.4f}"),
+    ("Benign FPR", lambda m: m["false_positive_rate"]["benign"], (-0.006, 0.118), [0, 0.05, 0.1], "{:.1%}"),
+    ("Type macro-F1", lambda m: m["type"]["macro_f1"], (0.34, 0.50), [0.35, 0.4, 0.45], "{:.2f}"),
+    ("Pointing accuracy", lambda m: m["localization"]["pointing_accuracy"], (0.42, 0.635), [0.45, 0.5, 0.55, 0.6], "{:.2f}"),
+    ("Mean box IoU", lambda m: m["localization"]["mean_iou"], (0.195, 0.242), [0.2, 0.22, 0.24], "{:.2f}"),
+]
+BACKBONES_HEADLINE = ("Fine-tuning matters more than the backbone; finer patches (SigLIP) point better, "
+                      "but boxes don't improve")
+
+
 def backbone_panel(ax: plt.Axes, results: dict[str, list[dict]], panel: tuple, heading_size: float = 11,
                    value_size: float = 9, dot_size: float = 70) -> None:
     """One metric: a frozen-to-fine-tuned dumbbell per backbone, labelled at the fine-tuned end."""
@@ -413,13 +439,14 @@ def backbone_legend_handles(marker_size: float = 8, tuned_label: str = "Last 4 b
             plt.Line2D([], [], marker="o", linestyle="", markersize=marker_size, color=BLUE_DARK, label=tuned_label)]
 
 
-def fig_backbones(results: dict[str, list[dict]], out: Path) -> None:
-    fig, axes = plt.subplots(1, len(BACKBONE_PANELS), figsize=(13.5, 3.6), sharey=True)
-    top = title(fig, "Fine-tuning matters more than the backbone; finer patches (SigLIP) point better, but boxes don't improve",
+def fig_backbones(results: dict[str, list[dict]], out: Path, panels: list = BACKBONE_PANELS,
+                  headline: str = BACKBONES_HEADLINE) -> None:
+    fig, axes = plt.subplots(1, len(panels), figsize=(13.5, 3.6), sharey=True)
+    top = title(fig, headline,
                 "Mean of 3 seeds per dot, except SigLIP fine-tuned (1 seed). Each row shows a backbone frozen (light) and "
                 "with its last 4 blocks fine-tuned (dark). Benign FPR: lower is better; all others: higher is better. "
                 "Axes are zoomed to each metric's range.", below_pt=30)
-    for ax, panel in zip(axes, BACKBONE_PANELS):
+    for ax, panel in zip(axes, panels):
         backbone_panel(ax, results, panel)
     fig.legend(handles=backbone_legend_handles(), loc="lower center", ncol=2, fontsize=9.5, bbox_to_anchor=(0.5, 0.0))
     fig.subplots_adjust(top=top, wspace=0.18, left=0.09, right=0.99, bottom=0.2)
@@ -427,11 +454,11 @@ def fig_backbones(results: dict[str, list[dict]], out: Path) -> None:
     plt.close(fig)
 
 
-def fig_backbones_slide(results: dict[str, list[dict]], out: Path) -> None:
+def fig_backbones_slide(results: dict[str, list[dict]], out: Path, panels: list = BACKBONE_PANELS) -> None:
     """The backbone comparison for a slide: no title or caption, 3 panels over 2, 16:9, transparent."""
 
     fig, axes = plt.subplots(2, 3, figsize=(13.33, 7.5), sharey=True)
-    for ax, panel in zip(axes.flat, BACKBONE_PANELS):
+    for ax, panel in zip(axes.flat, panels):
         # With no subtitle here, the direction of the one lower-is-better metric goes in its heading.
         heading = "Benign FPR (lower is better)" if panel[0] == "Benign FPR" else panel[0]
         backbone_panel(ax, results, (heading, *panel[1:]), heading_size=16, value_size=13, dot_size=130)
@@ -448,12 +475,15 @@ def fig_backbones_slide(results: dict[str, list[dict]], out: Path) -> None:
     plt.close(fig)
 
 
-def fig_curves_by_backbone(root: Path, out: Path) -> None:
+CURVES_SUBTITLE = ("Line = mean over seeds, band = range across seeds (SigLIP fine-tuned: 1 seed, no band). Dot: lowest mean "
+                   "validation loss. Each run keeps its best-AUROC epoch, so the later overfitting is not in the saved models.")
+
+
+def fig_curves_by_backbone(root: Path, out: Path,
+                           headline: str = "Validation loss bottoms out around epochs 4-7 for every model, then rises",
+                           subtitle: str = CURVES_SUBTITLE) -> None:
     fig, axes = plt.subplots(1, len(BACKBONES), figsize=(13, 4.2), sharey=True)
-    top = title(fig, "Validation loss bottoms out around epochs 4-7 for every model, then rises",
-                "Line = mean over seeds, band = range across seeds (SigLIP fine-tuned: 1 seed, no band). Dot: lowest mean "
-                "validation loss. Each run keeps its best-AUROC epoch, so the later overfitting is not in the saved models.",
-                below_pt=30)
+    top = title(fig, headline, subtitle, below_pt=30)
     for ax, (name, frozen, tuned) in zip(axes, BACKBONES):
         ax.set_title(name, pad=10, fontsize=11)
         for exp, color, label in ((frozen, BLUE_LIGHT, "Frozen encoder"), (tuned, BLUE_DARK, "Last 4 blocks fine-tuned")):
@@ -534,11 +564,15 @@ def fig_confusion(root: Path, data_root: Path, out: Path, exp: str, label: str, 
     plt.close(fig)
 
 
-def fig_runtime(root: Path, out: Path) -> None:
+RUNTIME_SUBTITLE = ("Wall-clock minutes per 10-epoch run on the RTX 5070 Ti (mean over seeds; runs that also built a "
+                    "feature cache are excluded). SigLIP fine-tuning ran without the cache.")
+
+
+def fig_runtime(logs: list[Path], out: Path, cache_builds: set[str] = CACHE_BUILDS,
+                subtitle: str = RUNTIME_SUBTITLE) -> None:
     starts, minutes = {}, defaultdict(list)
     pattern = re.compile(r"^(\S+ \S+) (start|done)\s+(\S+)$")
-    for log in ("all.log", "clip_siglip.log"):
-        path = root / "logs" / log
+    for path in logs:
         if not path.exists():
             continue
         for line in path.read_text().splitlines():
@@ -546,19 +580,18 @@ def fig_runtime(root: Path, out: Path) -> None:
             if not match:
                 continue
             stamp, event, run = match.groups()
+            run = run.split("/")[-1]  # team-split runs are logged as team_split/<run>
             t = datetime.strptime(stamp, "%Y-%m-%d %H:%M:%S")
             if event == "start":
                 starts[run] = t
-            elif run in starts and run not in CACHE_BUILDS:
+            elif run in starts and run not in cache_builds:
                 minutes[re.sub(r"_10_epochs_s\d+$", "", run)].append((t - starts[run]).total_seconds() / 60)
     rows = [("UIClip, frozen", "uiclip_cal", True), ("CLIP, frozen", "clip_cal", True),
             ("SigLIP-512, frozen", "siglip_cal", True), ("UIClip, fine-tuned", "uiclip_cal_ft4", True),
             ("CLIP, fine-tuned", "clip_cal_ft4", True), ("SigLIP-512, fine-tuned", "siglip_cal_ft4", False)]
     rows = [r for r in rows if minutes.get(r[1])]
     fig, ax = plt.subplots(figsize=(10, 4.2))
-    top = title(fig, "SigLIP takes about 4x longer than UIClip/CLIP, even with the cache",
-                "Wall-clock minutes per 10-epoch run on the RTX 5070 Ti (mean over seeds; runs that also built a feature cache "
-                "are excluded). SigLIP fine-tuning ran without the cache.", below_pt=12)
+    top = title(fig, "SigLIP takes about 4x longer than UIClip/CLIP, even with the cache", subtitle, below_pt=12)
     longest = max(statistics.mean(minutes[e]) for _, e, _ in rows)
     ax.set_xlim(0, longest * 1.15)
     ax.set_ylim(-0.6, len(rows) - 0.4)
@@ -582,21 +615,142 @@ def fig_runtime(root: Path, out: Path) -> None:
     plt.close(fig)
 
 
-GROUPS = ["first_batch", "all_experiments"]
+def flagged_benign(root: Path, data_root: Path, recall: float = 0.95) -> tuple[Counter, int, int]:
+    """Count, per validation benign pair, the runs that flag it at the threshold catching ``recall`` of regressions.
+
+    Only runs trained with benign pairs are counted. Returns the counts, the number of runs and of benign pairs.
+    """
+
+    records = {r["sample_id"]: r for r in json.loads((data_root / "master_dataset_with_benign.json").read_text())}
+    counts, runs, benign = Counter(), 0, set()
+    for path in sorted(root.glob("*_10_epochs_s*/best_auroc/val_predictions.jsonl")):
+        if "nobenign" in path.parts[-3]:
+            continue
+        runs += 1
+        preds = [json.loads(line) for line in open(path)]
+        regression = sorted(p["score"] for p in preds if records[p["sample_id"]]["label"] == "regression")
+        threshold = regression[int((1 - recall) * len(regression))]
+        for p in preds:
+            if records[p["sample_id"]]["label"] == "benign":
+                benign.add(p["sample_id"])
+                if p["score"] >= threshold:
+                    counts[p["sample_id"]] += 1
+    return counts, runs, len(benign)
+
+
+def fig_flagged_benign(counts: Counter, runs: int, n_benign: int, out: Path, top_n: int = 10) -> None:
+    rows = counts.most_common(top_n)
+    fig, ax = plt.subplots(figsize=(10, 4.8))
+    top = title(fig, "A few benign pairs are flagged by many different models",
+                f"For each of the {runs} runs trained with benign pairs, the threshold that catches 95% of regressions; "
+                f"bars count the runs that flag each validation benign pair. {n_benign - len(counts)} of the {n_benign} "
+                "benign pairs are never flagged. The most-flagged pairs show visible rendering failures, not just noise.",
+                below_pt=12)
+    ax.set_xlim(0, runs)
+    ax.set_ylim(-0.6, len(rows) - 0.4)
+    for i, (sample_id, n) in enumerate(rows):
+        y = len(rows) - 1 - i
+        hbar(ax, y, n, 0.55, ORANGE if n >= 3 else BLUE_LIGHT)
+        ax.text(n + runs * 0.01, y, f"{n}", va="center", ha="left", fontsize=10, color=INK)
+    ax.set_yticks(range(len(rows) - 1, -1, -1), [r[0].replace("_", " ") for r in rows])
+    ax.set_xticks(range(0, runs + 1, 2))
+    ax.set_xlabel(f"Runs that flag the pair (of {runs})")
+    ax.grid(axis="x")
+    ax.set_axisbelow(True)
+    ax.spines["left"].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+    fig.subplots_adjust(top=top, left=0.2, right=0.97, bottom=0.13)
+    fig.savefig(out / "6_flagged_benign_pairs.png", dpi=200)
+    plt.close(fig)
+
+
+BROWSERS = {"chromium": "Chromium", "firefox": "Firefox", "webkit": "WebKit"}
+
+
+def fig_benign_example(data_root: Path, out: Path, flagged: int, runs: int,
+                       sample_id: str = "d2c_159_webkit", rows: int = 130) -> None:
+    """The bottom ``rows`` pixels of a benign pair's reference and candidate, stacked."""
+
+    record = next(r for r in json.loads((data_root / "master_dataset_with_benign.json").read_text())
+                  if r["sample_id"] == sample_id)
+    fig, axes = plt.subplots(2, 1, figsize=(10, 4.4))
+    top = title(fig, "Labelled benign, but the WebKit render is visibly broken",
+                f"Footer of {record['parent_id']}, flagged by {flagged} of {runs} runs. The Chromium reference shows no "
+                f"icons; {BROWSERS[record['browser_cand']]} draws the missing icon font as empty boxes.", below_pt=20)
+    for ax, key, label in ((axes[0], "reference_path", f"Reference ({BROWSERS[record['browser_ref']]})"),
+                           (axes[1], "candidate_path", f"Candidate ({BROWSERS[record['browser_cand']]}, labelled benign)")):
+        image = Image.open(data_root / record[key]).convert("RGB")
+        ax.imshow(image.crop((0, image.height - rows, image.width, image.height)))
+        ax.set_title(label, pad=6, fontsize=11)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        for spine in ax.spines.values():
+            spine.set_visible(True)
+            spine.set_color(AXIS)
+    fig.subplots_adjust(top=top, bottom=0.03, left=0.02, right=0.98, hspace=0.35)
+    fig.savefig(out / "7_benign_example_broken_icons.png", dpi=200)
+    plt.close(fig)
+
+
+def draw_team_split(root: Path, data_root: Path, out: Path, identical_seed: int) -> None:
+    """Figures for the rerun of every experiment on the team split (scripts/run_all_experiments.sh)."""
+
+    results = load_results(root)
+    missing = sorted(e for e in ALL_EXPERIMENTS if not results.get(e))
+    if missing:
+        raise SystemExit(f"no scored runs in {root}/comparison for: {missing}")
+    out.mkdir(parents=True, exist_ok=True)
+    fig_all_experiments(out, ("Eight experiments, 22 training runs, rerun in one batch on the team split",
+                              "10 epochs per run; validated on the team split's 69 pages (1,033 pairs), which leaves out the 25 "
+                              "pages with a broken no-change pair. Highlighted cells: settings that differ from the first row. "
+                              "SigLIP-512 uses 512 px tiles and 16 px patches; UIClip and CLIP use 224 px tiles and 32 px patches."),
+                        batch_column=False)
+    fig_benign(results, out)
+    fig_backbones(results, out, TEAM_SPLIT_BACKBONE_PANELS,
+                  "Fine-tuning matters most; frozen, UIClip flags half as many benign pairs as CLIP; SigLIP points best")
+    fig_backbones_slide(results, out, TEAM_SPLIT_BACKBONE_PANELS)
+    fig_curves_by_backbone(root, out, "Total validation loss bottoms out around epochs 5-7, driven by the mutation-type head",
+                           "Line = mean over seeds, band = range across seeds (SigLIP fine-tuned: 1 seed, no band). Dot: lowest "
+                           "mean loss. The total is mostly the type head's loss, which is lowest at epochs 3-6; the regression-"
+                           "score and change-map losses keep falling to epoch 9-10 for most models. Each run keeps its "
+                           "best-AUROC epoch.")
+    fig_identical(root, data_root, out, identical_seed,
+                  "Self-calibration gives every identical pair the same score; without it, scores vary")
+    for suffix, (exp, label) in zip("abc", [("uiclip_cal_ft4", "UIClip fine-tuned"), ("clip_cal_ft4", "CLIP fine-tuned"),
+                                            ("siglip_cal_ft4", "SigLIP-512 fine-tuned")]):
+        fig_confusion(root, data_root, out, exp, label, f"5{suffix}_type_confusion_{label.split()[0].split('-')[0].lower()}.png")
+    counts, runs, n_benign = flagged_benign(root, data_root)
+    fig_flagged_benign(counts, runs, n_benign, out)
+    fig_benign_example(data_root, out, counts["d2c_159_webkit"], runs)
+    fig_runtime([root.parent / "logs" / root.name / "all.log"], out, set(),
+                "Wall-clock minutes per 10-epoch run on the RTX 5070 Ti, mean over seeds. Every feature cache already "
+                "existed; SigLIP fine-tuning runs without one.")
+    # The shared figure functions use the older folders' file names; number these in reading order.
+    for old, new in [("2_benign_training", "2_benign_training"), ("2_backbones_frozen_vs_finetuned", "3_backbones_frozen_vs_finetuned"),
+                     ("2b_backbones_frozen_vs_finetuned_slide", "3b_backbones_frozen_vs_finetuned_slide"),
+                     ("3_validation_loss_by_backbone", "4_validation_loss_by_backbone"), ("4_identical_pairs", "5_identical_pairs"),
+                     ("5a_type_confusion_uiclip", "6a_type_confusion_uiclip"), ("5b_type_confusion_clip", "6b_type_confusion_clip"),
+                     ("5c_type_confusion_siglip", "6c_type_confusion_siglip"), ("6_flagged_benign_pairs", "7_flagged_benign_pairs"),
+                     ("7_benign_example_broken_icons", "8_benign_example_broken_icons"), ("5_training_time", "9_training_time")]:
+        if old != new:
+            (out / f"{old}.png").replace(out / f"{new}.png")
+
+
+GROUPS = ["first_batch", "all_experiments", "team_split"]
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--outputs", default="outputs")
     parser.add_argument("--data-root", default="d2c_v2")
-    parser.add_argument("--out", default="docs/figures/uiclip", help="parent of the first_batch/ and all_experiments/ folders")
+    parser.add_argument("--out", default="docs/figures/uiclip", help="parent of the figure folders")
     parser.add_argument("--identical-seed", type=int, default=0, help="seed of the runs in the identical-pairs figure")
     parser.add_argument("--only", nargs="+", choices=GROUPS, default=GROUPS, help="which figure folder(s) to draw")
     args = parser.parse_args()
 
     root, data_root = Path(args.outputs), Path(args.data_root)
     style()
-    results = load_results(root)
+    results = load_results(root) if {"first_batch", "all_experiments"} & set(args.only) else {}
     needed = set(EXPERIMENTS) if "first_batch" in args.only else set()
     if "all_experiments" in args.only:
         needed |= set(ALL_EXPERIMENTS)
@@ -623,7 +777,9 @@ def main() -> None:
         for suffix, (exp, label) in zip("abc", [("uiclip_cal_ft4", "UIClip fine-tuned"), ("clip_cal_ft4", "CLIP fine-tuned"),
                                                 ("siglip_cal_ft4", "SigLIP-512 fine-tuned")]):
             fig_confusion(root, data_root, out, exp, label, f"4{suffix}_type_confusion_{label.split()[0].split('-')[0].lower()}.png")
-        fig_runtime(root, out)
+        fig_runtime([root / "logs" / "all.log", root / "logs" / "clip_siglip.log"], out)
+    if "team_split" in args.only:
+        draw_team_split(root / "team_split", data_root, Path(args.out) / "team_split", args.identical_seed)
     print(f"drew {', '.join(args.only)} figures under {args.out}")
 
 
