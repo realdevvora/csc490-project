@@ -2,7 +2,15 @@
 
 **Last updated:** 2026-11-14
 
-**Phase:** matched DINOv2/DINOv3 feature study / GPU experiment expansion
+**Phase:** full-page baseline results recorded / frozen-head B/C v1 jobs running
+
+The user confirmed that B/C jobs are running on the lab host. Preserve their v1
+manifest/caches and source files until completion. A crop-specific audit found
+two of 4,739 regression anchors have zero coverage because changed border strips
+lie beyond the reference extent. They are excluded from positive sampling, not
+mislabeled positives. A tested local v2 correction changes only these anchors
+and one matched control, in a fresh run namespace; do not mix v1/v2 results or
+restart solely for this small omission. See [crop audit and handling](results/dino/head-runs.md).
 
 **Latest checkpoint:** DINOv3 access and local authentication now work, and
 checkpoint 4 completed on the font-size regression/benign/no-change trio.
@@ -17,8 +25,19 @@ All no-change L2 maxima are zero. A full-page pretrained runner is now implement
 with label-blind windows, shared-coordinate maps, and a pixel baseline; see
 [run policy and lab commands](results/dino/fullpage-run.md). Both lab smoke runs
 completed 15 pairs on the RTX 4080: DINOv2 33.19 s, DINOv3 20.30 s, with peak
-PyTorch allocation below 0.5 GiB each. Smoke prediction/identity inspection and
-full validation remain pending. No trained head exists yet.
+PyTorch allocation below 0.5 GiB each. Smoke prediction/identity checks passed.
+Full validation scoring has now been reported for all 1,033 pairs: regression/
+benign AUROC is 0.082 (DINOv2), 0.206 (DINOv3), and 0.097 (pixel); all three
+have benign FPR@95R of 1.0. The shared F1 of 0.923 hides complete benign
+false-positive failure at the validation-selected threshold. Pixel pointing
+accuracy is 0.953 versus 0.539/0.585 for DINOv2/v3. See the
+[baseline interpretation](results/dino/fullpage-run.md). A frozen-head implementation now exists for
+conditions B/C, with three seeds, bounded sampled-window caches, shared full-page
+evaluation and validation checkpoint selection. See [head run instructions](results/dino/head-runs.md).
+Local synthetic tests do not establish dataset accuracy; no lab head training
+result exists yet. The user subsequently confirmed that both 15-pair GPU smoke
+runs passed prediction-coverage and identity checks, and launched full validation.
+DiffSpot work is deferred by user request.
 
 Before lab experiments, follow the recorded [DINO findings and experiment
 controls](results/dino/experiment-controls.md): label-blind full-page coverage
@@ -69,13 +88,13 @@ The home quota issue was resolved by using `/virtual/.cache/$USER/csc490` for
 the environment, project, data, and caches. CUDA-enabled PyTorch 2.8.0+cu128
 was verified on the RTX 4080 and the DINOv2 first trio ran successfully.
 Use explicit environment `python3` commands on the lab host. Remote DINOv3
-authentication and the expanded matched-sample run still need verification.
+authentication and both backbone smoke runs have been verified.
 
 ## Next milestones
 
-1. Transfer the completed matched DINOv3 pilot and updated source to the already configured lab workspace; review selected figures alongside raw statistics.
-2. Benchmark and verify the implemented full-page runner for both backbones on the lab GPU, then run full validation. Implement a frozen-backbone spatial head for detection/localization and a benign-training ablation afterward; trained-head jobs are not implemented or running yet.
-3. Prioritize one completed run of each DINOv2 condition, then repeat trained runs with additional seeds; measure GPU throughput before promising deadline completion.
-4. Repeat any implemented DINOv2 training conditions with DINOv3 under matched settings. DiffSpot evaluation and the later group VLM stage remain separate.
+1. Preserve completed experiment A predictions, raw metrics and maps; review the recorded benign-rejection failure and pixel localization baseline.
+2. Transfer the new frozen-head pipeline and launch bounded training-window extraction after A completes.
+3. Run B/C for both backbones with seeds 490/491/492 and the fixed 2,000-update recipe, then evaluate all saved checkpoints on the existing 69 validation pages.
+4. Generate the six-configuration comparison with validation-selected checkpoints/thresholds, learning diagnostics and failure analysis. DiffSpot and VLM work remain deferred.
 
 The crops are guided by known mutation locations. These observations study local feature sensitivity and must not be reported as full-page detection performance. The sample/crop manifest and local artifacts live under ignored `outputs/dino_fit/`. See the [notebook guide](../notebooks/README.md).

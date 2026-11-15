@@ -204,9 +204,6 @@ Next repeat all 39 original pair/crop cases and the separate three-case position
 follow-up with DINOv3 on the lab GPU. Do not infer operator-wide performance from
 this single font-size example. No head training or full-page evaluation has run.
 
-See [findings and lab experiment controls](experiment-controls.md) for the
-limitations and comparison rules to carry into the next experiments.
-
 ## 2026-11-14: completed matched DINOv3 pilot
 
 The [standalone runner](matched-pilot-run.md) completed all 39 frozen baseline

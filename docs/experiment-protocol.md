@@ -6,6 +6,15 @@ This protocol keeps model comparisons meaningful while the implementation evolve
 
 ## Data partitions
 
+For the active DINO experiments, the committed team split is exactly 390 training
+and 69 validation source pages with the existing exclusions. There is currently
+no separate internal test partition. Preserve that manifest; report checkpoint
+and threshold selection on these 69 pages as validation-selected results, not
+independent internal-test estimates. The original general partitioning goals
+below do not authorize creating a replacement split for these runs. The active
+recipe is in [the frozen-head protocol](results/dino/head-runs.md). DiffSpot work
+is deferred for this implementation round.
+
 - Build train, validation, and internal-test partitions from Design2Code-derived data.
 - Partition by source webpage, never by screenshot pair.
 - Tune models, thresholds, preprocessing, and hyperparameters only with training and validation data.
