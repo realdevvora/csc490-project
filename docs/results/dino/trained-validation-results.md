@@ -5,6 +5,14 @@ the imported `outputs/lab-results/dino-results.tar.gz` bundle. The table retains
 rounded values; detailed metrics and learning logs were inspected locally.
 These are the original **v1 crop-manifest runs**, not corrected v2 runs.
 
+This report and its four figures are committed to Git and render on GitHub.
+Download [summary metrics (CSV)](metrics-v1.csv) or the
+[curated metrics, learning records and provenance (JSON)](metrics-v1.json).
+Datasets, webpage screenshots, checkpoint weights and full local run directories
+remain ignored; these figures contain only aggregate measurements and diagrams.
+
+![Experiment A uses frozen distances; B and C train matched spatial heads with different negative supervision.](figures/experiment-design-v1.png)
+
 ## Completed comparison
 
 All configurations use the committed 69 validation pages (1,033 pairs). B/C use
@@ -20,6 +28,8 @@ condition/backbone. AUROC variability is sample standard deviation across seeds.
 | DINOv2 | C: without benign training | 0.4663 | 0.0027 | 1.0000 | 0.6457 |
 | DINOv3 | B: with benign training | 0.9145 | 0.0110 | 0.4130 | 0.5985 |
 | DINOv3 | C: without benign training | 0.4609 | 0.0013 | 1.0000 | 0.6146 |
+
+![A/B/C comparison: benign supervision improves ranking and rejection, while pixel difference remains strongest at pointing. Error bars show sample standard deviation over three trained seeds.](figures/comparison-v1.png)
 
 For B/C, AUROC, FPR and pointing values are means over seeds. A/pixel values are
 single training-free runs, not three-seed means. The supplied DINOv3 selection
@@ -44,12 +54,20 @@ selects step 2,000 for both conditions.
   map archives by design, so this audit does not independently inspect learned
   weights or rerun model inference.
 
-Reproducible local analysis is in
-[analyze_v1.py](../../../outputs/lab-results/analyze_v1.py), with
-[audit JSON](../../../outputs/lab-results/analysis-v1/audit.json) and a
-[summary figure](../../../outputs/lab-results/analysis-v1/validation_summary.png).
-These local artifacts are ignored by Git. Original reports and review PNGs are
-under `outputs/lab-results/extracted-v1/outputs/dino_heads/`.
+The committed [metrics snapshot](metrics-v1.json) records dataset/split/manifest
+fingerprints, model revisions, run-source hashes, learning records, runtime and
+aggregate results. Regenerate the four figures and summary CSV without private
+data, pretrained weights or the ignored results bundle:
+
+```bash
+python3 scripts/build_dino_report.py
+```
+
+This requires the existing NumPy/Matplotlib environment and does not run inference
+or training. The generator is [build_dino_report.py](../../../scripts/build_dino_report.py).
+The original metric-recomputation script and audit JSON remain local under
+`outputs/lab-results/`; original reports and review PNGs are under
+`outputs/lab-results/extracted-v1/outputs/dino_heads/`.
 
 ## Learning progress and operating points
 
@@ -59,6 +77,8 @@ under `outputs/lab-results/extracted-v1/outputs/dino_heads/`.
 | DINOv2 C | 0.3853 | 0.4370 | 0.4663 |
 | DINOv3 B | 0.7477 | 0.8589 | 0.9145 |
 | DINOv3 C | 0.3421 | 0.4136 | 0.4609 |
+
+![Training-window losses and full-page validation AUROC across the saved checkpoints for both backbones and conditions.](figures/learning-v1.png)
 
 Fixed-training losses decrease and all fixed-training diagnostic AUROCs end at
 1.0, including C. That diagnostic excludes benign pairs and uses windows, so
@@ -91,6 +111,8 @@ these seeds, but they are not independent validation datasets.
 
 Per-operator AUROC here means that operator's regressions versus all 138 benign
 pairs, averaged over seeds at the selected checkpoint:
+
+![Operator-level AUROC for the two main trained models, with regression support counts and one shared color scale.](figures/operators-v1.png)
 
 - DINOv2 B is strongest on font-size (0.9833), width (0.9756) and background-colour
   (0.9756), and weakest on opacity (0.8731) and text-colour (0.9031).

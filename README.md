@@ -8,7 +8,13 @@ Regression Lens is a CSC490 Machine Learning for Vision capstone project. Given 
 2. localize the changed region; and
 3. classify the kind of UI change.
 
-**Current phase:** shared evaluation tooling and model investigations. This branch is beginning a pretrained DINO dataset-fit study; see the [notebook guide](notebooks/README.md).
+**Current phase:** DINOv2/DINOv3 A/B/C experiments completed and reviewed. See the
+[illustrated experiment report](docs/results/dino/trained-validation-results.md)
+for the six-configuration comparison, learning curves, operator breakdowns and
+downloadable metrics. The [student guide](docs/dino-experiments-explained.md)
+explains the experiment terminology and run logs.
+
+![DINO A/B/C validation comparison: AUROC, benign rejection and localization.](docs/results/dino/figures/comparison-v1.png)
 
 ## Current direction
 
