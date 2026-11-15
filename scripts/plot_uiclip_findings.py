@@ -475,6 +475,32 @@ def fig_backbones_slide(results: dict[str, list[dict]], out: Path, panels: list 
     plt.close(fig)
 
 
+def fig_backbones_poster(results: dict[str, list[dict]], out: Path) -> None:
+    """The backbone comparison for a poster: 4 panels in 2 x 2, larger text, no title or caption.
+
+    AUROC is left out because every fine-tuned model is at about 1.0. The IoU axis starts at 0, so
+    the panel shows that IoU is low for every model rather than zooming in on small differences.
+    """
+
+    panels = {p[0]: p for p in TEAM_SPLIT_BACKBONE_PANELS}
+    iou = panels["Mean box IoU"]
+    panels["Mean box IoU"] = (iou[0], iou[1], (0.0, 0.5), [0, 0.25, 0.5], iou[4])
+    headings = {"Benign FPR": "Benign FPR (lower = better)", "Pointing accuracy": "Pointing accuracy",
+                "Type macro-F1": "Type macro-F1 (13 types)", "Mean box IoU": "Mean box IoU (flat, low)"}
+    fig, axes = plt.subplots(2, 2, figsize=(9, 6.2), sharey=True)
+    for ax, name in zip(axes.flat, headings):
+        ax.set_facecolor("white")
+        backbone_panel(ax, results, (headings[name], *panels[name][1:]), heading_size=14, value_size=12, dot_size=120)
+        ax.tick_params(axis="both", labelsize=12)
+    for row in axes:
+        row[0].tick_params(axis="y", labelleft=True)
+    fig.legend(handles=backbone_legend_handles(marker_size=10), loc="upper center", ncol=2, fontsize=12,
+               frameon=False, bbox_to_anchor=(0.5, 1.0))
+    fig.subplots_adjust(top=0.86, bottom=0.07, left=0.15, right=0.96, hspace=0.5, wspace=0.22)
+    fig.savefig(out / "10_poster_backbones_2x2.png", dpi=250, facecolor="white")
+    plt.close(fig)
+
+
 CURVES_SUBTITLE = ("Line = mean over seeds, band = range across seeds (SigLIP fine-tuned: 1 seed, no band). Dot: lowest mean "
                    "validation loss. Each run keeps its best-AUROC epoch, so the later overfitting is not in the saved models.")
 
@@ -709,6 +735,7 @@ def draw_team_split(root: Path, data_root: Path, out: Path, identical_seed: int)
     fig_backbones(results, out, TEAM_SPLIT_BACKBONE_PANELS,
                   "Fine-tuning matters most; frozen, UIClip flags half as many benign pairs as CLIP; SigLIP points best")
     fig_backbones_slide(results, out, TEAM_SPLIT_BACKBONE_PANELS)
+    fig_backbones_poster(results, out)
     fig_curves_by_backbone(root, out, "Total validation loss bottoms out around epochs 5-7, driven by the mutation-type head",
                            "Line = mean over seeds, band = range across seeds (SigLIP fine-tuned: 1 seed, no band). Dot: lowest "
                            "mean loss. The total is mostly the type head's loss, which is lowest at epochs 3-6; the regression-"

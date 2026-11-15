@@ -6,6 +6,11 @@ Mirrors ``regression_lens.models.uiclip.SiameseDetector`` and the tiling in
   0_model_architecture.png         annotated: title, captions, loss and backbone notes
   0b_model_architecture_simple.png diagram only: stage labels, inputs, block names
 
+and two minimal poster versions to docs/figures/uiclip/team_split/:
+
+  11_poster_architecture_simple.png              inputs, encoder, compare, three outputs
+  11b_poster_architecture_simple_calibration.png the same, with self-calibration marked
+
   python scripts/plot_uiclip_architecture.py
 
 Requires matplotlib (``pip install -e ".[figures]"``).
@@ -29,6 +34,9 @@ from plot_uiclip_findings import (  # noqa: E402
 
 OUT_DIR = Path("docs/figures/uiclip/all_experiments")
 OUT, OUT_SIMPLE = "0_model_architecture.png", "0b_model_architecture_simple.png"
+POSTER_OUT_DIR = Path("docs/figures/uiclip/team_split")
+OUT_POSTER = "11_poster_architecture_simple.png"
+OUT_POSTER_CALIBRATION = "11b_poster_architecture_simple_calibration.png"
 
 BLUE_TINT, AQUA_TINT, ORANGE_TINT, GREY_TINT = "#e3eefb", "#ddf3ea", "#fde6dc", "#efeee9"
 
@@ -286,12 +294,59 @@ def notes(ax) -> None:
             ha="left", va="center", fontsize=8.6, color=INK_2)
 
 
+def draw_poster(out: Path, calibration: bool) -> None:
+    """A minimal left-to-right version for a small poster slot: inputs, encoder, compare, three outputs.
+
+    The outputs are labelled with the three evaluation questions (regression? where? what changed?).
+    With ``calibration``, a dashed box marks self-calibration: subtracting the reference compared with itself.
+    """
+
+    def block(ax, x, y, w, h, text, edge, fill, size=17, weight="bold", color=INK, dashed=False):
+        ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0,rounding_size=0.12", linewidth=2.2,
+                                    edgecolor=edge, facecolor=fill, linestyle=(0, (4, 3)) if dashed else "-"))
+        ax.text(x + w / 2, y + h / 2, text, ha="center", va="center", fontsize=size, fontweight=weight,
+                color=color, linespacing=1.25)
+
+    def link(ax, start, end, color=INK_2, dashed=False):
+        ax.add_patch(FancyArrowPatch(start, end, arrowstyle="-|>", mutation_scale=18, linewidth=2, color=color,
+                                     linestyle=(0, (4, 3)) if dashed else "-", shrinkA=0, shrinkB=0))
+
+    fig, ax = plt.subplots(figsize=(10, 3.7))
+    ax.set_xlim(-0.05, 10.05)
+    ax.set_ylim(-0.05, 3.55)
+    ax.axis("off")
+    block(ax, 0.0, 2.15, 1.75, 0.95, "Reference", AXIS, GREY_TINT, size=16)
+    block(ax, 0.0, 0.6, 1.75, 0.95, "Candidate", AXIS, GREY_TINT, size=16)
+    block(ax, 2.35, 0.6, 2.05, 2.5, "Shared\nencoder", BLUE, BLUE_TINT, size=18)
+    ax.text(3.375, 0.95, "UIClip, CLIP\nor SigLIP", ha="center", va="center", fontsize=12.5, color=INK_2)
+    link(ax, (1.75, 2.62), (2.35, 2.62))
+    link(ax, (1.75, 1.08), (2.35, 1.08))
+    block(ax, 5.0, 1.425, 1.75, 1.0, "Compare\npatches", AQUA, AQUA_TINT, size=16)
+    link(ax, (4.4, 1.925), (5.0, 1.925))
+    if calibration:
+        block(ax, 5.0, 0.0, 1.75, 0.85, "− same page\nvs itself", AQUA, "white", size=12.5, weight="normal",
+              color=INK_2, dashed=True)
+        link(ax, (5.875, 0.85), (5.875, 1.425), color=AQUA, dashed=True)
+    for (question, output), y in zip([("Regression?", "score"), ("Where?", "change map"), ("What changed?", "13 types")],
+                                     [2.65, 1.5, 0.35]):
+        block(ax, 7.4, y, 2.6, 0.85, "", ORANGE, ORANGE_TINT)
+        ax.text(8.7, y + 0.55, question, ha="center", va="center", fontsize=15.5, fontweight="bold", color=INK)
+        ax.text(8.7, y + 0.24, output, ha="center", va="center", fontsize=12.5, color=INK_2)
+        link(ax, (6.75, 1.925), (7.4, y + 0.425))
+    fig.subplots_adjust(0.01, 0.02, 0.99, 0.98)
+    fig.savefig(out, dpi=250, facecolor="white", bbox_inches="tight", pad_inches=0.05)
+    plt.close(fig)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--out-dir", type=Path, default=OUT_DIR)
-    out_dir = parser.parse_args().out_dir
-    draw(out_dir / OUT)
-    draw(out_dir / OUT_SIMPLE, simple=True)
+    parser.add_argument("--poster-out-dir", type=Path, default=POSTER_OUT_DIR)
+    args = parser.parse_args()
+    draw(args.out_dir / OUT)
+    draw(args.out_dir / OUT_SIMPLE, simple=True)
+    draw_poster(args.poster_out_dir / OUT_POSTER, calibration=False)
+    draw_poster(args.poster_out_dir / OUT_POSTER_CALIBRATION, calibration=True)
 
 
 if __name__ == "__main__":

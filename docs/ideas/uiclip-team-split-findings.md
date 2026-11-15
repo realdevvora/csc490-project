@@ -155,3 +155,7 @@ A slide version of the same comparison, 16:9 with a transparent background, is [
 ![Footer of d2c_159 in Chromium and WebKit: WebKit draws the icon font as empty boxes](../figures/uiclip/team_split/8_benign_example_broken_icons.png)
 
 ![Training time per 10-epoch run for each setup](../figures/uiclip/team_split/9_training_time.png)
+
+Poster versions, white background:
+- [`10_poster_backbones_2x2.png`](../figures/uiclip/team_split/10_poster_backbones_2x2.png): the backbone comparison in 2 × 2. AUROC is left out because every fine-tuned model is at about 1.0, and the IoU axis starts at 0.
+- [`11_poster_architecture_simple.png`](../figures/uiclip/team_split/11_poster_architecture_simple.png) and [`11b_poster_architecture_simple_calibration.png`](../figures/uiclip/team_split/11b_poster_architecture_simple_calibration.png): a minimal architecture diagram, without and with self-calibration, drawn by `python scripts/plot_uiclip_architecture.py`.
