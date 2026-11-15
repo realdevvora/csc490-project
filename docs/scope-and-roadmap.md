@@ -47,6 +47,11 @@ For a proposed scope or direction change:
 
 ## Scope-change history
 
+Full-page inference implementation choices (native-scale windows, overlap
+aggregation, border treatment and scoring) are recorded in the
+[full-page protocol](results/dino/fullpage-run.md). They implement the approved
+experiment expansion below without changing labels, dataset roles or splits.
+
 | Date | Change | Reason | ADR / issue |
 |---|---|---|---|
 | 2026-10-06 | Established the documented bootstrap scope: webpage pairs from Design2Code, source-page-disjoint internal evaluation, and DiffSpot-only external evaluation. | Create a reproducible baseline before data or model work expands. | ADR 0001–0003 |

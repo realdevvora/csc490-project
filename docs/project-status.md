@@ -13,7 +13,12 @@ reviewed; see [pilot notes](results/dino/README.md). Next extend DINOv3 to the
 now completed locally, saving 84 summaries and 14 comparison figures. DINOv3
 benign scores exceed regression in 11/13 baseline trios (DINOv2: 12/13);
 width and border-width have stronger regression than benign responses.
-All no-change L2 maxima are zero. No trained head or full-page runner exists yet.
+All no-change L2 maxima are zero. A full-page pretrained runner is now implemented
+with label-blind windows, shared-coordinate maps, and a pixel baseline; see
+[run policy and lab commands](results/dino/fullpage-run.md). Both lab smoke runs
+completed 15 pairs on the RTX 4080: DINOv2 33.19 s, DINOv3 20.30 s, with peak
+PyTorch allocation below 0.5 GiB each. Smoke prediction/identity inspection and
+full validation remain pending. No trained head exists yet.
 
 Before lab experiments, follow the recorded [DINO findings and experiment
 controls](results/dino/experiment-controls.md): label-blind full-page coverage
@@ -69,7 +74,7 @@ authentication and the expanded matched-sample run still need verification.
 ## Next milestones
 
 1. Transfer the completed matched DINOv3 pilot and updated source to the already configured lab workspace; review selected figures alongside raw statistics.
-2. Implement and benchmark label-blind full-page DINOv2 inference, then a frozen-backbone spatial head for detection/localization and a benign-training ablation. These trained-head/full-page jobs are not implemented or running yet.
+2. Benchmark and verify the implemented full-page runner for both backbones on the lab GPU, then run full validation. Implement a frozen-backbone spatial head for detection/localization and a benign-training ablation afterward; trained-head jobs are not implemented or running yet.
 3. Prioritize one completed run of each DINOv2 condition, then repeat trained runs with additional seeds; measure GPU throughput before promising deadline completion.
 4. Repeat any implemented DINOv2 training conditions with DINOv3 under matched settings. DiffSpot evaluation and the later group VLM stage remain separate.
 
