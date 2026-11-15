@@ -1,0 +1,113 @@
+{
+  "predictions": "outputs/team_split/clip_cal_ft4_10_epochs_s1/best_auroc/val_predictions.jsonl",
+  "format_version": "1",
+  "threshold_selection": "max F1 on the scored predictions",
+  "threshold": 0.2756318747997284,
+  "n": 1033,
+  "n_by_label": {
+    "benign": 138,
+    "no_change": 69,
+    "regression": 826
+  },
+  "detection": {
+    "precision": 1.0,
+    "recall": 0.9975786924939467,
+    "f1": 0.9987878787878788,
+    "accuracy": 0.9980638915779284
+  },
+  "false_positive_rate": {
+    "benign": 0.0,
+    "no_change": 0.0
+  },
+  "auroc": {
+    "regression_vs_benign": 0.9999517493069446,
+    "regression_vs_all_negatives": 0.9991607303692787
+  },
+  "benign_fpr_at_95_recall": {
+    "threshold": 0.9777685403823853,
+    "recall": 0.9515738498789347,
+    "fpr": 0.0
+  },
+  "type": {
+    "n": 826,
+    "macro_f1": 0.486378841458311,
+    "per_class": {
+      "background_color": {
+        "f1": 0.9014084507042254,
+        "support": 68
+      },
+      "border_radius": {
+        "f1": 0.7619047619047619,
+        "support": 25
+      },
+      "border_width": {
+        "f1": 0.8461538461538461,
+        "support": 69
+      },
+      "font_size": {
+        "f1": 0.14953271028037382,
+        "support": 65
+      },
+      "font_weight": {
+        "f1": 0.4221105527638191,
+        "support": 69
+      },
+      "letter_spacing": {
+        "f1": 0.2619047619047619,
+        "support": 69
+      },
+      "line_height": {
+        "f1": 0.3333333333333333,
+        "support": 56
+      },
+      "margin": {
+        "f1": 0.17751479289940827,
+        "support": 69
+      },
+      "opacity": {
+        "f1": 0.6971428571428572,
+        "support": 69
+      },
+      "padding": {
+        "f1": 0.2571428571428571,
+        "support": 68
+      },
+      "position": {
+        "f1": 0.22058823529411764,
+        "support": 68
+      },
+      "text_color": {
+        "f1": 0.8032786885245902,
+        "support": 69
+      },
+      "width": {
+        "f1": 0.4909090909090909,
+        "support": 62
+      }
+    }
+  },
+  "localization": {
+    "n_box": 826,
+    "mean_iou": 0.2171593415479107,
+    "n_point": 826,
+    "pointing_accuracy": 0.4915254237288136
+  },
+  "recall_by": {
+    "family": {
+      "appearance": 1.0,
+      "colour": 1.0,
+      "layout": 0.9962546816479401,
+      "shape": 1.0,
+      "typography": 0.9961389961389961
+    },
+    "magnitude": {
+      "large": 0.9931740614334471,
+      "medium": 1.0,
+      "small": 1.0
+    },
+    "reflow": {
+      "False": 0.9987113402061856,
+      "True": 0.98
+    }
+  }
+}

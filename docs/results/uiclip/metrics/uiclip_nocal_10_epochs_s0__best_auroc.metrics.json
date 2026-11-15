@@ -1,0 +1,113 @@
+{
+  "predictions": "outputs/uiclip_nocal_10_epochs_s0/best_auroc/val_predictions.jsonl",
+  "format_version": "1",
+  "threshold_selection": "max F1 on the scored predictions",
+  "threshold": 0.2030746340751648,
+  "n": 1108,
+  "n_by_label": {
+    "benign": 146,
+    "no_change": 73,
+    "regression": 889
+  },
+  "detection": {
+    "precision": 0.9841986455981941,
+    "recall": 0.9808773903262092,
+    "f1": 0.9825352112676057,
+    "accuracy": 0.9720216606498195
+  },
+  "false_positive_rate": {
+    "benign": 0.07534246575342465,
+    "no_change": 0.0410958904109589
+  },
+  "auroc": {
+    "regression_vs_benign": 0.9941869423856264,
+    "regression_vs_all_negatives": 0.993898023021095
+  },
+  "benign_fpr_at_95_recall": {
+    "threshold": 0.7943849563598633,
+    "recall": 0.9505061867266592,
+    "fpr": 0.0
+  },
+  "type": {
+    "n": 889,
+    "macro_f1": 0.3287883003047979,
+    "per_class": {
+      "background_color": {
+        "f1": 0.8244274809160306,
+        "support": 72
+      },
+      "border_radius": {
+        "f1": 0.7457627118644068,
+        "support": 35
+      },
+      "border_width": {
+        "f1": 0.5363636363636364,
+        "support": 72
+      },
+      "font_size": {
+        "f1": 0.16759776536312848,
+        "support": 72
+      },
+      "font_weight": {
+        "f1": 0.35,
+        "support": 72
+      },
+      "letter_spacing": {
+        "f1": 0.2938388625592417,
+        "support": 71
+      },
+      "line_height": {
+        "f1": 0.08333333333333333,
+        "support": 61
+      },
+      "margin": {
+        "f1": 0.0,
+        "support": 73
+      },
+      "opacity": {
+        "f1": 0.3,
+        "support": 73
+      },
+      "padding": {
+        "f1": 0.2556390977443609,
+        "support": 73
+      },
+      "position": {
+        "f1": 0.0,
+        "support": 72
+      },
+      "text_color": {
+        "f1": 0.6120218579234973,
+        "support": 72
+      },
+      "width": {
+        "f1": 0.10526315789473684,
+        "support": 71
+      }
+    }
+  },
+  "localization": {
+    "n_box": 889,
+    "mean_iou": 0.20497857405456532,
+    "n_point": 889,
+    "pointing_accuracy": 0.46569178852643417
+  },
+  "recall_by": {
+    "family": {
+      "appearance": 1.0,
+      "colour": 1.0,
+      "layout": 0.9480968858131488,
+      "shape": 1.0,
+      "typography": 0.9927536231884058
+    },
+    "magnitude": {
+      "large": 0.9851632047477745,
+      "medium": 0.9797297297297297,
+      "small": 0.9765625
+    },
+    "reflow": {
+      "False": 0.9915458937198067,
+      "True": 0.8360655737704918
+    }
+  }
+}

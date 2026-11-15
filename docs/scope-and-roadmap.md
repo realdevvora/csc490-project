@@ -8,9 +8,9 @@ This file separates commitments from ideas and preserves scope history. When dir
 - Generate labelled reference/candidate pairs from Design2Code HTML using controlled mutations.
 - Generate benign/no-change examples separately from regression mutations.
 - Record mutation provenance, render configuration, localization, and source-page identity.
-- Use source-page-disjoint train, validation, and internal-test splits.
+- Use source-page-disjoint train and validation splits (an internal test split is optional).
 - Establish simple baselines before comparing larger candidate models.
-- Evaluate the selected frozen system on DiffSpot as an external benchmark.
+- Compare models on DiffSpot's comparison half, and evaluate the frozen integrated system once on its final-evaluation half.
 - Preserve enough configuration and environment information to reproduce serious experiments.
 
 ## Probable extensions
@@ -50,3 +50,4 @@ For a proposed scope or direction change:
 | Date | Change | Reason | ADR / issue |
 |---|---|---|---|
 | 2026-10-06 | Established the documented bootstrap scope: webpage pairs from Design2Code, source-page-disjoint internal evaluation, and DiffSpot-only external evaluation. | Create a reproducible baseline before data or model work expands. | ADR 0001–0003 |
+| 2026-11-13 | DiffSpot is split into a model-comparison half and a final-evaluation half; an internal Design2Code test split is no longer required. | Design2Code validation can no longer separate the fine-tuned models, and the project needs both a held-out model comparison and an untouched evaluation of the integrated system. | ADR 0005 |

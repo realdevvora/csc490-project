@@ -1,0 +1,113 @@
+{
+  "predictions": "outputs/team_split/uiclip_cal_nobenign_10_epochs_s1/best_auroc/val_predictions.jsonl",
+  "format_version": "1",
+  "threshold_selection": "max F1 on the scored predictions",
+  "threshold": 0.15168491005897522,
+  "n": 1033,
+  "n_by_label": {
+    "benign": 138,
+    "no_change": 69,
+    "regression": 826
+  },
+  "detection": {
+    "precision": 0.8568464730290456,
+    "recall": 1.0,
+    "f1": 0.9229050279329608,
+    "accuracy": 0.8664085188770572
+  },
+  "false_positive_rate": {
+    "benign": 1.0,
+    "no_change": 0.0
+  },
+  "auroc": {
+    "regression_vs_benign": 0.48668280871670705,
+    "regression_vs_all_negatives": 0.6577885391444713
+  },
+  "benign_fpr_at_95_recall": {
+    "threshold": 1.0,
+    "recall": 0.9733656174334141,
+    "fpr": 1.0
+  },
+  "type": {
+    "n": 826,
+    "macro_f1": 0.3727452077553989,
+    "per_class": {
+      "background_color": {
+        "f1": 0.8260869565217391,
+        "support": 68
+      },
+      "border_radius": {
+        "f1": 0.7906976744186046,
+        "support": 25
+      },
+      "border_width": {
+        "f1": 0.7244094488188977,
+        "support": 69
+      },
+      "font_size": {
+        "f1": 0.27624309392265195,
+        "support": 65
+      },
+      "font_weight": {
+        "f1": 0.21212121212121213,
+        "support": 69
+      },
+      "letter_spacing": {
+        "f1": 0.14285714285714285,
+        "support": 69
+      },
+      "line_height": {
+        "f1": 0.20652173913043478,
+        "support": 56
+      },
+      "margin": {
+        "f1": 0.023255813953488372,
+        "support": 69
+      },
+      "opacity": {
+        "f1": 0.44871794871794873,
+        "support": 69
+      },
+      "padding": {
+        "f1": 0.027777777777777776,
+        "support": 68
+      },
+      "position": {
+        "f1": 0.18604651162790697,
+        "support": 68
+      },
+      "text_color": {
+        "f1": 0.6,
+        "support": 69
+      },
+      "width": {
+        "f1": 0.38095238095238093,
+        "support": 62
+      }
+    }
+  },
+  "localization": {
+    "n_box": 826,
+    "mean_iou": 0.1924789296820354,
+    "n_point": 826,
+    "pointing_accuracy": 0.48426150121065376
+  },
+  "recall_by": {
+    "family": {
+      "appearance": 1.0,
+      "colour": 1.0,
+      "layout": 1.0,
+      "shape": 1.0,
+      "typography": 1.0
+    },
+    "magnitude": {
+      "large": 1.0,
+      "medium": 1.0,
+      "small": 1.0
+    },
+    "reflow": {
+      "False": 1.0,
+      "True": 1.0
+    }
+  }
+}

@@ -6,11 +6,12 @@ This protocol keeps model comparisons meaningful while the implementation evolve
 
 ## Data partitions
 
-- Build train, validation, and internal-test partitions from Design2Code-derived data.
+- Build train and validation partitions from Design2Code-derived data. An internal test partition is optional ([ADR 0005](adr/0005-diffspot-comparison-and-final-evaluation-halves.md)).
 - Partition by source webpage, never by screenshot pair.
-- Tune models, thresholds, preprocessing, and hyperparameters only with training and validation data.
-- Use the internal test partition for the final synthetic-data comparison.
-- Evaluate the selected, frozen system on DiffSpot without using DiffSpot to retrain, select checkpoints, tune thresholds, or choose preprocessing.
+- Train models, tune hyperparameters and select each model's checkpoint only with Design2Code training and validation data.
+- Never train on DiffSpot. Split it once into two page-disjoint halves, stratified by difficulty:
+  - **Comparison half:** compare the team's models and choose the detector, its decision threshold, and the VLM prompts and post-processing. Results here are optimistic for the chosen model and must be labelled as such.
+  - **Final-evaluation half:** evaluate the frozen integrated system once. Nothing may be tuned on it; a change made after looking at it starts a new, declared evaluation round.
 
 Every result must name the upstream data revision, generation configuration, generated-dataset version, and split-manifest version.
 
@@ -54,7 +55,7 @@ Accuracy may be reported but should not replace class-sensitive metrics.
 
 ### Generalization
 
-- the same applicable detection/localization metrics on DiffSpot after model selection; and
+- the same applicable detection/localization metrics on each DiffSpot half, labelled as comparison or final evaluation; and
 - easy/medium/hard breakdowns where supported by the benchmark metadata.
 
 ## Repeated runs
