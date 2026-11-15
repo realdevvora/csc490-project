@@ -1,5 +1,7 @@
 # Project status
 
+Reader guide: [Understanding experiments A, B and C](dino-experiments-explained.md).
+
 **Last updated:** 2026-11-14
 
 **Phase:** full-page baseline results recorded / frozen-head B/C v1 jobs running

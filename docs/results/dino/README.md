@@ -1,5 +1,8 @@
 # DINO dataset-fit pilot
 
+For a student-friendly explanation of A/B/C, the training logs, run counts and
+evaluation metrics, see [Understanding the DINO experiments](../../dino-experiments-explained.md).
+
 ## 2026-11-14: one font-size trio, frozen DINOv2
 
 This is a qualitative, ground-truth-guided crop study on official training pages.

@@ -54,7 +54,7 @@ The actual committed training subset yields 11,818 sampled windows across all
 for DINOv3 (approximately 122.45 GiB combined, before validation maps).
 
 The head individually L2-normalizes reference/candidate patch vectors and uses
-absolute differences, elementwise products and cosine distance (1,537 channels).
+absolute differences, elementwise products and cosine similarity (1,537 channels).
 Its trunk is 1x1 convolution to 128, GELU, 3x3 convolution to 64, GELU, dropout .1.
 One branch produces localization logits; another classifies each window from
 validity-weighted mean and masked-maximum pooled trunk features.
