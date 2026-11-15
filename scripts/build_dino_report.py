@@ -41,8 +41,12 @@ def import_metrics(bundle, audit_path):
         manifest_sha256=hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
         audit_sha256=hashlib.sha256(audit_path.read_bytes()).hexdigest(),
         baselines=baseline, models=audit['models'], selected_steps=audit['selected'],
-        breakdowns=audit['breakdowns'], checkpoint_curves={}, learning={}, runtime={}, provenance={})
+        breakdowns=audit['breakdowns'], checkpoint_curves={}, learning={}, runtime={}, provenance={}, selected_scorer_metrics={})
     for model in ('dinov2','dinov3'):
+        selection=read(heads/f'{model}_validation/selection.json')
+        for condition in ('B','C'):
+            snapshot['selected_scorer_metrics'][f'{model}_{condition}']={
+                seed: entry['metrics'] for seed,entry in selection['selected'][condition]['seeds'].items()}
         snapshot['checkpoint_curves'][model]=[{k:r[k] for k in
             ('condition','step','auroc_mean','auroc_std','benign_fpr95_mean')}
             for r in audit['checkpoint_curves'][model]]
@@ -58,6 +62,107 @@ def import_metrics(bundle, audit_path):
             git_commit=config['provenance']['git_commit'], dirty=config['provenance']['dirty'],
             sources=config['provenance']['sources'])
     SNAPSHOT.write_text(json.dumps(snapshot,indent=2,allow_nan=False)+'\n', encoding='utf-8')
+
+
+def scorer_tables(data):
+    """Publish every scalar metric and recall breakdown from the shared scorer."""
+    entries=[(name,'pixel' if name=='pixel' else 'A',[data['baselines'][name]])
+             for name in ('dinov2','dinov3','pixel')]
+    entries += [(name.split('_')[0],name.split('_')[1],
+                 [values[str(seed)] for seed in (490,491,492)])
+                for name,values in data['selected_scorer_metrics'].items()]
+    def get(row,path):
+        for key in path.split('/'):
+            if not isinstance(row,dict): return None
+            row=row.get(key)
+        return row
+    metrics=[('Pairs (n)','n'),('AUROC: regression / benign','auroc/regression_vs_benign'),
+        ('AUROC: regression / all negatives','auroc/regression_vs_all_negatives'),
+        ('Benign FPR at 95% recall','benign_fpr_at_95_recall/fpr'),
+        ('95%-recall operating threshold','benign_fpr_at_95_recall/threshold'),
+        ('Achieved recall at that threshold','benign_fpr_at_95_recall/recall'),
+        ('Max-F1 decision threshold','threshold'),('Precision','detection/precision'),
+        ('Recall','detection/recall'),('F1','detection/f1'),('Accuracy','detection/accuracy'),
+        ('Benign FPR at max-F1 threshold','false_positive_rate/benign'),
+        ('No-change FPR at max-F1 threshold','false_positive_rate/no_change'),
+        ('Type macro-F1','type/macro_f1'),('Pointing accuracy','localization/pointing_accuracy'),
+        ('Mean box IoU','localization/mean_iou'),('Regressions with point predictions','localization/n_point'),
+        ('Regressions with box predictions','localization/n_box')]
+    groups={group:sorted({key for _,_,runs in entries for r in runs
+                         for key in r.get('recall_by',{}).get(group,{})})
+            for group in ('family','magnitude','reflow')}
+    def fmt(value,path):
+        if value is None: return '—'
+        if path in ('n','localization/n_point','localization/n_box'): return str(int(value))
+        return f'{value:.9g}' if 'threshold' in path else f'{value:.4f}'
+    exported=[]
+    def table(spec):
+        lines=['| Metric | '+' | '.join('Pixel' if m=='pixel' else f'{m} {c}' for m,c,_ in entries)+' |',
+               '|---|'+'---:|'*len(entries)]
+        for title,path in spec:
+            cells=[]
+            for model,condition,runs in entries:
+                vals=[get(r,path) for r in runs]
+                if any(v is None for v in vals):
+                    mean,sd=None,None
+                    cell='—'
+                else:
+                    mean=float(np.mean(vals));sd=float(np.std(vals,ddof=1)) if len(vals)>1 else None
+                    cell=fmt(mean,path)
+                    if sd is not None and path not in ('n','localization/n_point','localization/n_box'):
+                        cell+=' ± '+fmt(sd,path)
+                cells.append(cell)
+                exported.append(dict(model=model,condition=condition,metric=path,
+                    mean='' if mean is None else mean,seed_sd='' if sd is None else sd,runs=len(runs)))
+            lines.append('| '+title+' | '+' | '.join(cells)+' |')
+        return '\n'.join(lines)
+    content=['## Complete shared-scorer metrics',
+        'All seven configurations below use the same 1,033 validation pairs: '
+        '826 regressions, 138 benign pairs and 69 no-change pairs. B/C select update '
+        '2,000 and show **mean ± sample SD across seeds 490/491/492**; A/pixel are '
+        'single runs. Counts are per run, not totals pooled over seeds. Scorer '
+        'format is version 1; decision thresholds maximize F1 on validation.',
+        table(metrics),
+        'Detection precision/recall/F1/accuracy and class-specific FPRs use each '
+        'run\'s **max-F1 threshold**. FPR@95R uses its own threshold; ties can make '
+        'achieved recall exceed 95%. Pointing is evaluated on regressions independently '
+        'of either threshold. Dashes mean unavailable, not zero: these models do '
+        'not predict mutation classes or boxes. AUROC includes both requested '
+        'negative definitions; identity controls make the all-negative version easier.',
+        '**Threshold summaries are descriptive, not deployable thresholds.** '
+        'Each seed has its own selected value; exact values are below and in '
+        '`metrics-v1.json`. Extra significant digits prevent near-zero/near-one '
+        'thresholds from appearing equal after rounding.',
+        '### Exact per-seed operating thresholds',
+        '| Model | Condition | Seed | Max-F1 threshold | 95%-recall threshold | Achieved recall at 95%-recall threshold |',
+        '|---|---|---:|---:|---:|---:|']
+    for model,condition,runs in entries:
+        for index,r in enumerate(runs):
+            seed=str((490,491,492)[index]) if len(runs)>1 else '—'
+            content.append(f"| {model} | {condition} | {seed} | {r['threshold']:.17g} | {r['benign_fpr_at_95_recall']['threshold']:.17g} | {r['benign_fpr_at_95_recall']['recall']:.6f} |")
+    content += ['### Shared-scorer recall breakdowns',
+        'These are regression recalls at each run\'s max-F1 threshold. They are '
+        'not operator AUROCs or localization scores. `reflow=True` means the mutation '
+        'propagates layout changes; `False` denotes non-reflow examples.',
+        table([(f'Recall: {group} / {key}',f'recall_by/{group}/{key}')
+               for group,keys in groups.items() for key in keys])]
+    with (ROOT/'shared-scorer-v1.csv').open('w',newline='',encoding='utf-8') as stream:
+        writer=csv.DictWriter(stream,fieldnames=list(exported[0]));writer.writeheader();writer.writerows(exported)
+    content += ['[Download all shared-scorer metrics and breakdowns as CSV](shared-scorer-v1.csv).']
+    report=ROOT/'trained-validation-results.md'
+    start,end='<!-- shared-scorer:start -->','<!-- shared-scorer:end -->'
+    # Keep the exact-threshold header, separator and data rows contiguous.
+    threshold_end=6+2+sum(len(runs) for _,_,runs in entries)
+    block=(start+'\n\n'+'\n\n'.join(content[:6])+'\n\n'
+           +'\n'.join(content[6:threshold_end])+'\n\n'
+           +'\n\n'.join(content[threshold_end:])+'\n\n'+end+'\n\n')
+    text=report.read_text(encoding='utf-8')
+    if start in text:
+        before,rest=text.split(start,1);_,after=rest.split(end,1)
+        text=before+block+after.lstrip('\n')
+    else:
+        text=text.replace('## Artifact and metric verification',block+'## Artifact and metric verification',1)
+    report.write_text(text,encoding='utf-8')
 
 
 def plots(data):
@@ -154,7 +259,9 @@ def main():
     a=p.parse_args()
     if bool(a.bundle)!=bool(a.audit): p.error('--bundle and --audit must be supplied together')
     if a.bundle: import_metrics(a.bundle,a.audit)
-    plots(read(SNAPSHOT))
+    data=read(SNAPSHOT)
+    scorer_tables(data)
+    plots(data)
 
 
 if __name__=='__main__': main()

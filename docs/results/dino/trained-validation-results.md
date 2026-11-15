@@ -36,6 +36,78 @@ single training-free runs, not three-seed means. The supplied DINOv3 selection
 log selects step 2,000 for both B and C. Inspection confirms that DINOv2 also
 selects step 2,000 for both conditions.
 
+<!-- shared-scorer:start -->
+
+## Complete shared-scorer metrics
+
+All seven configurations below use the same 1,033 validation pairs: 826 regressions, 138 benign pairs and 69 no-change pairs. B/C select update 2,000 and show **mean ± sample SD across seeds 490/491/492**; A/pixel are single runs. Counts are per run, not totals pooled over seeds. Scorer format is version 1; decision thresholds maximize F1 on validation.
+
+| Metric | dinov2 A | dinov3 A | Pixel | dinov2 B | dinov2 C | dinov3 B | dinov3 C |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Pairs (n) | 1033 | 1033 | 1033 | 1033 | 1033 | 1033 | 1033 |
+| AUROC: regression / benign | 0.0819 | 0.2060 | 0.0970 | 0.9485 ± 0.0092 | 0.4663 ± 0.0027 | 0.9145 ± 0.0110 | 0.4609 ± 0.0013 |
+| AUROC: regression / all negatives | 0.3879 | 0.4707 | 0.3980 | 0.9656 ± 0.0061 | 0.6442 ± 0.0018 | 0.9425 ± 0.0071 | 0.6406 ± 0.0008 |
+| Benign FPR at 95% recall | 1.0000 | 1.0000 | 1.0000 | 0.2633 ± 0.0342 | 1.0000 ± 0.0000 | 0.4130 ± 0.0523 | 1.0000 ± 0.0000 |
+| 95%-recall operating threshold | 0.000603831664 | 0.000478347996 | 0.000320099731 | 0.873091002 ± 0.0292182621 | 0.999999324 ± 3.64190395e-07 | 0.645335257 ± 0.0416816195 | 0.99999694 ± 5.63361123e-07 |
+| Achieved recall at that threshold | 0.9504 | 0.9504 | 0.9504 | 0.9504 ± 0.0000 | 0.9508 ± 0.0007 | 0.9504 ± 0.0000 | 0.9508 ± 0.0007 |
+| Max-F1 decision threshold | 2.05358137e-05 | 2.45059855e-05 | 3.55615812e-05 | 0.794738452 ± 0.079626063 | 0.773996433 ± 0.102840709 | 0.552370608 ± 0.0823821289 | 0.753311733 ± 0.119656105 |
+| Precision | 0.8568 | 0.8568 | 0.8568 | 0.9431 ± 0.0159 | 0.8568 ± 0.0000 | 0.9262 ± 0.0067 | 0.8568 ± 0.0000 |
+| Recall | 1.0000 | 1.0000 | 1.0000 | 0.9713 ± 0.0131 | 1.0000 ± 0.0000 | 0.9661 ± 0.0079 | 1.0000 ± 0.0000 |
+| F1 | 0.9229 | 0.9229 | 0.9229 | 0.9569 ± 0.0031 | 0.9229 ± 0.0000 | 0.9457 ± 0.0036 | 0.9229 ± 0.0000 |
+| Accuracy | 0.8664 | 0.8664 | 0.8664 | 0.9300 ± 0.0057 | 0.8664 ± 0.0000 | 0.9113 ± 0.0058 | 0.8664 ± 0.0000 |
+| Benign FPR at max-F1 threshold | 1.0000 | 1.0000 | 1.0000 | 0.3527 ± 0.1068 | 1.0000 ± 0.0000 | 0.4614 ± 0.0471 | 1.0000 ± 0.0000 |
+| No-change FPR at max-F1 threshold | 0.0000 | 0.0000 | 0.0000 | 0.0000 ± 0.0000 | 0.0000 ± 0.0000 | 0.0000 ± 0.0000 | 0.0000 ± 0.0000 |
+| Type macro-F1 | — | — | — | — | — | — | — |
+| Pointing accuracy | 0.5387 | 0.5847 | 0.9528 | 0.6505 ± 0.0092 | 0.6457 ± 0.0070 | 0.5985 ± 0.0140 | 0.6146 ± 0.0062 |
+| Mean box IoU | — | — | — | — | — | — | — |
+| Regressions with point predictions | 826 | 826 | 826 | 826 | 826 | 826 | 826 |
+| Regressions with box predictions | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+Detection precision/recall/F1/accuracy and class-specific FPRs use each run's **max-F1 threshold**. FPR@95R uses its own threshold; ties can make achieved recall exceed 95%. Pointing is evaluated on regressions independently of either threshold. Dashes mean unavailable, not zero: these models do not predict mutation classes or boxes. AUROC includes both requested negative definitions; identity controls make the all-negative version easier.
+
+**Threshold summaries are descriptive, not deployable thresholds.** Each seed has its own selected value; exact values are below and in `metrics-v1.json`. Extra significant digits prevent near-zero/near-one thresholds from appearing equal after rounding.
+
+### Exact per-seed operating thresholds
+
+| Model | Condition | Seed | Max-F1 threshold | 95%-recall threshold | Achieved recall at 95%-recall threshold |
+|---|---|---:|---:|---:|---:|
+| dinov2 | A | — | 2.0535813746391796e-05 | 0.0006038316641934216 | 0.950363 |
+| dinov3 | A | — | 2.4505985493306071e-05 | 0.00047834799624979496 | 0.950363 |
+| pixel | pixel | — | 3.5561581171350554e-05 | 0.00032009973074309528 | 0.950363 |
+| dinov2 | B | 490 | 0.71537238359451294 | 0.83990633487701416 | 0.950363 |
+| dinov2 | B | 491 | 0.79422098398208618 | 0.89495497941970825 | 0.950363 |
+| dinov2 | B | 492 | 0.87462198734283447 | 0.88441169261932373 | 0.950363 |
+| dinov2 | C | 490 | 0.82089889049530029 | 0.99999964237213135 | 0.951574 |
+| dinov2 | C | 491 | 0.65606594085693359 | 0.99999892711639404 | 0.950363 |
+| dinov2 | C | 492 | 0.8450244665145874 | 0.99999940395355225 | 0.950363 |
+| dinov3 | B | 490 | 0.64462220668792725 | 0.69308513402938843 | 0.950363 |
+| dinov3 | B | 491 | 0.48614388704299927 | 0.62668710947036743 | 0.950363 |
+| dinov3 | B | 492 | 0.52634572982788086 | 0.61623352766036987 | 0.950363 |
+| dinov3 | C | 490 | 0.83775413036346436 | 0.99999737739562988 | 0.951574 |
+| dinov3 | C | 491 | 0.61638206243515015 | 0.99999713897705078 | 0.950363 |
+| dinov3 | C | 492 | 0.80579900741577148 | 0.99999630451202393 | 0.950363 |
+
+### Shared-scorer recall breakdowns
+
+These are regression recalls at each run's max-F1 threshold. They are not operator AUROCs or localization scores. `reflow=True` means the mutation propagates layout changes; `False` denotes non-reflow examples.
+
+| Metric | dinov2 A | dinov3 A | Pixel | dinov2 B | dinov2 C | dinov3 B | dinov3 C |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Recall: family / appearance | 1.0000 | 1.0000 | 1.0000 | 0.9082 ± 0.0365 | 1.0000 ± 0.0000 | 0.8696 ± 0.0383 | 1.0000 ± 0.0000 |
+| Recall: family / colour | 1.0000 | 1.0000 | 1.0000 | 0.9416 ± 0.0219 | 1.0000 ± 0.0000 | 0.9440 ± 0.0152 | 1.0000 ± 0.0000 |
+| Recall: family / layout | 1.0000 | 1.0000 | 1.0000 | 0.9750 ± 0.0151 | 1.0000 ± 0.0000 | 0.9813 ± 0.0075 | 1.0000 ± 0.0000 |
+| Recall: family / shape | 1.0000 | 1.0000 | 1.0000 | 0.9894 ± 0.0106 | 1.0000 ± 0.0000 | 0.9397 ± 0.0061 | 1.0000 ± 0.0000 |
+| Recall: family / typography | 1.0000 | 1.0000 | 1.0000 | 0.9936 ± 0.0045 | 1.0000 ± 0.0000 | 0.9974 ± 0.0022 | 1.0000 ± 0.0000 |
+| Recall: magnitude / large | 1.0000 | 1.0000 | 1.0000 | 0.9841 ± 0.0158 | 1.0000 ± 0.0000 | 0.9727 ± 0.0090 | 1.0000 ± 0.0000 |
+| Recall: magnitude / medium | 1.0000 | 1.0000 | 1.0000 | 0.9749 ± 0.0095 | 1.0000 ± 0.0000 | 0.9821 ± 0.0036 | 1.0000 ± 0.0000 |
+| Recall: magnitude / small | 1.0000 | 1.0000 | 1.0000 | 0.9528 ± 0.0142 | 1.0000 ± 0.0000 | 0.9409 ± 0.0118 | 1.0000 ± 0.0000 |
+| Recall: reflow / False | 1.0000 | 1.0000 | 1.0000 | 0.9704 ± 0.0136 | 1.0000 ± 0.0000 | 0.9639 ± 0.0085 | 1.0000 ± 0.0000 |
+| Recall: reflow / True | 1.0000 | 1.0000 | 1.0000 | 0.9867 ± 0.0115 | 1.0000 ± 0.0000 | 1.0000 ± 0.0000 | 1.0000 ± 0.0000 |
+
+[Download all shared-scorer metrics and breakdowns as CSV](shared-scorer-v1.csv).
+
+<!-- shared-scorer:end -->
+
 ## Artifact and metric verification
 
 - All 12 training completion records report 2,000 updates and checkpoints at
