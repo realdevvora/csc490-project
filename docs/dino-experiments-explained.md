@@ -4,7 +4,9 @@
 
 This guide explains what the experiments do, why we run them, and how to read
 their progress and results. It describes the implemented pipeline. Experiment A
-has reported validation results; the current B/C runs are still in progress.
+has reported validation results, and the B/C comparison has now also been
+reported. See [the completed results](results/dino/trained-validation-results.md)
+for the numbers and interpretation; detailed raw-artifact review remains pending.
 
 ## 1. The problem: different does not always mean broken
 

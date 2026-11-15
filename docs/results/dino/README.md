@@ -1,5 +1,7 @@
 # DINO dataset-fit pilot
 
+Latest: [reported full-page A/B/C validation results](trained-validation-results.md).
+
 For a student-friendly explanation of A/B/C, the training logs, run counts and
 evaluation metrics, see [Understanding the DINO experiments](../../dino-experiments-explained.md).
 

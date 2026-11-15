@@ -47,6 +47,12 @@ For a proposed scope or direction change:
 
 ## Scope-change history
 
+New research direction: the user now proposes training/validating on part of
+DiffSpot and testing the complete detector/localizer/VLM pipeline on a held-out
+part. See [the researched roadmap](research/generalization-and-vlm-roadmap.md).
+This requires a documented adaptation protocol superseding ADR 0001's earlier
+external-only role; no DiffSpot partition or training has been performed yet.
+
 Full-page inference implementation choices (native-scale windows, overlap
 aggregation, border treatment and scoring) are recorded in the
 [full-page protocol](results/dino/fullpage-run.md). They implement the approved

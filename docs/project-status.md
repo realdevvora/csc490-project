@@ -4,17 +4,25 @@ Reader guide: [Understanding experiments A, B and C](dino-experiments-explained.
 
 **Last updated:** 2026-11-14
 
-**Phase:** full-page baseline results recorded / frozen-head B/C v1 jobs running
+**Phase:** A/B/C v1 core comparison complete / artifacts audited and results documented
 
-The user confirmed that B/C jobs are running on the lab host. Preserve their v1
-manifest/caches and source files until completion. A crop-specific audit found
+The user reported the completed A/B/C table: DINOv2+B leads validation AUROC at
+0.9485 ± 0.0092, versus DINOv3+B at 0.9145 ± 0.0110. Without benign supervision,
+C is near chance for both backbones. Pixel difference still has the strongest
+pointing accuracy. See [the reported results and interpretation](results/dino/trained-validation-results.md).
+The imported report bundle was inspected: all 12 completion records and 36
+checkpoint prediction files pass compatibility/coverage checks, and recomputed
+metrics match saved values. All four conditions select update 2,000; validation
+AUROC is still improving through the saved checkpoints. Preserve v1 artifacts;
+there is no urgent rerun requirement and no external-generalization claim.
+A crop-specific audit found
 two of 4,739 regression anchors have zero coverage because changed border strips
 lie beyond the reference extent. They are excluded from positive sampling, not
 mislabeled positives. A tested local v2 correction changes only these anchors
 and one matched control, in a fresh run namespace; do not mix v1/v2 results or
 restart solely for this small omission. See [crop audit and handling](results/dino/head-runs.md).
 
-**Latest checkpoint:** DINOv3 access and local authentication now work, and
+**Earlier checkpoints:** DINOv3 access and local authentication now work, and
 checkpoint 4 completed on the font-size regression/benign/no-change trio.
 Benign top-5%-mean cosine distance is 0.116949 versus regression 0.0261631;
 no-change L2 is exactly zero. The comparison figure and raw statistics were
@@ -36,8 +44,8 @@ accuracy is 0.953 versus 0.539/0.585 for DINOv2/v3. See the
 [baseline interpretation](results/dino/fullpage-run.md). A frozen-head implementation now exists for
 conditions B/C, with three seeds, bounded sampled-window caches, shared full-page
 evaluation and validation checkpoint selection. See [head run instructions](results/dino/head-runs.md).
-Local synthetic tests do not establish dataset accuracy; no lab head training
-result exists yet. The user subsequently confirmed that both 15-pair GPU smoke
+Local synthetic tests do not establish dataset accuracy; reported real-data
+head results are now linked above. The user confirmed that both 15-pair GPU smoke
 runs passed prediction-coverage and identity checks, and launched full validation.
 DiffSpot work is deferred by user request.
 
@@ -94,9 +102,14 @@ authentication and both backbone smoke runs have been verified.
 
 ## Next milestones
 
+The user has now requested research on a full detector/localizer/VLM system and
+future DiffSpot train/validation/held-out-test adaptation. Recommendations and
+the resulting protocol distinction are in the [generalization/VLM roadmap](research/generalization-and-vlm-roadmap.md).
+No new training, DiffSpot split or VLM integration has been launched.
+
 1. Preserve completed experiment A predictions, raw metrics and maps; review the recorded benign-rejection failure and pixel localization baseline.
-2. Transfer the new frozen-head pipeline and launch bounded training-window extraction after A completes.
-3. Run B/C for both backbones with seeds 490/491/492 and the fixed 2,000-update recipe, then evaluate all saved checkpoints on the existing 69 validation pages.
-4. Generate the six-configuration comparison with validation-selected checkpoints/thresholds, learning diagnostics and failure analysis. DiffSpot and VLM work remain deferred.
+2. Preserve selected head weights, manifests and original v1 reports on the lab host; the imported bundle deliberately excludes weights/raw maps.
+3. Use the verified report and summary figure for the six-configuration comparison, retaining the validation-selection and crop-coverage caveats.
+4. Any longer-training or localization revision must be a separately declared follow-up. DiffSpot and VLM work remain deferred.
 
 The crops are guided by known mutation locations. These observations study local feature sensitivity and must not be reported as full-page detection performance. The sample/crop manifest and local artifacts live under ignored `outputs/dino_fit/`. See the [notebook guide](../notebooks/README.md).
