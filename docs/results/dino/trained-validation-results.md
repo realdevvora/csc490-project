@@ -291,3 +291,37 @@ this table alone does not establish why the heads miss a location.
 
 See [the student guide](../../dino-experiments-explained.md),
 [the baseline protocol](fullpage-run.md), and [the training protocol](head-runs.md).
+
+## Verified box-localization extension (2026-11-16)
+
+The lab export completed all 14 selected A/B/C runs. Shared metrics were
+recomputed locally from every augmented prediction file; all 1,033 IDs/run,
+original score/point fields, detection metrics and pointing rates match.
+Each run now has 826 regression boxes. These are post-processed heatmap boxes
+under the fixed half-peak rule, separate from the original box-free reports.
+
+| Model | Condition | Mean box IoU | Seed SD | Regression boxes/run |
+|---|---|---:|---:|---:|
+| dinov2 | A | 0.1596 | — | 826 |
+| dinov2 | B | 0.2947 | 0.0017 | 826 |
+| dinov2 | C | 0.2983 | 0.0050 | 826 |
+| dinov3 | A | 0.2191 | — | 826 |
+| dinov3 | B | 0.3022 | 0.0059 | 826 |
+| dinov3 | C | 0.2813 | 0.0043 | 826 |
+
+![Heatmap-derived box IoU for the original DINO A/B/C runs.](figures/box-iou-v1.png)
+
+DINOv3 B has slightly higher box IoU (.3022) than DINOv2 B (.2947), despite
+lower pointing and detection AUROC. These metrics assess different aspects:
+IoU measures extent against diff_bbox; reflow pointing targets bbox_after.
+C's similar localization does not rescue its poor benign rejection. Neither
+head reliably recovers full change extent under this simple box rule.
+This does not establish a statistically significant backbone difference.
+
+The raw maps are absent locally: scoring, preserved predictions, source hashes
+and aggregation were audited, but map-to-box extraction was not independently
+rerun. No thresholds were selected for IoU. This remains post-hoc validation,
+not independent evaluation. Mutation-type metrics remain unavailable.
+
+[Aggregate CSV](box-metrics-v1.csv) · [Per-run metrics and audit](box-metrics-v1.json)
+· [Procedure and lab commands](box-localization.md).

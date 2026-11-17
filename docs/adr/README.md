@@ -25,6 +25,10 @@ Architecture Decision Records (ADRs) preserve consequential research and enginee
 | [0002](0002-regression-and-benign-label-policy.md) | Regression and benign label policy | Accepted |
 | [0003](0003-source-page-disjoint-splits.md) | Source-page-disjoint splits | Accepted |
 | [0004](0004-exclude-pages-with-broken-no-change-pairs.md) | Exclude pages with a broken no-change pair | Accepted |
+| [0006](0006-posthoc-dino-box-localization.md) | Add DINO heatmap-derived boxes as a separate validation extension | Accepted |
+
+ADR 0005 is reserved by the DiffSpot protocol on the fetched CLIP investigation
+branch; it has not been merged into this checkout.
 
 ## Template
 

@@ -1,0 +1,945 @@
+{
+  "recorded": "2026-11-16",
+  "rule": "half_peak_largest_4connected_v1",
+  "source_config": {
+    "rule": "half_peak_largest_4connected_v1",
+    "map_threshold": "0.5 * valid peak per image",
+    "selection": "Reuse original selected checkpoints; no IoU tuning",
+    "scale": 2,
+    "split_sha256": "e77d87b411d3dd8f3b64a51dc2c567a3157422e788ca5be4ea02f08b1996fa81",
+    "metadata_sha256": "d449de29eee0806747c5731f0a875f2173796cf67e89d8e1f25863c7958b8faa",
+    "exporter_sha256": "f4826f930f608fc4dde77f1b7c252fb406762cec9ab189147aa014907e568997",
+    "box_code_sha256": "7848b70837141cd5e8ce1b993c279f14a483ba23713071a222b17b21f80da5ec",
+    "interpretation": "Post-hoc validation localization extension, not an independent test"
+  },
+  "archive_sha256": "36d1c10353235e5289176b2e32233418e205f9dc94325f8624139e443851a854",
+  "audit": {
+    "runs_rescored": 14,
+    "pairs_per_run": 1033,
+    "regression_boxes_per_run": 826,
+    "original_predictions_match": true,
+    "detection_and_pointing_unchanged": true,
+    "raw_maps_available_locally": false,
+    "limit": "Scoring/box export audited; raw-map extraction not independently rerun locally."
+  },
+  "summary": [
+    {
+      "model": "dinov2",
+      "condition": "A",
+      "runs": 1,
+      "mean_iou": 0.15961928341888934,
+      "seed_sd": null,
+      "n_box": 826
+    },
+    {
+      "model": "dinov2",
+      "condition": "B",
+      "runs": 3,
+      "mean_iou": 0.29465655708118316,
+      "seed_sd": 0.0016901758735048571,
+      "n_box": 826
+    },
+    {
+      "model": "dinov2",
+      "condition": "C",
+      "runs": 3,
+      "mean_iou": 0.2983379645049749,
+      "seed_sd": 0.0050125817010203124,
+      "n_box": 826
+    },
+    {
+      "model": "dinov3",
+      "condition": "A",
+      "runs": 1,
+      "mean_iou": 0.21914221029396203,
+      "seed_sd": null,
+      "n_box": 826
+    },
+    {
+      "model": "dinov3",
+      "condition": "B",
+      "runs": 3,
+      "mean_iou": 0.30215380357759664,
+      "seed_sd": 0.005915815783516167,
+      "n_box": 826
+    },
+    {
+      "model": "dinov3",
+      "condition": "C",
+      "runs": 3,
+      "mean_iou": 0.281343032277977,
+      "seed_sd": 0.004291692980099783,
+      "n_box": 826
+    }
+  ],
+  "runs": [
+    {
+      "model": "dinov2",
+      "condition": "A",
+      "seed": null,
+      "step": null,
+      "metrics": {
+        "format_version": "1",
+        "threshold_selection": "max F1 on the scored predictions",
+        "threshold": 2.0535813746391796e-05,
+        "n": 1033,
+        "n_by_label": {
+          "benign": 138,
+          "no_change": 69,
+          "regression": 826
+        },
+        "detection": {
+          "precision": 0.8568464730290456,
+          "recall": 1.0,
+          "f1": 0.9229050279329608,
+          "accuracy": 0.8664085188770572
+        },
+        "false_positive_rate": {
+          "benign": 1.0,
+          "no_change": 0.0
+        },
+        "auroc": {
+          "regression_vs_benign": 0.08188581254167106,
+          "regression_vs_all_negatives": 0.3879238750277807
+        },
+        "benign_fpr_at_95_recall": {
+          "threshold": 0.0006038316641934216,
+          "recall": 0.950363196125908,
+          "fpr": 1.0
+        },
+        "localization": {
+          "n_box": 826,
+          "mean_iou": 0.15961928341888934,
+          "n_point": 826,
+          "pointing_accuracy": 0.5387409200968523
+        },
+        "recall_by": {
+          "family": {
+            "appearance": 1.0,
+            "colour": 1.0,
+            "layout": 1.0,
+            "shape": 1.0,
+            "typography": 1.0
+          },
+          "magnitude": {
+            "large": 1.0,
+            "medium": 1.0,
+            "small": 1.0
+          },
+          "reflow": {
+            "False": 1.0,
+            "True": 1.0
+          }
+        }
+      },
+      "source_predictions_sha256": "c1323ed69203d6540336796d4c15191d65131bff9f6fc48af5bfae1a94f46fd7",
+      "zero_map_fallbacks": 0
+    },
+    {
+      "model": "dinov2",
+      "condition": "B",
+      "seed": 490,
+      "step": 2000,
+      "metrics": {
+        "format_version": "1",
+        "threshold_selection": "max F1 on the scored predictions",
+        "threshold": 0.7153723835945129,
+        "n": 1033,
+        "n_by_label": {
+          "benign": 138,
+          "no_change": 69,
+          "regression": 826
+        },
+        "detection": {
+          "precision": 0.9375,
+          "recall": 0.9806295399515739,
+          "f1": 0.9585798816568047,
+          "accuracy": 0.9322362052274927
+        },
+        "false_positive_rate": {
+          "benign": 0.391304347826087,
+          "no_change": 0.0
+        },
+        "auroc": {
+          "regression_vs_benign": 0.9517054426781767,
+          "regression_vs_all_negatives": 0.9678036284521178
+        },
+        "benign_fpr_at_95_recall": {
+          "threshold": 0.8399063348770142,
+          "recall": 0.950363196125908,
+          "fpr": 0.2753623188405797
+        },
+        "localization": {
+          "n_box": 826,
+          "mean_iou": 0.2949765123101883,
+          "n_point": 826,
+          "pointing_accuracy": 0.6610169491525424
+        },
+        "recall_by": {
+          "family": {
+            "appearance": 0.9420289855072463,
+            "colour": 0.9635036496350365,
+            "layout": 0.9775280898876404,
+            "shape": 1.0,
+            "typography": 0.9961389961389961
+          },
+          "magnitude": {
+            "large": 0.9931740614334471,
+            "medium": 0.982078853046595,
+            "small": 0.9645669291338582
+          },
+          "reflow": {
+            "False": 0.9806701030927835,
+            "True": 0.98
+          }
+        }
+      },
+      "source_predictions_sha256": "5549ccadcbc5431837f16dc850cc9fa58d7488288be1fce17f8c67a981b40f72",
+      "zero_map_fallbacks": 0
+    },
+    {
+      "model": "dinov2",
+      "condition": "B",
+      "seed": 491,
+      "step": 2000,
+      "metrics": {
+        "format_version": "1",
+        "threshold_selection": "max F1 on the scored predictions",
+        "threshold": 0.7942209839820862,
+        "n": 1033,
+        "n_by_label": {
+          "benign": 138,
+          "no_change": 69,
+          "regression": 826
+        },
+        "detection": {
+          "precision": 0.9307958477508651,
+          "recall": 0.9769975786924939,
+          "f1": 0.9533372711163615,
+          "accuracy": 0.9235237173281704
+        },
+        "false_positive_rate": {
+          "benign": 0.43478260869565216,
+          "no_change": 0.0
+        },
+        "auroc": {
+          "regression_vs_benign": 0.9380461101168545,
+          "regression_vs_all_negatives": 0.9586974067445696
+        },
+        "benign_fpr_at_95_recall": {
+          "threshold": 0.8949549794197083,
+          "recall": 0.950363196125908,
+          "fpr": 0.2898550724637681
+        },
+        "localization": {
+          "n_box": 826,
+          "mean_iou": 0.2928292714651547,
+          "n_point": 826,
+          "pointing_accuracy": 0.6440677966101694
+        },
+        "recall_by": {
+          "family": {
+            "appearance": 0.9130434782608695,
+            "colour": 0.9416058394160584,
+            "layout": 0.9887640449438202,
+            "shape": 0.9893617021276596,
+            "typography": 0.9961389961389961
+          },
+          "magnitude": {
+            "large": 0.9931740614334471,
+            "medium": 0.978494623655914,
+            "small": 0.9566929133858267
+          },
+          "reflow": {
+            "False": 0.9755154639175257,
+            "True": 1.0
+          }
+        }
+      },
+      "source_predictions_sha256": "b9177c40c30442d18227eb5af7838e01038b72b3a92383233611e5f50c312ebd",
+      "zero_map_fallbacks": 0
+    },
+    {
+      "model": "dinov2",
+      "condition": "B",
+      "seed": 492,
+      "step": 2000,
+      "metrics": {
+        "format_version": "1",
+        "threshold_selection": "max F1 on the scored predictions",
+        "threshold": 0.8746219873428345,
+        "n": 1033,
+        "n_by_label": {
+          "benign": 138,
+          "no_change": 69,
+          "regression": 826
+        },
+        "detection": {
+          "precision": 0.9610705596107056,
+          "recall": 0.9564164648910412,
+          "f1": 0.9587378640776699,
+          "accuracy": 0.9341723136495643
+        },
+        "false_positive_rate": {
+          "benign": 0.2318840579710145,
+          "no_change": 0.0
+        },
+        "auroc": {
+          "regression_vs_benign": 0.9556093623890234,
+          "regression_vs_all_negatives": 0.9704062415926823
+        },
+        "benign_fpr_at_95_recall": {
+          "threshold": 0.8844116926193237,
+          "recall": 0.950363196125908,
+          "fpr": 0.2246376811594203
+        },
+        "localization": {
+          "n_box": 826,
+          "mean_iou": 0.2961638874682064,
+          "n_point": 826,
+          "pointing_accuracy": 0.6464891041162227
+        },
+        "recall_by": {
+          "family": {
+            "appearance": 0.8695652173913043,
+            "colour": 0.9197080291970803,
+            "layout": 0.9588014981273408,
+            "shape": 0.9787234042553191,
+            "typography": 0.9884169884169884
+          },
+          "magnitude": {
+            "large": 0.9658703071672355,
+            "medium": 0.96415770609319,
+            "small": 0.937007874015748
+          },
+          "reflow": {
+            "False": 0.9548969072164949,
+            "True": 0.98
+          }
+        }
+      },
+      "source_predictions_sha256": "d80db5774c0bd9e76c485af0d6a63e765a00e4f6c83d9e563307486ba71f640c",
+      "zero_map_fallbacks": 0
+    },
+    {
+      "model": "dinov2",
+      "condition": "C",
+      "seed": 490,
+      "step": 2000,
+      "metrics": {
+        "format_version": "1",
+        "threshold_selection": "max F1 on the scored predictions",
+        "threshold": 0.8208988904953003,
+        "n": 1033,
+        "n_by_label": {
+          "benign": 138,
+          "no_change": 69,
+          "regression": 826
+        },
+        "detection": {
+          "precision": 0.8568464730290456,
+          "recall": 1.0,
+          "f1": 0.9229050279329608,
+          "accuracy": 0.8664085188770572
+        },
+        "false_positive_rate": {
+          "benign": 1.0,
+          "no_change": 0.0
+        },
+        "auroc": {
+          "regression_vs_benign": 0.46912832929782083,
+          "regression_vs_all_negatives": 0.6460855528652139
+        },
+        "benign_fpr_at_95_recall": {
+          "threshold": 0.9999996423721313,
+          "recall": 0.9515738498789347,
+          "fpr": 1.0
+        },
+        "localization": {
+          "n_box": 826,
+          "mean_iou": 0.29314949378739513,
+          "n_point": 826,
+          "pointing_accuracy": 0.6416464891041163
+        },
+        "recall_by": {
+          "family": {
+            "appearance": 1.0,
+            "colour": 1.0,
+            "layout": 1.0,
+            "shape": 1.0,
+            "typography": 1.0
+          },
+          "magnitude": {
+            "large": 1.0,
+            "medium": 1.0,
+            "small": 1.0
+          },
+          "reflow": {
+            "False": 1.0,
+            "True": 1.0
+          }
+        }
+      },
+      "source_predictions_sha256": "55452f70ad7199d556e8051f228db1aeb24023c2993c48343267928d6283376f",
+      "zero_map_fallbacks": 0
+    },
+    {
+      "model": "dinov2",
+      "condition": "C",
+      "seed": 491,
+      "step": 2000,
+      "metrics": {
+        "format_version": "1",
+        "threshold_selection": "max F1 on the scored predictions",
+        "threshold": 0.6560659408569336,
+        "n": 1033,
+        "n_by_label": {
+          "benign": 138,
+          "no_change": 69,
+          "regression": 826
+        },
+        "detection": {
+          "precision": 0.8568464730290456,
+          "recall": 1.0,
+          "f1": 0.9229050279329608,
+          "accuracy": 0.8664085188770572
+        },
+        "false_positive_rate": {
+          "benign": 1.0,
+          "no_change": 0.0
+        },
+        "auroc": {
+          "regression_vs_benign": 0.463680387409201,
+          "regression_vs_all_negatives": 0.642453591606134
+        },
+        "benign_fpr_at_95_recall": {
+          "threshold": 0.999998927116394,
+          "recall": 0.950363196125908,
+          "fpr": 1.0
+        },
+        "localization": {
+          "n_box": 826,
+          "mean_iou": 0.30315386680978,
+          "n_point": 826,
+          "pointing_accuracy": 0.6416464891041163
+        },
+        "recall_by": {
+          "family": {
+            "appearance": 1.0,
+            "colour": 1.0,
+            "layout": 1.0,
+            "shape": 1.0,
+            "typography": 1.0
+          },
+          "magnitude": {
+            "large": 1.0,
+            "medium": 1.0,
+            "small": 1.0
+          },
+          "reflow": {
+            "False": 1.0,
+            "True": 1.0
+          }
+        }
+      },
+      "source_predictions_sha256": "5e2bcd7050952ff8b060e7128a19230d5cfad5d16ee120eabcb487229ad07dd5",
+      "zero_map_fallbacks": 0
+    },
+    {
+      "model": "dinov2",
+      "condition": "C",
+      "seed": 492,
+      "step": 2000,
+      "metrics": {
+        "format_version": "1",
+        "threshold_selection": "max F1 on the scored predictions",
+        "threshold": 0.8450244665145874,
+        "n": 1033,
+        "n_by_label": {
+          "benign": 138,
+          "no_change": 69,
+          "regression": 826
+        },
+        "detection": {
+          "precision": 0.8568464730290456,
+          "recall": 1.0,
+          "f1": 0.9229050279329608,
+          "accuracy": 0.8664085188770572
+        },
+        "false_positive_rate": {
+          "benign": 1.0,
+          "no_change": 0.0
+        },
+        "auroc": {
+          "regression_vs_benign": 0.4661016949152542,
+          "regression_vs_all_negatives": 0.6440677966101694
+        },
+        "benign_fpr_at_95_recall": {
+          "threshold": 0.9999994039535522,
+          "recall": 0.950363196125908,
+          "fpr": 1.0
+        },
+        "localization": {
+          "n_box": 826,
+          "mean_iou": 0.29871053291774957,
+          "n_point": 826,
+          "pointing_accuracy": 0.6537530266343826
+        },
+        "recall_by": {
+          "family": {
+            "appearance": 1.0,
+            "colour": 1.0,
+            "layout": 1.0,
+            "shape": 1.0,
+            "typography": 1.0
+          },
+          "magnitude": {
+            "large": 1.0,
+            "medium": 1.0,
+            "small": 1.0
+          },
+          "reflow": {
+            "False": 1.0,
+            "True": 1.0
+          }
+        }
+      },
+      "source_predictions_sha256": "c26379c4821fe4093b4f4bc7e606c21a9616d662207e8d28bcb1ad7081b6ee99",
+      "zero_map_fallbacks": 0
+    },
+    {
+      "model": "dinov3",
+      "condition": "A",
+      "seed": null,
+      "step": null,
+      "metrics": {
+        "format_version": "1",
+        "threshold_selection": "max F1 on the scored predictions",
+        "threshold": 2.450598549330607e-05,
+        "n": 1033,
+        "n_by_label": {
+          "benign": 138,
+          "no_change": 69,
+          "regression": 826
+        },
+        "detection": {
+          "precision": 0.8568464730290456,
+          "recall": 1.0,
+          "f1": 0.9229050279329608,
+          "accuracy": 0.8664085188770572
+        },
+        "false_positive_rate": {
+          "benign": 1.0,
+          "no_change": 0.0
+        },
+        "auroc": {
+          "regression_vs_benign": 0.20604800505316348,
+          "regression_vs_all_negatives": 0.4706986700354423
+        },
+        "benign_fpr_at_95_recall": {
+          "threshold": 0.00047834799624979496,
+          "recall": 0.950363196125908,
+          "fpr": 1.0
+        },
+        "localization": {
+          "n_box": 826,
+          "mean_iou": 0.21914221029396203,
+          "n_point": 826,
+          "pointing_accuracy": 0.5847457627118644
+        },
+        "recall_by": {
+          "family": {
+            "appearance": 1.0,
+            "colour": 1.0,
+            "layout": 1.0,
+            "shape": 1.0,
+            "typography": 1.0
+          },
+          "magnitude": {
+            "large": 1.0,
+            "medium": 1.0,
+            "small": 1.0
+          },
+          "reflow": {
+            "False": 1.0,
+            "True": 1.0
+          }
+        }
+      },
+      "source_predictions_sha256": "f18dd23493ea883ef2d6486376f309b11194f4458a2166b26141a38063580aca",
+      "zero_map_fallbacks": 0
+    },
+    {
+      "model": "dinov3",
+      "condition": "B",
+      "seed": 490,
+      "step": 2000,
+      "metrics": {
+        "format_version": "1",
+        "threshold_selection": "max F1 on the scored predictions",
+        "threshold": 0.6446222066879272,
+        "n": 1033,
+        "n_by_label": {
+          "benign": 138,
+          "no_change": 69,
+          "regression": 826
+        },
+        "detection": {
+          "precision": 0.9252336448598131,
+          "recall": 0.9588377723970944,
+          "f1": 0.9417360285374554,
+          "accuracy": 0.9051306873184899
+        },
+        "false_positive_rate": {
+          "benign": 0.463768115942029,
+          "no_change": 0.0
+        },
+        "auroc": {
+          "regression_vs_benign": 0.9031213811980209,
+          "regression_vs_all_negatives": 0.935025324303143
+        },
+        "benign_fpr_at_95_recall": {
+          "threshold": 0.6930851340293884,
+          "recall": 0.950363196125908,
+          "fpr": 0.427536231884058
+        },
+        "localization": {
+          "n_box": 826,
+          "mean_iou": 0.2953659094020573,
+          "n_point": 826,
+          "pointing_accuracy": 0.6113801452784504
+        },
+        "recall_by": {
+          "family": {
+            "appearance": 0.8260869565217391,
+            "colour": 0.927007299270073,
+            "layout": 0.9812734082397003,
+            "shape": 0.9361702127659575,
+            "typography": 0.9961389961389961
+          },
+          "magnitude": {
+            "large": 0.9658703071672355,
+            "medium": 0.978494623655914,
+            "small": 0.9291338582677166
+          },
+          "reflow": {
+            "False": 0.9561855670103093,
+            "True": 1.0
+          }
+        }
+      },
+      "source_predictions_sha256": "18dccda10a09a8d894ed7858baa07e3e68beeba48226cd441e7fafd7845040ca",
+      "zero_map_fallbacks": 0
+    },
+    {
+      "model": "dinov3",
+      "condition": "B",
+      "seed": 491,
+      "step": 2000,
+      "metrics": {
+        "format_version": "1",
+        "threshold_selection": "max F1 on the scored predictions",
+        "threshold": 0.48614388704299927,
+        "n": 1033,
+        "n_by_label": {
+          "benign": 138,
+          "no_change": 69,
+          "regression": 826
+        },
+        "detection": {
+          "precision": 0.92,
+          "recall": 0.9745762711864406,
+          "f1": 0.9465020576131686,
+          "accuracy": 0.9119070667957405
+        },
+        "false_positive_rate": {
+          "benign": 0.5072463768115942,
+          "no_change": 0.0
+        },
+        "auroc": {
+          "regression_vs_benign": 0.9153068744078324,
+          "regression_vs_all_negatives": 0.9434882034366191
+        },
+        "benign_fpr_at_95_recall": {
+          "threshold": 0.6266871094703674,
+          "recall": 0.950363196125908,
+          "fpr": 0.45652173913043476
+        },
+        "localization": {
+          "n_box": 826,
+          "mean_iou": 0.3062112609371469,
+          "n_point": 826,
+          "pointing_accuracy": 0.6004842615012107
+        },
+        "recall_by": {
+          "family": {
+            "appearance": 0.8985507246376812,
+            "colour": 0.9562043795620438,
+            "layout": 0.9887640449438202,
+            "shape": 0.9468085106382979,
+            "typography": 1.0
+          },
+          "magnitude": {
+            "large": 0.9829351535836177,
+            "medium": 0.985663082437276,
+            "small": 0.952755905511811
+          },
+          "reflow": {
+            "False": 0.9729381443298969,
+            "True": 1.0
+          }
+        }
+      },
+      "source_predictions_sha256": "8f40b9908f7f360115c9eda6b3f61e4430b453ad9a8665f123b729899390e4c4",
+      "zero_map_fallbacks": 0
+    },
+    {
+      "model": "dinov3",
+      "condition": "B",
+      "seed": 492,
+      "step": 2000,
+      "metrics": {
+        "format_version": "1",
+        "threshold_selection": "max F1 on the scored predictions",
+        "threshold": 0.5263457298278809,
+        "n": 1033,
+        "n_by_label": {
+          "benign": 138,
+          "no_change": 69,
+          "regression": 826
+        },
+        "detection": {
+          "precision": 0.9332552693208431,
+          "recall": 0.9648910411622276,
+          "f1": 0.9488095238095239,
+          "accuracy": 0.9167473378509197
+        },
+        "false_positive_rate": {
+          "benign": 0.41304347826086957,
+          "no_change": 0.0
+        },
+        "auroc": {
+          "regression_vs_benign": 0.9251675614977015,
+          "regression_vs_all_negatives": 0.9490326467113497
+        },
+        "benign_fpr_at_95_recall": {
+          "threshold": 0.6162335276603699,
+          "recall": 0.950363196125908,
+          "fpr": 0.35507246376811596
+        },
+        "localization": {
+          "n_box": 826,
+          "mean_iou": 0.30488424039358575,
+          "n_point": 826,
+          "pointing_accuracy": 0.5835351089588378
+        },
+        "recall_by": {
+          "family": {
+            "appearance": 0.8840579710144928,
+            "colour": 0.948905109489051,
+            "layout": 0.9737827715355806,
+            "shape": 0.9361702127659575,
+            "typography": 0.9961389961389961
+          },
+          "magnitude": {
+            "large": 0.9692832764505119,
+            "medium": 0.982078853046595,
+            "small": 0.9409448818897638
+          },
+          "reflow": {
+            "False": 0.9626288659793815,
+            "True": 1.0
+          }
+        }
+      },
+      "source_predictions_sha256": "f375a285c175ea4401ea8359cb1e181f65b12b1fccb102b44defb30c4b907269",
+      "zero_map_fallbacks": 0
+    },
+    {
+      "model": "dinov3",
+      "condition": "C",
+      "seed": 490,
+      "step": 2000,
+      "metrics": {
+        "format_version": "1",
+        "threshold_selection": "max F1 on the scored predictions",
+        "threshold": 0.8377541303634644,
+        "n": 1033,
+        "n_by_label": {
+          "benign": 138,
+          "no_change": 69,
+          "regression": 826
+        },
+        "detection": {
+          "precision": 0.8568464730290456,
+          "recall": 1.0,
+          "f1": 0.9229050279329608,
+          "accuracy": 0.8664085188770572
+        },
+        "false_positive_rate": {
+          "benign": 1.0,
+          "no_change": 0.0
+        },
+        "auroc": {
+          "regression_vs_benign": 0.461864406779661,
+          "regression_vs_all_negatives": 0.6412429378531074
+        },
+        "benign_fpr_at_95_recall": {
+          "threshold": 0.9999973773956299,
+          "recall": 0.9515738498789347,
+          "fpr": 1.0
+        },
+        "localization": {
+          "n_box": 826,
+          "mean_iou": 0.28629864882660344,
+          "n_point": 826,
+          "pointing_accuracy": 0.6077481840193705
+        },
+        "recall_by": {
+          "family": {
+            "appearance": 1.0,
+            "colour": 1.0,
+            "layout": 1.0,
+            "shape": 1.0,
+            "typography": 1.0
+          },
+          "magnitude": {
+            "large": 1.0,
+            "medium": 1.0,
+            "small": 1.0
+          },
+          "reflow": {
+            "False": 1.0,
+            "True": 1.0
+          }
+        }
+      },
+      "source_predictions_sha256": "f7da71ab75697431ad1d11841f10432fa9ed198049cc8f50f7b22203c42dd3f2",
+      "zero_map_fallbacks": 0
+    },
+    {
+      "model": "dinov3",
+      "condition": "C",
+      "seed": 491,
+      "step": 2000,
+      "metrics": {
+        "format_version": "1",
+        "threshold_selection": "max F1 on the scored predictions",
+        "threshold": 0.6163820624351501,
+        "n": 1033,
+        "n_by_label": {
+          "benign": 138,
+          "no_change": 69,
+          "regression": 826
+        },
+        "detection": {
+          "precision": 0.8568464730290456,
+          "recall": 1.0,
+          "f1": 0.9229050279329608,
+          "accuracy": 0.8664085188770572
+        },
+        "false_positive_rate": {
+          "benign": 1.0,
+          "no_change": 0.0
+        },
+        "auroc": {
+          "regression_vs_benign": 0.4612590799031477,
+          "regression_vs_all_negatives": 0.6408393866020985
+        },
+        "benign_fpr_at_95_recall": {
+          "threshold": 0.9999971389770508,
+          "recall": 0.950363196125908,
+          "fpr": 1.0
+        },
+        "localization": {
+          "n_box": 826,
+          "mean_iou": 0.27886001798092597,
+          "n_point": 826,
+          "pointing_accuracy": 0.6198547215496368
+        },
+        "recall_by": {
+          "family": {
+            "appearance": 1.0,
+            "colour": 1.0,
+            "layout": 1.0,
+            "shape": 1.0,
+            "typography": 1.0
+          },
+          "magnitude": {
+            "large": 1.0,
+            "medium": 1.0,
+            "small": 1.0
+          },
+          "reflow": {
+            "False": 1.0,
+            "True": 1.0
+          }
+        }
+      },
+      "source_predictions_sha256": "63df7be723802fedb569832f5fe1727bf8b87fa918c83d3facae45727ba327df",
+      "zero_map_fallbacks": 0
+    },
+    {
+      "model": "dinov3",
+      "condition": "C",
+      "seed": 492,
+      "step": 2000,
+      "metrics": {
+        "format_version": "1",
+        "threshold_selection": "max F1 on the scored predictions",
+        "threshold": 0.8057990074157715,
+        "n": 1033,
+        "n_by_label": {
+          "benign": 138,
+          "no_change": 69,
+          "regression": 826
+        },
+        "detection": {
+          "precision": 0.8568464730290456,
+          "recall": 1.0,
+          "f1": 0.9229050279329608,
+          "accuracy": 0.8664085188770572
+        },
+        "false_positive_rate": {
+          "benign": 1.0,
+          "no_change": 0.0
+        },
+        "auroc": {
+          "regression_vs_benign": 0.45944309927360777,
+          "regression_vs_all_negatives": 0.6396287328490718
+        },
+        "benign_fpr_at_95_recall": {
+          "threshold": 0.9999963045120239,
+          "recall": 0.950363196125908,
+          "fpr": 1.0
+        },
+        "localization": {
+          "n_box": 826,
+          "mean_iou": 0.27887043002640166,
+          "n_point": 826,
+          "pointing_accuracy": 0.6162227602905569
+        },
+        "recall_by": {
+          "family": {
+            "appearance": 1.0,
+            "colour": 1.0,
+            "layout": 1.0,
+            "shape": 1.0,
+            "typography": 1.0
+          },
+          "magnitude": {
+            "large": 1.0,
+            "medium": 1.0,
+            "small": 1.0
+          },
+          "reflow": {
+            "False": 1.0,
+            "True": 1.0
+          }
+        }
+      },
+      "source_predictions_sha256": "b11bb9c03b9ea9724634297bcb123cb6c30dd42b536821b0f07f956246e980d3",
+      "zero_map_fallbacks": 0
+    }
+  ]
+}

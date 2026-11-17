@@ -2,9 +2,19 @@
 
 Reader guide: [Understanding experiments A, B and C](dino-experiments-explained.md).
 
-**Last updated:** 2026-11-14
+**Last updated:** 2026-11-16
 
 **Phase:** A/B/C v1 core comparison complete / artifacts audited and results documented
+
+**Current follow-up:** export heatmap-derived boxes and shared-scorer IoU from
+the original saved A/B/C maps, without retraining or changing v1 predictions.
+A CPU-only exporter and fixed, annotation-blind half-peak component rule are
+implemented; see [box-localization procedure and lab commands](results/dino/box-localization.md).
+The lab export completed and all 14 augmented runs were rescored locally.
+DINOv2 B box IoU is 0.2947 ± 0.0017; DINOv3 B is 0.3022 ± 0.0059, with
+826 regression boxes/run. Scores and pointing are unchanged. Raw maps remain
+on the lab; local verification covers scoring and provenance, not extraction.
+Mutation-type metrics remain unavailable.
 
 The user reported the completed A/B/C table: DINOv2+B leads validation AUROC at
 0.9485 ± 0.0092, versus DINOv3+B at 0.9145 ± 0.0110. Without benign supervision,
