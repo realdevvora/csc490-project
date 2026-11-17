@@ -759,6 +759,75 @@ def fig_benign_example(data_root: Path, out: Path, flagged: int, runs: int,
     plt.close(fig)
 
 
+def fig_patch_resolution_poster(root: Path, data_root: Path, out: Path, sample_id: str = "d2c_122_background_color",
+                                run: str = "uiclip_cal_ft4_10_epochs_s0") -> None:
+    """How a page becomes tiles and patches, and what one change-map cell covers, on a real regression.
+
+    UIClip/CLIP scale the 1280 px page to 6 tiles of 224 px (1344 px), so a 32 px patch covers about 30 px of the
+    page. The last panel shows the true change and the patch that ``run`` picked, whose centre is its point.
+    """
+
+    record = next(r for r in json.loads((data_root / "master_dataset_with_benign.json").read_text())
+                  if r["sample_id"] == sample_id)
+    prediction = next(p for p in map(json.loads, (root / run / "best_auroc" / "val_predictions.jsonl").open())
+                      if p["sample_id"] == sample_id)
+    image = Image.open(data_root / record["candidate_path"]).convert("RGB")
+    tile_px, patch_px, cols = 224, 32, 6
+    scale = cols * tile_px / image.width
+    tile, cell = tile_px / scale, patch_px / scale  # in page pixels
+    page_bottom = 2 * tile  # panel 1 shows the top two rows of tiles, where the change is
+    zoom = (cell, 0, 7 * cell, 1.3 * cell)  # x0, y0, x1, y1: patch columns 1-6 of the first tile, around the change
+    x, y, w, h = record["diff_bbox"]
+    col, row = int(prediction["point"][0] // cell), int(prediction["point"][1] // cell)
+
+    def show(ax, x0, y0, x1, y1, heading):
+        ax.imshow(image, extent=(0, image.width, image.height, 0), interpolation="lanczos")
+        ax.set_xlim(x0, x1)
+        ax.set_ylim(y1, y0)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        for spine in ax.spines.values():
+            spine.set_visible(True)
+            spine.set_color(AXIS)
+        ax.set_title(heading, pad=8, fontsize=13)
+
+    def grid(ax, step, x1, y1, color, width):
+        for gx in np.arange(step, x1, step):
+            ax.axvline(gx, color=color, linewidth=width)
+        for gy in np.arange(step, y1, step):
+            ax.axhline(gy, color=color, linewidth=width)
+
+    def outline(ax, x0, y0, x1, y1, color, width=2.5, dashed=False):
+        ax.add_patch(Rectangle((x0, y0), x1 - x0, y1 - y0, fill=False, edgecolor=color, linewidth=width,
+                               linestyle=(0, (4, 2)) if dashed else "-", zorder=4))
+
+    # Panels 1 and 2 side by side, panel 3 across the full width below; row heights keep every panel's aspect.
+    page_aspect, zoom_aspect = image.width / page_bottom, (zoom[2] - zoom[0]) / (zoom[3] - zoom[1])
+    fig = plt.figure(figsize=(9, 4.7))
+    layout = fig.add_gridspec(2, 2, width_ratios=[page_aspect, 1], height_ratios=[1 / (page_aspect + 1), 1 / zoom_aspect],
+                              left=0.01, right=0.99, top=0.9, bottom=0.02, wspace=0.04, hspace=0.3)
+    axes = [fig.add_subplot(layout[0, 0]), fig.add_subplot(layout[0, 1]), fig.add_subplot(layout[1, :])]
+    show(axes[0], 0, 0, image.width, page_bottom, "1  Cut into 224 px tiles")
+    grid(axes[0], tile, image.width, page_bottom, AQUA, 1.6)
+    outline(axes[0], 0, 0, tile, tile, BLUE_DARK)
+    show(axes[1], 0, 0, tile, tile, "2  Tile → 7 × 7 patches")
+    grid(axes[1], cell, tile, tile, AQUA, 1.3)
+    outline(axes[1], *zoom, BLUE_DARK)
+    show(axes[2], *zoom, "3  One answer per ~30 px patch")
+    grid(axes[2], cell, zoom[2], zoom[3], AQUA, 1.6)
+    picked_fill = (*matplotlib.colors.to_rgb(ORANGE), 0.25)
+    axes[2].add_patch(Rectangle((col * cell, row * cell), cell, cell, facecolor=picked_fill, edgecolor=ORANGE,
+                                linewidth=3.5, zorder=3))
+    outline(axes[2], x, y, x + w, y + h, INK, width=2.2, dashed=True)
+    handles = [Rectangle((0, 0), 1, 1, fill=False, edgecolor=INK, linestyle=(0, (4, 2)), linewidth=2, label="True change"),
+               Rectangle((0, 0), 1, 1, facecolor=picked_fill, edgecolor=ORANGE, linewidth=2.5, label="Patch the model picked")]
+    axes[2].legend(handles=handles, loc="lower right", bbox_to_anchor=(1.0, 1.0), ncol=2, fontsize=11.5,
+                   handlelength=1.4, columnspacing=1.2, borderaxespad=0.2)
+    fig.savefig(out / "13_poster_tiles_and_patches.png", dpi=250, facecolor="white", bbox_inches="tight",
+                pad_inches=0.08)
+    plt.close(fig)
+
+
 def draw_team_split(root: Path, data_root: Path, out: Path, identical_seed: int) -> None:
     """Figures for the rerun of every experiment on the team split (scripts/run_all_experiments.sh)."""
 
@@ -778,6 +847,7 @@ def draw_team_split(root: Path, data_root: Path, out: Path, identical_seed: int)
     fig_backbones_slide(results, out, TEAM_SPLIT_BACKBONE_PANELS)
     fig_backbones_poster(results, out)
     fig_ablations_poster(results, out)
+    fig_patch_resolution_poster(root, data_root, out)
     fig_curves_by_backbone(root, out, "Total validation loss bottoms out around epochs 5-7, driven by the mutation-type head",
                            "Line = mean over seeds, band = range across seeds (SigLIP fine-tuned: 1 seed, no band). Dot: lowest "
                            "mean loss. The total is mostly the type head's loss, which is lowest at epochs 3-6; the regression-"
