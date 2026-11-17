@@ -159,3 +159,4 @@ A slide version of the same comparison, 16:9 with a transparent background, is [
 Poster versions, white background:
 - [`10_poster_backbones_2x2.png`](../figures/uiclip/team_split/10_poster_backbones_2x2.png): the backbone comparison in 2 × 2. AUROC is left out because every fine-tuned model is at about 1.0, and the IoU axis starts at 0.
 - [`11_poster_architecture_simple.png`](../figures/uiclip/team_split/11_poster_architecture_simple.png) and [`11b_poster_architecture_simple_calibration.png`](../figures/uiclip/team_split/11b_poster_architecture_simple_calibration.png): a minimal architecture diagram, without and with self-calibration, drawn by `python scripts/plot_uiclip_architecture.py`.
+- [`12_poster_training_ablations.png`](../figures/uiclip/team_split/12_poster_training_ablations.png): frozen UIClip with and without benign training pairs and self-calibration, on AUROC and benign FPR.

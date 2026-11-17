@@ -501,6 +501,47 @@ def fig_backbones_poster(results: dict[str, list[dict]], out: Path) -> None:
     plt.close(fig)
 
 
+def fig_ablations_poster(results: dict[str, list[dict]], out: Path) -> None:
+    """Frozen UIClip with and without benign training pairs and self-calibration, for a poster.
+
+    Bars: mean of 3 seeds; dots: individual seeds. No title or caption; the poster gives them.
+    """
+
+    groups = [("Full frozen UIClip", results["uiclip_cal"], BLUE),
+              ("No self-calibration", results["uiclip_nocal"], BLUE_LIGHT),
+              ("No benign pairs", results["uiclip_cal_nobenign"], ORANGE)]
+    panels = [("AUROC, regression vs benign", lambda m: m["auroc"]["regression_vs_benign"], [0, 0.5, 1.0],
+               ["0", "0.5", "1.0"], lambda v: f"{v:.2f}"),
+              ("Benign FPR (lower = better)", lambda m: m["false_positive_rate"]["benign"], [0, 0.5, 1.0],
+               ["0%", "50%", "100%"], lambda v: f"{v:.0%}" if v >= 0.995 else f"{v:.1%}")]
+    fig, axes = plt.subplots(1, 2, figsize=(9, 3.0), sharey=True)
+    for ax, (heading, get, ticks, labels, fmt) in zip(axes, panels):
+        ax.set_facecolor("white")
+        ax.set_title(heading, pad=10, fontsize=14)
+        ax.set_xlim(0, 1.3)
+        ax.set_ylim(-0.6, len(groups) - 0.4)
+        ax.set_xticks(ticks, labels)
+        ax.grid(axis="x")
+        ax.set_axisbelow(True)
+        ax.spines["left"].set_visible(False)
+        ax.tick_params(axis="y", length=0)
+        ax.tick_params(axis="both", labelsize=12)
+        for i, (_, runs, color) in enumerate(groups):
+            values = [get(m) for m in runs]
+            mean = statistics.mean(values)
+            y = len(groups) - 1 - i
+            hbar(ax, y, mean, 0.55, color)
+            ax.scatter(values, [y] * len(values), s=20, color=INK, zorder=3, linewidths=0)
+            ax.text(max(mean, *values) + 0.03, y, fmt(mean), va="center", ha="left", fontsize=12.5,
+                    color=INK, fontweight="bold")
+        ax.set_yticks(range(len(groups) - 1, -1, -1), [g[0] for g in groups])
+    axes[0].axvline(0.5, color=INK_2, linewidth=1.2, linestyle=(0, (4, 3)), zorder=2)
+    axes[0].text(0.53, -0.47, "chance", ha="left", va="center", fontsize=11, color=INK_2)
+    fig.subplots_adjust(top=0.84, bottom=0.12, left=0.2, right=0.98, wspace=0.12)
+    fig.savefig(out / "12_poster_training_ablations.png", dpi=250, facecolor="white")
+    plt.close(fig)
+
+
 CURVES_SUBTITLE = ("Line = mean over seeds, band = range across seeds (SigLIP fine-tuned: 1 seed, no band). Dot: lowest mean "
                    "validation loss. Each run keeps its best-AUROC epoch, so the later overfitting is not in the saved models.")
 
@@ -736,6 +777,7 @@ def draw_team_split(root: Path, data_root: Path, out: Path, identical_seed: int)
                   "Fine-tuning matters most; frozen, UIClip flags half as many benign pairs as CLIP; SigLIP points best")
     fig_backbones_slide(results, out, TEAM_SPLIT_BACKBONE_PANELS)
     fig_backbones_poster(results, out)
+    fig_ablations_poster(results, out)
     fig_curves_by_backbone(root, out, "Total validation loss bottoms out around epochs 5-7, driven by the mutation-type head",
                            "Line = mean over seeds, band = range across seeds (SigLIP fine-tuned: 1 seed, no band). Dot: lowest "
                            "mean loss. The total is mostly the type head's loss, which is lowest at epochs 3-6; the regression-"
