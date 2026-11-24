@@ -78,6 +78,7 @@ Playwright and data/model dependencies will be added with the first implementati
 - [Data design](docs/data-design.md)
 - [Experiment protocol](docs/experiment-protocol.md)
 - [Prediction format and shared scoring](docs/prediction-format.md)
+- [VLM diagnosis format](docs/vlm-diagnosis-format.md)
 - [Project status](docs/project-status.md)
 - [Scope and roadmap](docs/scope-and-roadmap.md)
 - [Architecture decision records](docs/adr/README.md)
