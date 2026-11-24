@@ -1,4 +1,5 @@
-"""Future paired-image model adapters.
+"""Paired-image model adapters.
 
-No model is selected or implemented during repository bootstrap.
+Torch-based models live in submodules (for example ``models.uiclip``) so the
+core package stays importable without the ``uiclip`` extra.
 """

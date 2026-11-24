@@ -18,7 +18,7 @@ No dataset acquisition, Playwright renderer, mutation operator, quality-gate imp
 
 - The primary domain is web interfaces.
 - Design2Code-derived pairs are used for training and internal evaluation.
-- DiffSpot remains an independent external generalization benchmark.
+- DiffSpot is never training data; one half compares models, the other is reserved for one final evaluation of the integrated system (ADR 0005).
 - Intentional visible CSS/DOM mutations are regressions.
 - Benign/no-change examples are generated separately.
 - Splits are disjoint by source webpage.
