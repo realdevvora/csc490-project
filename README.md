@@ -13,7 +13,7 @@ is a planned integration stage. No overall winner or deployment claim is made.
 | DINOv2/v3 | `scripts/dino_heads.py`, `run_dino_fullpage.py` | [Verified A/B/C and box-IoU report](docs/results/dino/trained-validation-results.md) |
 | UIClip/CLIP/SigLIP | `scripts/train_uiclip.py`, `run_all_experiments.sh` | [Team-split results](docs/results/uiclip_team_split/README.md) |
 | ConvNeXt/SAM2 encoder | [Team notebook](notebooks/convnext_sam2/CSC490_ConvNeXt_SAM2_team.ipynb) | Notebook-reported; shared rescoring pending |
-| FC-Siam-diff | Separate `origin/dev-fc-siam-diff` branch | Not merged here; separate PR required |
+| FC-Siam-diff | [Training/export workflow](notebooks/fc_siam_diff/README.md) | [Shared-scorer results and charts](docs/results/fc_siam_diff/README.md) |
 
 See [model directory](docs/model-index.md), [integration audit](docs/integration-audit.md)
 and [project status](docs/project-status.md). The [DINO student guide](docs/dino-experiments-explained.md)
@@ -41,6 +41,8 @@ data/scripts/                    generation notebooks; archive/ preserves histor
 data/splits/                     committed page manifests; datasets stay local
 notebooks/dino_exploration.ipynb  incremental DINO exploration
 notebooks/convnext_sam2/          current and historical model experiments
+notebooks/fc_siam_diff/           FC-Siam training and workflow
+models/fc_siam_diff/              compatibility imports and CLI wrappers
 src/regression_lens/             importable model/data/render/evaluation modules
 scripts/                         stable train, score and reporting commands
 docs/results/                    curated aggregate results and figures
@@ -59,7 +61,7 @@ py -m venv .venv
 .\.venv\Scripts\python.exe -m pytest
 ```
 
-Additional extras: `dino`, `uiclip`, `figures`. ConvNeXt/SAM2 setup is documented
+Additional extras: `dino`, `uiclip`, `fc-siam`, `figures`. ConvNeXt/SAM2 setup is documented
 [alongside its notebooks](notebooks/convnext_sam2/README.md). Use separate
 model environments when requirements differ. Optional model tests may skip
 when dependencies are missing; tests do not require pretrained downloads.

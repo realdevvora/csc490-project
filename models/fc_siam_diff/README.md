@@ -1,48 +1,20 @@
-# FC-Siam-diff
+# FC-Siam-diff compatibility entry points
 
-Per-pixel regression detector for d2c_v3, adapted from Daudt et al., "Fully Convolutional Siamese Networks for Change Detection" (ICIP 2018).
+The model is now part of the shared project layout. Start with the
+[FC-Siam workflow](../../notebooks/fc_siam_diff/README.md).
 
-| File | What it is |
-|---|---|
-| `train_fc_siam_diff.ipynb` | Training, validation and the prediction file |
-| `siamunet_diff.py` | Model, unmodified from [rcdaudt/fully_convolutional_change_detection](https://github.com/rcdaudt/fully_convolutional_change_detection) (no license upstream; included with attribution for coursework) |
-| `spec.md` | Design decisions, expected results and output format |
-| `plot_results.py` | Charts of a prediction file's final results: score spread by label, regression-vs-benign curve, per-type detection and naming, and which type each is mistaken for (`python3 plot_results.py [predictions.jsonl] [data_root]`, writes `plots/` next to the predictions) |
-| `save_predictions.py` | Predictions of the best checkpoint for every pair in the team format (`python3 save_predictions.py [runs/<id>/ckpt_best.pt]`, writes `fc_siam_diff_all.jsonl`, `_train.jsonl` and `_val.jsonl` to `outputs/fc_siam_diff/`) |
-| `results/` | Run 3 (`20261111-210302`, best checkpoint at pass 33): val predictions, the team scorer's metrics and comparison table, and the result charts in `plots/` |
-| `technical_analysis.md` | How the output is interpreted, results per regression type, strengths, weaknesses and feasibility |
-| `requirements.txt` | Python dependencies |
+- [Model implementation](../../src/regression_lens/models/fc_siam_diff.py)
+- [Training notebook](../../notebooks/fc_siam_diff/train_fc_siam_diff.ipynb)
+- [Feature specification](../../docs/models/fc_siam_diff/spec.md)
+- [Technical analysis](../../docs/models/fc_siam_diff/technical_analysis.md)
+- [Curated predictions, metrics and charts](../../docs/results/fc_siam_diff/README.md)
 
-## Data
-The notebook reads the screenshots and metadata from `../../data/processed/d2c_v3/` (gitignored), and the team split from `../../data/splits/splits_85_15.json` (committed; 390 train / 69 val pages, 25 pages excluded per ADR 0004):
-```
-data/processed/d2c_v3/
-  master_dataset_with_benign.json
-  screenshots/
-data/splits/
-  splits_85_15.json
-```
-Runs are written to `runs/<timestamp>/` in this folder (gitignored): `config.json`, `metrics.jsonl`, `ckpt_last.pt`, `ckpt_best.pt` and `fc_siam_diff_val.jsonl`.
+`save_predictions.py`, `plot_results.py` and the `siamunet_diff` import remain
+compatibility entry points. Existing ignored `runs/` folders are left in place;
+pass their checkpoint path to the exporter. New runs use
+`outputs/fc_siam_diff/runs/`. The notebook and curated results have moved to
+the links above; there are no duplicate notebooks or result copies here.
 
-## Run (Linux, NVIDIA GPU)
-```bash
-python3 -m venv .venv && source .venv/bin/activate
-pip install torch --index-url https://download.pytorch.org/whl/cu124   # match nvidia-smi's CUDA version
-pip install -r requirements.txt
-python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0))"
-
-# headless, survives SSH disconnects; open the executed notebook afterwards for the outputs
-tmux new -s fcsd
-jupyter nbconvert --to notebook --execute --ExecutePreprocessor.timeout=-1 \
-    --output runs_executed.ipynb train_fc_siam_diff.ipynb
-```
-Before the full run, set `N_EPOCHS = 2` for a timing run. To resume after an interruption, set `RESUME = 'runs/<id>/ckpt_last.pt'`.
-
-## Score
-From the repo root, with the team scorer (`docs/prediction-format.md`):
-```bash
-PYTHONPATH=src python3 scripts/score_predictions.py models/fc_siam_diff/runs/<id>/fc_siam_diff_val.jsonl \
-    --data-root data/processed/d2c_v3 --names fc_siam_diff --out outputs/fc_siam_diff
-```
-To score the files from `save_predictions.py`, pass `outputs/fc_siam_diff/fc_siam_diff_<subset>.jsonl` with `--subset all`, `train` or `val`; train scores are on pages the model learned from, so they overstate results.
-The prediction file must cover exactly the val pairs of the split it was trained with; files from runs on the old split (411/73 pages) are rejected.
+`requirements.txt` remains usable; the equivalent project extra is `fc-siam`.
+The original model attribution and upstream licensing limitation are recorded
+in the workflow and feature specification.

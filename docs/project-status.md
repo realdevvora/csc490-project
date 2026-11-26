@@ -2,7 +2,7 @@
 
 Reader guide: [Understanding experiments A, B and C](dino-experiments-explained.md).
 
-**Last updated:** 2026-11-25
+**Last updated:** 2026-11-26
 
 **Phase:** Team integration / completed Design2Code comparisons / VLM and external evaluation pending
 
@@ -33,13 +33,17 @@ and one matched control, in a fresh run namespace; do not mix v1/v2 results or
 restart solely for this small omission. See [crop audit and handling](results/dino/head-runs.md).
 
 
-## Team integration (2026-11-25)
+## Team integration (2026-11-26)
 
 Main's CLIP/UIClip/SigLIP pipeline and shared scorer are integrated with DINO.
 ConvNeXt/SAM2 notebooks now live in `notebooks/convnext_sam2/`; the team-split
 notebook is the comparison source, while older split notebooks are historical.
-Data-generation notebooks remain under `data/scripts/`. Dev's FC-Siam branch
-is not merged into main and is not imported by this PR. See the
+Data-generation notebooks remain under `data/scripts/`. Dev's FC-Siam PR #8
+is now merged into main and included here. Its model, notebook, documentation
+and curated evidence follow the shared layout, with compatibility CLI/import
+wrappers. Validation predictions were rescored without retraining; see the
+[FC-Siam results](results/fc_siam_diff/README.md) and
+[integration record](fc-siam-integration.md). See the
 [model directory](model-index.md) for entry points, results and limitations.
 DiffSpot evaluation was reverted on main; this merge does not restore it.
 

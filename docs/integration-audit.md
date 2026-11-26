@@ -21,9 +21,10 @@ unmerged branches or change labels, split IDs, training recipes or shared scorin
 
 ## Remaining compatibility issues
 
-1. **FC-Siam not merged:** Dev's branch has 17 commits absent from main at
-   inspection; code/results require a separate PR. The old browser-render
-   branch also has one unmerged commit. Neither is silently imported here.
+1. **FC-Siam resolved on 2026-11-26:** Dev's PR #8 is merged into main
+   and present in this branch. Its files now follow the shared layout; see
+   [the follow-up integration record](fc-siam-integration.md). The earlier
+   browser-render branch was not imported by this cleanup.
 2. **ConvNeXt/SAM2 remain Colab workflows:** Drive paths are user-specific.
    Raw predictions are not committed; notebook quantile-FPR95/fixed-.5 numbers
    are not harmonized shared-scorer numbers. Rescore exported JSONL first.
