@@ -2,9 +2,9 @@
 
 Reader guide: [Understanding experiments A, B and C](dino-experiments-explained.md).
 
-**Last updated:** 2026-11-16
+**Last updated:** 2026-11-25
 
-**Phase:** A/B/C v1 core comparison complete / artifacts audited and results documented
+**Phase:** Team integration / completed Design2Code comparisons / VLM and external evaluation pending
 
 **Current follow-up:** export heatmap-derived boxes and shared-scorer IoU from
 the original saved A/B/C maps, without retraining or changing v1 predictions.
@@ -31,6 +31,17 @@ lie beyond the reference extent. They are excluded from positive sampling, not
 mislabeled positives. A tested local v2 correction changes only these anchors
 and one matched control, in a fresh run namespace; do not mix v1/v2 results or
 restart solely for this small omission. See [crop audit and handling](results/dino/head-runs.md).
+
+
+## Team integration (2026-11-25)
+
+Main's CLIP/UIClip/SigLIP pipeline and shared scorer are integrated with DINO.
+ConvNeXt/SAM2 notebooks now live in `notebooks/convnext_sam2/`; the team-split
+notebook is the comparison source, while older split notebooks are historical.
+Data-generation notebooks remain under `data/scripts/`. Dev's FC-Siam branch
+is not merged into main and is not imported by this PR. See the
+[model directory](model-index.md) for entry points, results and limitations.
+DiffSpot evaluation was reverted on main; this merge does not restore it.
 
 **Earlier checkpoints:** DINOv3 access and local authentication now work, and
 checkpoint 4 completed on the font-size regression/benign/no-change trio.
@@ -72,13 +83,13 @@ also lists implementation choices that remain open.
 - model investigations on separate team branches; and
 - three executed DINOv2 checkpoints and an executed first-trio DINOv3 comparison in `notebooks/dino_exploration.ipynb`. A standalone matched DINOv3 pilot runner now repeats the original and supplementary manifests without resampling; see [run instructions](results/dino/matched-pilot-run.md).
 
-The team has completed general dataset validation and manual inspection. DINOv2 has now run locally on all 39 fixed baseline pair/crop cases (approximately 218 seconds), plus three separately recorded position follow-up cases. Width gives the clearest selected response, small text-color change is weak, and benign browser responses usually dominate raw distances. All no-change L2 maps are zero. The original position crop missed the changed content; a supplementary crop reveals a response and is kept distinct from the baseline. These are exploratory examples, not operator-wide or full-page results. See the [pilot notes](results/dino/README.md). No head is trained. A shared DiffSpot adapter is still pending.
+The team has completed general dataset validation and manual inspection. DINOv2 has now run locally on all 39 fixed baseline pair/crop cases (approximately 218 seconds), plus three separately recorded position follow-up cases. Width gives the clearest selected response, small text-color change is weak, and benign browser responses usually dominate raw distances. All no-change L2 maps are zero. The original position crop missed the changed content; a supplementary crop reveals a response and is kept distinct from the baseline. These are exploratory examples, not operator-wide or full-page results. See the [pilot notes](results/dino/README.md). This paragraph records the earlier pilot; A/B/C heads and box follow-up are now complete. A shared DiffSpot adapter is still pending.
 
 ## Confirmed decisions
 
 - The primary domain is web interfaces.
 - Design2Code-derived pairs are used for training and internal evaluation.
-- DiffSpot remains an independent external generalization benchmark.
+- DiffSpot is never training data; one half compares models, the other is reserved for one final evaluation of the integrated system (ADR 0005).
 - Intentional visible CSS/DOM mutations are regressions.
 - Benign/no-change examples are generated separately.
 - Splits are disjoint by source webpage.
@@ -112,10 +123,11 @@ authentication and both backbone smoke runs have been verified.
 
 ## Next milestones
 
-The user has now requested research on a full detector/localizer/VLM system and
-future DiffSpot train/validation/held-out-test adaptation. Recommendations and
-the resulting protocol distinction are in the [generalization/VLM roadmap](research/generalization-and-vlm-roadmap.md).
-No new training, DiffSpot split or VLM integration has been launched.
+Current priorities are team integration, reproducible configuration selection and
+future VLM/benchmark implementation. ADR 0005 remains binding: DiffSpot is never
+training data; comparison/final halves have separate roles. The four-pipeline
+comparison discussed with the user is a proposal, not a completed benchmark.
+See [integration audit and remaining issues](integration-audit.md).
 
 1. Preserve completed experiment A predictions, raw metrics and maps; review the recorded benign-rejection failure and pixel localization baseline.
 2. Preserve selected head weights, manifests and original v1 reports on the lab host; the imported bundle deliberately excludes weights/raw maps.

@@ -1,6 +1,10 @@
 # Generalization, localization and VLM integration: research roadmap
 
-**2026-11-14. Status: research recommendations, not a launched experiment.**
+**2026-11-14 historical research proposal; reconciled 2026-11-25.**
+
+**Current protocol:** ADR 0005 is accepted and forbids training on either
+DiffSpot half. Adaptation/60-20-20 split suggestions below were not adopted
+and are not launch instructions. The current team protocol takes precedence.
 The user now proposes DiffSpot adaptation on one partition and evaluation on
 another. This changes its earlier external-only role. Record a superseding ADR
 and fixed source-group manifests before adaptation; do not silently reinterpret

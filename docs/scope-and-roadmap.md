@@ -8,9 +8,9 @@ This file separates commitments from ideas and preserves scope history. When dir
 - Generate labelled reference/candidate pairs from Design2Code HTML using controlled mutations.
 - Generate benign/no-change examples separately from regression mutations.
 - Record mutation provenance, render configuration, localization, and source-page identity.
-- Use source-page-disjoint train, validation, and internal-test splits.
+- Use source-page-disjoint train and validation splits (an internal test split is optional).
 - Establish simple baselines before comparing larger candidate models.
-- Evaluate the selected frozen system on DiffSpot as an external benchmark.
+- Compare models on DiffSpot's comparison half, and evaluate the frozen integrated system once on its final-evaluation half.
 - Preserve enough configuration and environment information to reproduce serious experiments.
 
 ## Probable extensions
@@ -47,11 +47,9 @@ For a proposed scope or direction change:
 
 ## Scope-change history
 
-New research direction: the user now proposes training/validating on part of
-DiffSpot and testing the complete detector/localizer/VLM pipeline on a held-out
-part. See [the researched roadmap](research/generalization-and-vlm-roadmap.md).
-This requires a documented adaptation protocol superseding ADR 0001's earlier
-external-only role; no DiffSpot partition or training has been performed yet.
+An earlier DINO research note considered DiffSpot adaptation. It remains an
+unadopted proposal: accepted ADR 0005 forbids training on either DiffSpot half.
+The discussed four-detector/VLM comparison has not replaced that ADR.
 
 Full-page inference implementation choices (native-scale windows, overlap
 aggregation, border treatment and scoring) are recorded in the
@@ -61,8 +59,11 @@ experiment expansion below without changing labels, dataset roles or splits.
 | Date | Change | Reason | ADR / issue |
 |---|---|---|---|
 | 2026-10-06 | Established the documented bootstrap scope: webpage pairs from Design2Code, source-page-disjoint internal evaluation, and DiffSpot-only external evaluation. | Create a reproducible baseline before data or model work expands. | ADR 0001–0003 |
+| 2026-11-13 | DiffSpot is split into a model-comparison half and a final-evaluation half; an internal Design2Code test split is no longer required. | Design2Code validation can no longer separate the fine-tuned models, and the project needs both a held-out model comparison and an untouched evaluation of the integrated system. | ADR 0005 |
 | 2026-11-14 | Prioritized a local, zero-shot DINOv2 patch-feature study with matched regression/benign/no-change crops, followed by identical DINOv3 inputs. Head training is deferred until feature sensitivity is understood. | General dataset validation is complete; establish DINO-specific evidence and explain intermediate tensors before training. | [Notebook guide](../notebooks/README.md); existing dataset/label/split ADRs remain unchanged |
 | 2026-11-14 | Added a separately logged, ROI-centred position follow-up while preserving the frozen baseline crop and sample IDs. Future backbone comparisons must repeat both manifests. | The DOM-centred position crop did not contain the actual changed glyphs, so its zero response could not measure feature sensitivity. | [DINO pilot evidence](results/dino/README.md); shared dataset and label contracts unchanged |
 | 2026-11-14 | Advanced the DINOv2 priority to full-page inference, a frozen-backbone detection/localization head, and a benign-data ablation while DINOv3 access is pending. GPU setup and throughput benchmarking precede larger runs. | The user requested results that night or the following morning; a lab RTX 4080 is available and local CPU extraction is too slow for full-page experiments. | [Project status](project-status.md), [lab setup](lab-setup.md); VLM integration remains a later group stage |
 | 2026-11-14 | Locked six DINO configurations: A training-free, B frozen spatial head with benign supervision, C without benign supervision; both backbones, three trained seeds, unchanged 390/69 split. Deferred DiffSpot work for this implementation round. | User explicitly reaffirmed original experiment scope and exact repo splits, and approved implementation of steps 1–4. | [Frozen-head protocol](results/dino/head-runs.md); no changes to labels, exclusions or dataset roles |
 | 2026-11-14 | Prepared a versioned crop correction with union-extent fallback only for zero-coverage anchors; preserved the running v1 B/C experiment. | Crop-specific audit found two anchors outside the reference extent. Only those two regression crops and one matched control change; no dataset labels/splits or A predictions change. | [Crop audit](results/dino/head-runs.md); v1/v2 results must remain separate |
+
+| 2026-11-25 | Integrate DINO with main, organize notebooks by task/model and reconcile current documentation with ADR 0005. | Prepare one reviewable team checkout without changing experiments, split IDs or scoring semantics. | [Integration audit](integration-audit.md); ADR 0005/0006 unchanged |

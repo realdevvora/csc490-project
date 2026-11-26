@@ -50,5 +50,6 @@ bad-map rejection, identity mapping and score/point preservation. Numerical
 dataset IoU awaits processing of lab maps. Any future learned/calibrated box
 procedure should be a separately named experiment with documented selection.
 
-Number 0005 is already used for the team's DiffSpot protocol on the fetched
-CLIP investigation branch; this decision does not change that protocol.
+Number 0005 was already used for the team's DiffSpot protocol on the CLIP
+investigation branch at creation; it is now integrated from main. This
+decision does not change that protocol.

@@ -20,7 +20,7 @@ try {
     $sourcePaths = @(
         'README.md', 'pyproject.toml', '.gitignore', 'AGENTS.md',
         'src', 'scripts', 'tests', 'notebooks', 'configs', 'docs',
-        'data/README.md', 'data/splits',
+        'data/README.md', 'data/splits', 'data/scripts',
         'outputs/dino_fit/sample_manifest.json', 'outputs/dino_fit/dinov2',
         'outputs/dino_fit/dinov3'
     )
