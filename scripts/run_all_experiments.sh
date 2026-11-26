@@ -36,13 +36,14 @@
 # Stop everything:    pkill -f run_all_experiments.sh; pkill -f train_uiclip.py
 
 cd "$(dirname "$0")/.." || exit 1
-source .venv/bin/activate || exit 1
+source "${VENV_PATH:-.venv}/bin/activate" || exit 1
 
 EPOCHS=${EPOCHS:-10}
 SEEDS=${SEEDS:-"0 1 2"}
 SIGLIP_FT4_SEEDS=${SIGLIP_FT4_SEEDS:-"0"}
 ALL="uiclip_cal uiclip_nocal uiclip_cal_nobenign clip_cal siglip_cal uiclip_cal_ft4 clip_cal_ft4 siglip_cal_ft4"
 EXPERIMENTS=${EXPERIMENTS:-$ALL}
+DATA_ROOT=${DATA_ROOT:-d2c_v2}
 GROUP=team_split
 SPLIT=data/splits/splits_85_15.json
 LOGS=outputs/logs/$GROUP
@@ -58,8 +59,8 @@ free_gb() { df -BG --output=avail . | tail -1 | tr -dc '0-9'; }
 for name in $EXPERIMENTS; do
   [[ " $ALL " == *" $name "* ]] || { log "unknown experiment '$name' (known: $ALL)"; exit 1; }
 done
-[ -f d2c_v2/master_dataset_with_benign.json ] || { log "dataset missing: d2c_v2/master_dataset_with_benign.json"; exit 1; }
-python - "$SPLIT" <<'EOF' || exit 1
+[ -f "$DATA_ROOT/master_dataset_with_benign.json" ] || { log "dataset missing: $DATA_ROOT/master_dataset_with_benign.json"; exit 1; }
+python3 - "$SPLIT" "$DATA_ROOT" <<'EOF' || exit 1
 import json, sys
 from regression_lens.data.records import load_records
 from regression_lens.data.splits import load_split, make_team_split
@@ -67,10 +68,10 @@ path = sys.argv[1]
 split = json.load(open(path))
 if "excluded" not in split:
     sys.exit(f"{path} has no 'excluded' list: this is the old team split; update from main first")
-records = load_records("d2c_v2")
+records = load_records(sys.argv[2])
 load_split(path, records)
 if make_team_split(records) != split:
-    sys.exit(f"{path} doesn't match the dataset in d2c_v2/ (different dataset version?)")
+    sys.exit(f"{path} doesn't match the dataset in {sys.argv[2]} (different dataset version?)")
 print(f"split ok: {len(split['train'])} train / {len(split['val'])} val pages, {len(split['excluded'])} excluded")
 EOF
 if [ -n "$(git status --porcelain)" ] && [ "${ALLOW_DIRTY:-0}" != 1 ]; then
@@ -84,7 +85,7 @@ log "commit $(git rev-parse --short HEAD), $(free_gb) GB free, experiments: $EXP
 wanted() { [[ " $EXPERIMENTS " == *" $1 "* ]]; }
 
 finished() {  # true if outputs/<exp>/metrics.json has all $EPOCHS epochs
-  python -c "import json,sys; sys.exit(len(json.load(open(sys.argv[1]))['history']) < int(sys.argv[2]))" \
+  python3 -c "import json,sys; sys.exit(len(json.load(open(sys.argv[1]))['history']) < int(sys.argv[2]))" \
     "outputs/$1/metrics.json" "$EPOCHS" 2>/dev/null
 }
 
@@ -95,7 +96,7 @@ run() {  # usage: run <experiment> <seed> [extra train_uiclip.py flags...]
   wanted "$name" || return 0
   if finished "$exp"; then log "skip   $exp (already finished)"; return 0; fi
   log "start  $exp"
-  if python scripts/train_uiclip.py --exp "$exp" --seed "$seed" --epochs "$EPOCHS" --split "$SPLIT" "$@" \
+  if python3 scripts/train_uiclip.py --exp "$exp" --seed "$seed" --epochs "$EPOCHS" --split "$SPLIT" --data-root "$DATA_ROOT" "$@" \
        > "$LOGS/${name}_${EPOCHS}_epochs_s${seed}.log" 2>&1; then
     log "done   $exp"
   else
@@ -130,5 +131,5 @@ shopt -s nullglob
 predictions=(outputs/"$GROUP"/*_"${EPOCHS}"_epochs_s*/best_auroc/val_predictions.jsonl)
 if [ ${#predictions[@]} -eq 0 ]; then log "no finished runs to score"; exit 1; fi
 log "scoring ${#predictions[@]} runs"
-python scripts/score_predictions.py "${predictions[@]}" --split "$SPLIT" --out "outputs/$GROUP/comparison"
+python3 scripts/score_predictions.py "${predictions[@]}" --split "$SPLIT" --data-root "$DATA_ROOT" --out "outputs/$GROUP/comparison"
 log "all done; see outputs/$GROUP/comparison/comparison.md"

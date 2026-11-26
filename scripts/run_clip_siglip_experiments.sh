@@ -19,7 +19,7 @@
 # Stop everything:    pkill -f run_clip_siglip_experiments.sh; pkill -f train_uiclip.py
 
 cd "$(dirname "$0")/.." || exit 1
-source .venv/bin/activate
+source "${VENV_PATH:-.venv}/bin/activate"
 mkdir -p outputs/logs
 
 EPOCHS=10
@@ -31,7 +31,7 @@ run() {  # usage: run <experiment> <seed> [extra train_uiclip.py flags...]
   local exp="$1_${EPOCHS}_epochs_s$2" seed=$2
   shift 2
   echo "$(date '+%F %T') start  $exp"
-  if python scripts/train_uiclip.py --exp "$exp" --seed "$seed" --epochs "$EPOCHS" "$@" \
+  if python3 scripts/train_uiclip.py --exp "$exp" --seed "$seed" --epochs "$EPOCHS" "$@" \
        > "outputs/logs/$exp.log" 2>&1; then
     echo "$(date '+%F %T') done   $exp"
   else
@@ -58,6 +58,6 @@ done
 run siglip_cal_ft4 0 --checkpoint "$SIGLIP" --train-last-n 4
 
 echo "$(date '+%F %T') scoring"
-python scripts/score_predictions.py outputs/*_"${EPOCHS}"_epochs_s*/best_auroc/val_predictions.jsonl \
+python3 scripts/score_predictions.py outputs/*_"${EPOCHS}"_epochs_s*/best_auroc/val_predictions.jsonl \
   --out outputs/comparison
 echo "$(date '+%F %T') all done; see outputs/comparison/comparison.md"

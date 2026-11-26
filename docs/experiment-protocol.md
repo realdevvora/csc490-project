@@ -6,7 +6,12 @@ This protocol keeps model comparisons meaningful while the implementation evolve
 
 ## Data partitions
 
-- Build train and validation partitions from Design2Code-derived data. An internal test partition is optional ([ADR 0005](adr/0005-diffspot-comparison-and-final-evaluation-halves.md)).
+The committed team split is 390 training and 69 validation source pages,
+with 25 excluded pages. No internal test partition exists. Preserve the
+manifest and label checkpoint/threshold selection as validation-selected.
+See [DINO run controls](results/dino/head-runs.md).
+
+- Build train and validation partitions from Design2Code-derived data. An internal test partition is optional (ADR 0005).
 - Partition by source webpage, never by screenshot pair.
 - Train models, tune hyperparameters and select each model's checkpoint only with Design2Code training and validation data.
 - Never train on DiffSpot. Split it once into two page-disjoint halves, stratified by difficulty:

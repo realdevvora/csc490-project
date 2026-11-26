@@ -8,7 +8,7 @@ Format version: **1**
 
 - **Post-run diagnosis only.** It reads a finished prediction file (see [prediction format](prediction-format.md)) and never changes it. VLM output is not merged into predictions and is not scored by `scripts/score_predictions.py`.
 - **Any detector.** The input is the shared prediction format, so it works for every model the team evaluates.
-- **Validation pages only** until a model is selected. Test pages and DiffSpot stay untouched (ADR 0001).
+- **Validation pages only** until a model is selected. DiffSpot use follows ADR 0005: its comparison half may select prompts/settings; its final half stays untouched until the integrated system is frozen. This document specifies post-run diagnosis, not an implemented end-to-end benchmark.
 
 ## Inputs
 

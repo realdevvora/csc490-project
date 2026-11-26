@@ -99,7 +99,7 @@ Our own diagnostic adds:
 
 ## 4. Metrics
 
-Charts of these results (score spread by label, regression-vs-benign curve, per-type detection and naming, and the type confusion matrix) are in `results/plots/`, made by `plot_results.py` from `results/fc_siam_diff_val.jsonl`.
+Charts of these results (score spread by label, regression-vs-benign curve, per-type detection and naming, and the type confusion matrix) are in [the curated plots](../../results/fc_siam_diff/plots/), made by `scripts/plot_fc_siam_results.py` from `docs/results/fc_siam_diff/fc_siam_diff_val.jsonl`.
 
 ### 4.1 Detection: does it find the regression?
 | Measure | Value |

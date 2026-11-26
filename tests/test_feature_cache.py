@@ -18,6 +18,30 @@ BACKBONES = {
 }
 
 
+@pytest.mark.parametrize("legacy", [False, True])
+def test_encoder_block_adapts_legacy_tuple_and_current_tensor_api(legacy):
+    from types import SimpleNamespace
+
+    class CurrentBlock(torch.nn.Module):
+        def forward(self, hidden_states, attention_mask):
+            assert attention_mask is None
+            return hidden_states + 1
+
+    class LegacyBlock(torch.nn.Module):
+        def forward(self, hidden_states, attention_mask, causal_attention_mask):
+            assert attention_mask is None and causal_attention_mask is None
+            return (hidden_states + 1,)
+
+    hidden = torch.randn(2, 4, 3, requires_grad=True)
+    block = LegacyBlock() if legacy else CurrentBlock()
+    output = SiameseDetector._run_encoder_block(
+        SimpleNamespace(_needs_causal_mask=legacy), block, hidden
+    )
+    torch.testing.assert_close(output, hidden + 1)
+    output.sum().backward()
+    torch.testing.assert_close(hidden.grad, torch.ones_like(hidden))
+
+
 @pytest.fixture(params=sorted(BACKBONES))
 def backbone(request, tmp_path):
     build, patch = BACKBONES[request.param]

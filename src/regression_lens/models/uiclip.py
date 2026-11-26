@@ -34,6 +34,7 @@ Requires the ``uiclip`` extra (torch, transformers).
 from __future__ import annotations
 
 from dataclasses import dataclass
+import inspect
 
 import torch
 import torch.nn.functional as F
@@ -83,6 +84,11 @@ class SiameseDetector(nn.Module):
         self.encoder = AutoModel.from_pretrained(checkpoint).vision_model
         # CLIP prepends a CLS token to the patch tokens; SigLIP does not.
         self.has_cls = self.encoder.config.model_type.startswith("clip")
+        # Transformers 4.x CLIP layers require a separate causal mask; newer
+        # layers omit it. Vision attention is unmasked in both cases.
+        self._needs_causal_mask = "causal_attention_mask" in inspect.signature(
+            self.encoder.encoder.layers[0].forward
+        ).parameters
         self.train_last_n = train_last_n
 
         for parameter in self.encoder.parameters():
@@ -135,7 +141,7 @@ class SiameseDetector(nn.Module):
         if self.has_cls:
             hidden = self.encoder.pre_layrnorm(hidden)
         for block in self.encoder.encoder.layers[: self.cache_layer]:
-            hidden = block(hidden, None)
+            hidden = self._run_encoder_block(block, hidden)
         return hidden
 
     def finish_encoding(self, hidden: torch.Tensor) -> torch.Tensor:
@@ -143,11 +149,19 @@ class SiameseDetector(nn.Module):
 
         with torch.set_grad_enabled(self.training and self.train_last_n > 0):
             for block in self.encoder.encoder.layers[self.cache_layer :]:
-                hidden = block(hidden, None)
+                hidden = self._run_encoder_block(block, hidden)
         if self.has_cls:
             return hidden[:, 1:]
         # SigLIP normalizes every token; CLIP's post_layernorm only touches its CLS token.
         return self.encoder.post_layernorm(hidden)
+
+    def _run_encoder_block(self, block: nn.Module, hidden: torch.Tensor) -> torch.Tensor:
+        kwargs = {"attention_mask": None}
+        if self._needs_causal_mask:
+            kwargs["causal_attention_mask"] = None
+        output = block(hidden, **kwargs)
+        # CLIP 4.x returns a tuple; SigLIP and newer layers return a tensor.
+        return output[0] if isinstance(output, (tuple, list)) else output
 
     def encode(self, tiles: torch.Tensor) -> torch.Tensor:
         """Return patch tokens ``[T, P, d]`` for ``[T, 3, tile, tile]`` tiles."""

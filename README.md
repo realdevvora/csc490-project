@@ -1,101 +1,85 @@
 # Regression Lens
 
-**Nuisance-aware semantic visual regression detection for web interfaces**
+**Nuisance-aware visual regression detection for web interfaces ? CSC490**
 
-Regression Lens is a CSC490 Machine Learning for Vision capstone project. Given a reference screenshot and a candidate screenshot of the same webpage, the project investigates whether a paired-image system can:
+Given expected and actual screenshots, investigate regression detection,
+localization and optional change classification. Natural-language diagnosis
+is a planned integration stage. No overall winner or deployment claim is made.
 
-1. detect a meaningful visual regression;
-2. localize the changed region; and
-3. classify the kind of UI change.
+## Current work
 
-**Current phase:** repository bootstrap and data-pipeline design. No production data generator or model training pipeline exists yet.
+| Track | Entry point | Results |
+|---|---|---|
+| DINOv2/v3 | `scripts/dino_heads.py`, `run_dino_fullpage.py` | [Verified A/B/C and box-IoU report](docs/results/dino/trained-validation-results.md) |
+| UIClip/CLIP/SigLIP | `scripts/train_uiclip.py`, `run_all_experiments.sh` | [Team-split results](docs/results/uiclip_team_split/README.md) |
+| ConvNeXt/SAM2 encoder | [Team notebook](notebooks/convnext_sam2/CSC490_ConvNeXt_SAM2_team.ipynb) | Notebook-reported; shared rescoring pending |
+| FC-Siam-diff | [Training/export workflow](notebooks/fc_siam_diff/README.md) | [Shared-scorer results and charts](docs/results/fc_siam_diff/README.md) |
 
-## Current direction
+See [model directory](docs/model-index.md), [integration audit](docs/integration-audit.md)
+and [project status](docs/project-status.md). The [DINO student guide](docs/dino-experiments-explained.md)
+explains its experiments and logs.
 
-- Design2Code webpages will provide source HTML for generated training and internal-evaluation pairs.
-- DiffSpot is never training data. Half of it is used to compare and choose models; the other half is reserved for one final evaluation of the integrated system (ADR 0005).
-- Intentional visible CSS/DOM mutations are regressions, regardless of whether the numerical change is small.
-- Benign/no-change examples are generated and labelled separately.
-- All examples derived from one source webpage belong to one dataset split.
-- Candidate approaches remain open: pixel difference, SSIM, LPIPS, DINOv2-based methods, ChangeFormer, and nuisance-aware variants.
+## Shared contracts
 
-These commitments and their rationale are recorded in the [architecture decision records](docs/adr/README.md). Current unknowns and priorities are tracked in [project status](docs/project-status.md).
-
-## Intended pipeline
-
-```text
-Design2Code source webpage
-        -> controlled HTML/CSS mutation
-        -> reproducible Playwright rendering
-        -> reference/candidate screenshot pair
-        -> visibility and quality checks
-        -> structured metadata and page-level split
-        -> candidate model training and internal evaluation
-        -> frozen model
-        -> DiffSpot external evaluation
-```
-
-The project proposal is available at [Regression_Lens_CSC490_Project_Report_Final_Illustrated.pdf](Regression_Lens_CSC490_Project_Report_Final_Illustrated.pdf).
+- Design2Code supplies **390 train / 69 validation pages**, with 25 exclusions,
+  in `data/splits/splits_85_15.json`. Never split derivatives of one page apart.
+- Intentional visible CSS/DOM mutations are regressions; benign browser and
+  identical controls are separate. Small mutations are not automatically benign.
+- Use [shared prediction JSONL/scoring](docs/prediction-format.md). Optional
+  type/point/box outputs are not guaranteed for every model; unavailable is not zero.
+- Never train on DiffSpot. [ADR 0005](docs/adr/0005-diffspot-comparison-and-final-evaluation-halves.md)
+  defines comparison and untouched final-evaluation halves. The earlier evaluator
+  was reverted on main; no completed DiffSpot benchmark is claimed here.
+- [VLM diagnosis format](docs/vlm-diagnosis-format.md) is a specification, not an
+  implemented integrated predictor. A four-pipeline comparison remains a proposal.
 
 ## Repository layout
 
 ```text
-.
-|- configs/                       # versioned example configuration
-|- data/README.md                 # local-data policy (datasets stay out of Git)
-|- docs/                          # architecture, data, evaluation, status, scope, ADRs
-|- src/regression_lens/
-|  |- data/                       # generated-pair metadata contract
-|  |- mutations/                  # mutation provenance and interface
-|  |- rendering/                  # reproducible render configuration
-|  |- models/                     # paired-image models (UIClip/CLIP/SigLIP)
-|  `- evaluation/                 # protocol metrics
-|- scripts/                       # training and evaluation entry points
-|- tests/                         # tests for the stable scaffold contracts
-`- .github/pull_request_template.md
+configs/                         versioned examples
+data/scripts/                    generation notebooks; archive/ preserves history
+data/splits/                     committed page manifests; datasets stay local
+notebooks/dino_exploration.ipynb  incremental DINO exploration
+notebooks/convnext_sam2/          current and historical model experiments
+notebooks/fc_siam_diff/           FC-Siam training and workflow
+models/fc_siam_diff/              compatibility imports and CLI wrappers
+src/regression_lens/             importable model/data/render/evaluation modules
+scripts/                         stable train, score and reporting commands
+docs/results/                    curated aggregate results and figures
+docs/adr/                        consequential decisions and protocol history
+tests/                           shared-contract and component checks
+outputs/                         ignored local runs, screenshots, caches and weights
 ```
 
-Generated data, browser artifacts, experiment outputs, and checkpoints are ignored by Git. The repository should contain code, versioned configuration, manifests, aggregate results, and documentation—not screenshot corpora or model weights.
+## Setup and verification
 
-## Setup
-
-Python 3.10 or newer is required. The current package has no runtime dependencies; the development extra installs the tools needed for scaffold validation.
+Python 3.10+ is required. The base package does not install model frameworks.
 
 ```powershell
 py -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
-python -m pytest
+.\.venv\Scripts\python.exe -m pip install -e ".[dev,evaluation]"
+.\.venv\Scripts\python.exe -m pytest
 ```
 
-Playwright and data/model dependencies will be added with the first implementation that uses them. Dataset downloads are intentionally not automated during this bootstrap phase.
+Additional extras: `dino`, `uiclip`, `fc-siam`, `figures`. ConvNeXt/SAM2 setup is documented
+[alongside its notebooks](notebooks/convnext_sam2/README.md). Use separate
+model environments when requirements differ. Optional model tests may skip
+when dependencies are missing; tests do not require pretrained downloads.
 
-## Documentation
+On the lab always use **python3**, including inside its environment. Follow
+[lab setup](docs/lab-setup.md) to keep data, environments and caches off the
+home quota. Existing CLI names and run namespaces remain valid.
 
-- [Project overview](docs/project-overview.md)
-- [Architecture](docs/architecture.md)
-- [Data design](docs/data-design.md)
+## Documentation and collaboration
+
 - [Experiment protocol](docs/experiment-protocol.md)
-- [Prediction format and shared scoring](docs/prediction-format.md)
-- [VLM diagnosis format](docs/vlm-diagnosis-format.md)
-- [Project status](docs/project-status.md)
-- [Scope and roadmap](docs/scope-and-roadmap.md)
-- [Architecture decision records](docs/adr/README.md)
+- [Data policy](data/README.md) and [data design](docs/data-design.md)
+- [Architecture](docs/architecture.md) and [overview](docs/project-overview.md)
+- [Scope/history](docs/scope-and-roadmap.md) and [ADRs](docs/adr/README.md)
+- [Original proposal](Regression_Lens_CSC490_Project_Report_Final_Illustrated.pdf)
 
-## Team
-
-- Abuzar Ansari
-- Abdullah Safi
-- Zehao Fan
-- Dev Vora
-
-## Collaboration conventions
-
-Use `<name>-<work-item>` in kebab case for branches, for example `abdullah-mutation-pipeline`. Use concise imperative commit summaries and include a body when the decision or experiment context is not obvious from the diff.
-
-Open pull requests into `main`, complete the pull-request checklist, and obtain at least one team review before merging. Changes to dataset roles, label semantics, split strategy, evaluation protocol, or committed scope must update the relevant documentation and usually require an ADR.
-
-## Next milestone
-
-Render a manually inspected subset of 10–20 Design2Code pages with Playwright and implement one controlled mutation end to end. Do not scale generation until rendering reproducibility, metadata, source-page splits, and visible-change checks are trusted.
+Team: Abuzar Ansari, Abdullah Safi, Zehao Fan, Dev Vora.
+Open PRs into `main` and obtain at least one team review before merging.
+Record changes to labels, splits, dataset roles and evaluation in docs/ADRs.
+Keep datasets, credentials, weights and local runs out of Git. Curated aggregate
+figures, metrics and small prediction files remain versioned experiment evidence.
