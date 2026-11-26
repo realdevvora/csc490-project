@@ -83,6 +83,6 @@ python scripts/score_predictions.py preds/uiclip_test.jsonl preds/dinov3_test.js
 
 ## Not covered yet
 
-- **DiffSpot:** it needs an adapter that maps its records and labels to these metrics, plus Easy/Medium/Hard breakdowns.
+- **DiffSpot:** use the separate [native adapter and official-score workflow](diffspot-benchmark.md). Do not feed native records to this Design2Code scorer or relabel binary detection as description correctness.
 - **Pixel IoU** for mask-producing models.
 - **Bootstrap confidence intervals.**

@@ -1,0 +1,191 @@
+{
+  "revision": "c6dd79d5e1c0cbb4e7ca234c9f53c418a75e30ce",
+  "counts": {
+    "('visual_diff', 'easy')": 1300,
+    "('visual_diff', 'hard')": 1300,
+    "('visual_diff', 'medium')": 1300,
+    "('no_diff', 'no_diff')": 500
+  },
+  "properties": {
+    "('text', 'text-content')": 300,
+    "('line_height', 'line-height')": 300,
+    "('opacity', 'opacity')": 300,
+    "('letter_spacing', 'letter-spacing')": 300,
+    "('font_size', 'font-size')": 300,
+    "('color', 'background-shade')": 29,
+    "('border', 'border-color')": 300,
+    "('spacing', 'horizontal padding')": 114,
+    "('justify', 'justify-content')": 300,
+    "('color', 'text-shade')": 271,
+    "('font_weight', 'font-weight')": 300,
+    "('spacing', 'top padding')": 10,
+    "('position', 'transform')": 300,
+    "('spacing', 'bottom margin')": 25,
+    "('spacing', 'gap between items')": 84,
+    "('gradient', 'gradient-direction')": 300,
+    "('rounded', 'border-radius')": 300,
+    "('spacing', 'padding')": 21,
+    "('spacing', 'bottom padding')": 11,
+    "('spacing', 'vertical padding')": 20,
+    "('spacing', 'left padding')": 3,
+    "('spacing', 'top margin')": 8,
+    "('spacing', 'horizontal margin')": 2,
+    "('spacing', 'right padding')": 2
+  },
+  "offscreen_box_count": 330,
+  "fully_offscreen_count": 0,
+  "fully_offscreen_ids": [],
+  "mapping_coverage": [
+    {
+      "operator": "text",
+      "property": "text-content",
+      "d2c_type": null,
+      "n": 300
+    },
+    {
+      "operator": "line_height",
+      "property": "line-height",
+      "d2c_type": "line_height",
+      "n": 300
+    },
+    {
+      "operator": "opacity",
+      "property": "opacity",
+      "d2c_type": "opacity",
+      "n": 300
+    },
+    {
+      "operator": "letter_spacing",
+      "property": "letter-spacing",
+      "d2c_type": "letter_spacing",
+      "n": 300
+    },
+    {
+      "operator": "font_size",
+      "property": "font-size",
+      "d2c_type": "font_size",
+      "n": 300
+    },
+    {
+      "operator": "color",
+      "property": "background-shade",
+      "d2c_type": "background_color",
+      "n": 29
+    },
+    {
+      "operator": "border",
+      "property": "border-color",
+      "d2c_type": null,
+      "n": 300
+    },
+    {
+      "operator": "spacing",
+      "property": "horizontal padding",
+      "d2c_type": "padding",
+      "n": 114
+    },
+    {
+      "operator": "justify",
+      "property": "justify-content",
+      "d2c_type": null,
+      "n": 300
+    },
+    {
+      "operator": "color",
+      "property": "text-shade",
+      "d2c_type": "text_color",
+      "n": 271
+    },
+    {
+      "operator": "font_weight",
+      "property": "font-weight",
+      "d2c_type": "font_weight",
+      "n": 300
+    },
+    {
+      "operator": "spacing",
+      "property": "top padding",
+      "d2c_type": "padding",
+      "n": 10
+    },
+    {
+      "operator": "position",
+      "property": "transform",
+      "d2c_type": "position",
+      "n": 300
+    },
+    {
+      "operator": "spacing",
+      "property": "bottom margin",
+      "d2c_type": "margin",
+      "n": 25
+    },
+    {
+      "operator": "spacing",
+      "property": "gap between items",
+      "d2c_type": null,
+      "n": 84
+    },
+    {
+      "operator": "gradient",
+      "property": "gradient-direction",
+      "d2c_type": null,
+      "n": 300
+    },
+    {
+      "operator": "rounded",
+      "property": "border-radius",
+      "d2c_type": "border_radius",
+      "n": 300
+    },
+    {
+      "operator": "spacing",
+      "property": "padding",
+      "d2c_type": "padding",
+      "n": 21
+    },
+    {
+      "operator": "spacing",
+      "property": "bottom padding",
+      "d2c_type": "padding",
+      "n": 11
+    },
+    {
+      "operator": "spacing",
+      "property": "vertical padding",
+      "d2c_type": "padding",
+      "n": 20
+    },
+    {
+      "operator": "spacing",
+      "property": "left padding",
+      "d2c_type": "padding",
+      "n": 3
+    },
+    {
+      "operator": "spacing",
+      "property": "top margin",
+      "d2c_type": "margin",
+      "n": 8
+    },
+    {
+      "operator": "spacing",
+      "property": "horizontal margin",
+      "d2c_type": "margin",
+      "n": 2
+    },
+    {
+      "operator": "spacing",
+      "property": "right padding",
+      "d2c_type": "padding",
+      "n": 2
+    }
+  ],
+  "mapped_changed_pairs": 2616,
+  "unmapped_changed_pairs": 1284,
+  "verification_boundary": "All release annotation columns inspected; four-pair real image preparation smoke passed. No model inference or benchmark performance measured.",
+  "box_audit_viewport": [
+    1280,
+    800
+  ]
+}

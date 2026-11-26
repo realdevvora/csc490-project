@@ -10,7 +10,7 @@ This file separates commitments from ideas and preserves scope history. When dir
 - Record mutation provenance, render configuration, localization, and source-page identity.
 - Use source-page-disjoint train and validation splits (an internal test split is optional).
 - Establish simple baselines before comparing larger candidate models.
-- Compare models on DiffSpot's comparison half, and evaluate the frozen integrated system once on its final-evaluation half.
+- Freeze four Design2Code-selected base configurations and shared Kimi verification settings; benchmark all native operators on the full DiffSpot release (ADR 0007).
 - Preserve enough configuration and environment information to reproduce serious experiments.
 
 ## Probable extensions
@@ -48,7 +48,7 @@ For a proposed scope or direction change:
 ## Scope-change history
 
 An earlier DINO research note considered DiffSpot adaptation. It remains an
-unadopted proposal: accepted ADR 0005 forbids training on either DiffSpot half.
+unadopted proposal: accepted ADR 0007 forbids all DiffSpot training/tuning.
 The discussed four-detector/VLM comparison has not replaced that ADR.
 
 Full-page inference implementation choices (native-scale windows, overlap
@@ -67,4 +67,10 @@ experiment expansion below without changing labels, dataset roles or splits.
 | 2026-11-14 | Prepared a versioned crop correction with union-extent fallback only for zero-coverage anchors; preserved the running v1 B/C experiment. | Crop-specific audit found two anchors outside the reference extent. Only those two regression crops and one matched control change; no dataset labels/splits or A predictions change. | [Crop audit](results/dino/head-runs.md); v1/v2 results must remain separate |
 
 | 2026-11-25 | Integrate DINO with main, organize notebooks by task/model and reconcile current documentation with ADR 0005. | Prepare one reviewable team checkout without changing experiments, split IDs or scoring semantics. | [Integration audit](integration-audit.md); ADR 0005/0006 unchanged |
+
+| 2026-11-25 | Replace the half split with full frozen DiffSpot Test 1/Test 2 evaluation; implement dataset/scoring foundation with exact official Test 2 fields/metrics. | User selected four Design2Code-chosen configurations, Kimi verification/descriptions with fixed boxes, and no DiffSpot-based selection. | [ADR 0007](adr/0007-frozen-full-diffspot-benchmark.md) |
+
+| 2026-11-26 | Add a shared model-agnostic 30-50 pair DiffSpot smoke notebook/CLI with adapter/import paths and visual review. | Help all model owners check inference/format/coordinates on identical samples; no model-specific runner, training or benchmark-selection change. | [Smoke guide](diffspot-smoke.md); ADR 0007 retained |
 | 2026-11-26 | Organize FC-Siam after its merge into main, preserve legacy Python entry points, and restore saved checkpoint settings during export. | Keep all four team tracks navigable and prevent notebook defaults from changing checkpoint inference. | [FC-Siam integration](fc-siam-integration.md); training recipe, labels, split and scorer unchanged |
+
+| 2026-11-26 | Reconcile DiffSpot foundation with merged DINO/FC-Siam work for main. | Preserve all four model tracks, shared commands and both dependency extras while adopting ADR 0007. | [DiffSpot workflow](diffspot-benchmark.md); D2C split/scorer unchanged |

@@ -4,7 +4,7 @@ Reader guide: [Understanding experiments A, B and C](dino-experiments-explained.
 
 **Last updated:** 2026-11-26
 
-**Phase:** Team integration / completed Design2Code comparisons / VLM and external evaluation pending
+**Phase:** DiffSpot data/scoring foundation implemented; four-model predictions and remote Kimi/judging pending
 
 **Current follow-up:** export heatmap-derived boxes and shared-scorer IoU from
 the original saved A/B/C maps, without retraining or changing v1 predictions.
@@ -33,6 +33,30 @@ and one matched control, in a fresh run namespace; do not mix v1/v2 results or
 restart solely for this small omission. See [crop audit and handling](results/dino/head-runs.md).
 
 
+## Shared smoke walkthrough (2026-11-26)
+
+`notebooks/diffspot_smoke.ipynb` and `scripts/diffspot_smoke.py` provide a
+model-agnostic 30-50 pair operational check. Default is 44 pairs with all 39
+operator/tier cells plus five controls. Owners supply an importable model
+adapter or their existing shared-format predictions. No DINO-specific runner,
+weights, framework or fake model is assumed. Review reuses each model's
+Design2Code threshold and produces preliminary metrics, CSV and portable HTML.
+The common sample has been selected locally; no group's trained model was
+run by this change. See [walkthrough](diffspot-smoke.md). Do not use these
+samples to tune or select models and retain an untouched-evaluation claim.
+
+## DiffSpot foundation (2026-11-25)
+
+`scripts/diffspot.py` prepares pinned native data, freezes four configurations,
+scores detector outputs and validates official Test 2 results with pinned
+upstream aggregation/reduction. It makes no model or paid API calls. See
+[workflow](diffspot-benchmark.md). ADR 0007 supersedes ADR 0005: all choices use
+Design2Code, then the whole DiffSpot release is evaluated without tuning.
+Test 2 verifies/describes existing proposals without changing coordinates.
+No DiffSpot model metrics are claimed; synthetic tests and preparation smoke
+checks do not establish performance. Real runs require owner-supplied checkpoints,
+validation thresholds, predictions, Kimi responses and official judge labels.
+
 ## Team integration (2026-11-26)
 
 Main's CLIP/UIClip/SigLIP pipeline and shared scorer are integrated with DINO.
@@ -45,7 +69,8 @@ wrappers. Validation predictions were rescored without retraining; see the
 [FC-Siam results](results/fc_siam_diff/README.md) and
 [integration record](fc-siam-integration.md). See the
 [model directory](model-index.md) for entry points, results and limitations.
-DiffSpot evaluation was reverted on main; this merge does not restore it.
+The shared DiffSpot foundation is now restored under ADR 0007; model benchmarking
+and paid API calls remain pending.
 
 **Earlier checkpoints:** DINOv3 access and local authentication now work, and
 checkpoint 4 completed on the font-size regression/benign/no-change trio.
@@ -87,13 +112,13 @@ also lists implementation choices that remain open.
 - model investigations on separate team branches; and
 - three executed DINOv2 checkpoints and an executed first-trio DINOv3 comparison in `notebooks/dino_exploration.ipynb`. A standalone matched DINOv3 pilot runner now repeats the original and supplementary manifests without resampling; see [run instructions](results/dino/matched-pilot-run.md).
 
-The team has completed general dataset validation and manual inspection. DINOv2 has now run locally on all 39 fixed baseline pair/crop cases (approximately 218 seconds), plus three separately recorded position follow-up cases. Width gives the clearest selected response, small text-color change is weak, and benign browser responses usually dominate raw distances. All no-change L2 maps are zero. The original position crop missed the changed content; a supplementary crop reveals a response and is kept distinct from the baseline. These are exploratory examples, not operator-wide or full-page results. See the [pilot notes](results/dino/README.md). This paragraph records the earlier pilot; A/B/C heads and box follow-up are now complete. A shared DiffSpot adapter is still pending.
+The team has completed general dataset validation and manual inspection. DINOv2 has now run locally on all 39 fixed baseline pair/crop cases (approximately 218 seconds), plus three separately recorded position follow-up cases. Width gives the clearest selected response, small text-color change is weak, and benign browser responses usually dominate raw distances. All no-change L2 maps are zero. The original position crop missed the changed content; a supplementary crop reveals a response and is kept distinct from the baseline. These are exploratory examples, not operator-wide or full-page results. See the [pilot notes](results/dino/README.md). This paragraph records the earlier pilot; A/B/C heads and box follow-up are now complete. The native DiffSpot dataset/scoring foundation now exists; see the current section above.
 
 ## Confirmed decisions
 
 - The primary domain is web interfaces.
 - Design2Code-derived pairs are used for training and internal evaluation.
-- DiffSpot is never training data; one half compares models, the other is reserved for one final evaluation of the integrated system (ADR 0005).
+- DiffSpot is never training/tuning data; use the whole release after freezing all four configurations on Design2Code (ADR 0007).
 - Intentional visible CSS/DOM mutations are regressions.
 - Benign/no-change examples are generated separately.
 - Splits are disjoint by source webpage.
@@ -128,9 +153,9 @@ authentication and both backbone smoke runs have been verified.
 ## Next milestones
 
 Current priorities are team integration, reproducible configuration selection and
-future VLM/benchmark implementation. ADR 0005 remains binding: DiffSpot is never
-training data; comparison/final halves have separate roles. The four-pipeline
-comparison discussed with the user is a proposal, not a completed benchmark.
+future model/VLM benchmark execution. ADR 0007 now fixes full-release Test 1/Test 2
+protocol. The data/scoring foundation exists; actual four-pipeline inference and
+remote Kimi/judging are still pending.
 See [integration audit and remaining issues](integration-audit.md).
 
 1. Preserve completed experiment A predictions, raw metrics and maps; review the recorded benign-rejection failure and pixel localization baseline.

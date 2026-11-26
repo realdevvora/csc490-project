@@ -14,9 +14,16 @@ See [DINO run controls](results/dino/head-runs.md).
 - Build train and validation partitions from Design2Code-derived data. An internal test partition is optional (ADR 0005).
 - Partition by source webpage, never by screenshot pair.
 - Train models, tune hyperparameters and select each model's checkpoint only with Design2Code training and validation data.
-- Never train on DiffSpot. Split it once into two page-disjoint halves, stratified by difficulty:
-  - **Comparison half:** compare the team's models and choose the detector, its decision threshold, and the VLM prompts and post-processing. Results here are optimistic for the chosen model and must be labelled as such.
-  - **Final-evaluation half:** evaluate the frozen integrated system once. Nothing may be tuned on it; a change made after looking at it starts a new, declared evaluation round.
+- Never train or tune on DiffSpot. Freeze all four Design2Code-selected configurations,
+  thresholds, preprocessing, box rules and shared Kimi settings before full-release evaluation.
+- Test 1 measures base detection/localization and applicable mapped type metrics.
+- Test 2 uses Kimi K2.5 for verification/descriptions, preserving proposal coordinates.
+  Its prediction fields, judge reducer and metrics follow pinned official DiffSpot code.
+- Keep all native operators and no-diff controls. Only supplementary closed-set type
+  scoring may use an explicitly mapped subset. Detector-only scores are not official
+  description scores. See [ADR 0007](adr/0007-frozen-full-diffspot-benchmark.md).
+- Any change informed by DiffSpot results starts a new declared exploratory round;
+  it no longer qualifies as untouched external evaluation.
 
 Every result must name the upstream data revision, generation configuration, generated-dataset version, and split-manifest version.
 
@@ -60,7 +67,7 @@ Accuracy may be reported but should not replace class-sensitive metrics.
 
 ### Generalization
 
-- the same applicable detection/localization metrics on each DiffSpot half, labelled as comparison or final evaluation; and
+- the same applicable detection/localization metrics on the full frozen DiffSpot release, labelled detector-only or official description scoring; and
 - easy/medium/hard breakdowns where supported by the benchmark metadata.
 
 ## Repeated runs

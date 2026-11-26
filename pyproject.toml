@@ -19,6 +19,14 @@ evaluation = [
     "numpy>=1.26",
     "scipy>=1.11",
 ]
+diffspot = [
+    "datasets>=3,<5",
+    "huggingface_hub>=0.34,<1",
+    "Pillow>=10",
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "truststore>=0.10",
+]
 uiclip = [
     "torch>=2.7",
     "transformers>=4.44",
@@ -53,6 +61,10 @@ dino = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"regression_lens.data" = ["diffspot_taxonomy_v1.json"]
+"regression_lens.evaluation._diffspot_official" = ["LICENSE", "PROVENANCE.json", "prompts/*.txt"]
 
 [tool.pytest.ini_options]
 addopts = "-ra"

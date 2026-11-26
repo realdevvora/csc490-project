@@ -1,6 +1,6 @@
 # ADR 0005: Split DiffSpot into a model-comparison half and a final-evaluation half
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR 0007](0007-frozen-full-diffspot-benchmark.md), 2026-11-25
 - **Date:** 2026-11-13
 - **Owners:** Regression Lens team
 - **Supersedes:** [ADR 0001](0001-training-and-external-evaluation-datasets.md)

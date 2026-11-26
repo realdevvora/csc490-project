@@ -1,0 +1,50 @@
+{
+  "selection_dataset": "design2code_val",
+  "runs": [
+    {
+      "id": "selected-dino",
+      "family": "DINO",
+      "checkpoint_sha256": "REPLACE_WITH_REAL_CHECKPOINT_SHA256",
+      "seed_policy": "REPLACE_WITH_DECLARED_SEED_OR_ENSEMBLE_POLICY",
+      "validation_metrics_file": "../outputs/selected-dino/metrics.json",
+      "preprocessing": "REPLACE_WITH_FROZEN_PREPROCESSING",
+      "box_rule": "REPLACE_WITH_FROZEN_BOX_RULE",
+      "supports_type": false
+    },
+    {
+      "id": "selected-clip-family",
+      "family": "CLIP/UIClip/SigLIP",
+      "checkpoint_sha256": "REPLACE_WITH_REAL_CHECKPOINT_SHA256",
+      "seed_policy": "REPLACE_WITH_DECLARED_SEED_OR_ENSEMBLE_POLICY",
+      "validation_metrics_file": "../outputs/selected-clip/metrics.json",
+      "preprocessing": "REPLACE_WITH_FROZEN_PREPROCESSING",
+      "box_rule": "REPLACE_WITH_FROZEN_BOX_RULE",
+      "supports_type": true
+    },
+    {
+      "id": "selected-fc-siam",
+      "family": "FC-Siam-diff",
+      "checkpoint_sha256": "REPLACE_WITH_REAL_CHECKPOINT_SHA256",
+      "seed_policy": "REPLACE_WITH_DECLARED_SEED_OR_ENSEMBLE_POLICY",
+      "validation_metrics_file": "../outputs/selected-fc-siam/metrics.json",
+      "preprocessing": "REPLACE_WITH_FROZEN_PREPROCESSING",
+      "box_rule": "REPLACE_WITH_FROZEN_BOX_RULE",
+      "supports_type": true
+    },
+    {
+      "id": "selected-convnext-or-sam2",
+      "family": "ConvNeXt/SAM2",
+      "checkpoint_sha256": "REPLACE_WITH_REAL_CHECKPOINT_SHA256",
+      "seed_policy": "REPLACE_WITH_DECLARED_SEED_OR_ENSEMBLE_POLICY",
+      "validation_metrics_file": "../outputs/selected-convnext-or-sam2/metrics.json",
+      "preprocessing": "REPLACE_WITH_FROZEN_PREPROCESSING",
+      "box_rule": "REPLACE_WITH_FROZEN_BOX_RULE",
+      "supports_type": false
+    }
+  ],
+  "kimi": {
+    "model": "kimi-k2.5",
+    "prompt_version": "rl-verify-v1",
+    "prompt_file": "prompts/kimi_diffspot_verification_v1.txt"
+  }
+}

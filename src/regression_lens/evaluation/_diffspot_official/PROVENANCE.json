@@ -1,0 +1,13 @@
+{
+  "repository": "https://github.com/Tencent/DiffSpot",
+  "revision": "3108fcdd35618f2cfd56ec173fe15850e6395334",
+  "files": {
+    "LICENSE": "e80567e9c238753e1d29db3e9c59696083b74977d4f16f0ecb83b2c102a4f5c8",
+    "diffspot/metrics.py": "26df7dc5241c2da61e4c26bc0fbe7516f74a4c1a8ba526f1e03ac61460e0c58c",
+    "diffspot/judge.py": "cdda61f2f8f5669ac1ca252ec518ecc553201c27b305df849395bacd337c6ae7",
+    "diffspot/prompts/judge.txt": "878c6429306dc2187849bdceed223c7636aa8435e2611f67e1b7e84cb3b66efa",
+    "diffspot/prompts/vlm_diff.txt": "4668e476256e8d69ac50f026245f9e6b67f463ab15717f2dc38e6d6880ec35c2",
+    "diffspot/prompts/vlm_nodiff.txt": "62d0fe4f56f14b57069e8e112a6d9edd2c92c7ce5bd1aefe3d2e4d7ce035d13e",
+    "diffspot/data.py": "fdbef2da46a2cde0cfebf98351b05d75821e85c9968755ca092818963cfc3d25"
+  }
+}

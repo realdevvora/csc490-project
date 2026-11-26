@@ -3,6 +3,7 @@
 
 # Python environments and build products
 .venv/
+.venv-diffspot/
 venv/
 __pycache__/
 *.py[cod]

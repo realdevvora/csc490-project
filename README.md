@@ -27,11 +27,16 @@ explains its experiments and logs.
   identical controls are separate. Small mutations are not automatically benign.
 - Use [shared prediction JSONL/scoring](docs/prediction-format.md). Optional
   type/point/box outputs are not guaranteed for every model; unavailable is not zero.
-- Never train on DiffSpot. [ADR 0005](docs/adr/0005-diffspot-comparison-and-final-evaluation-halves.md)
-  defines comparison and untouched final-evaluation halves. The earlier evaluator
-  was reverted on main; no completed DiffSpot benchmark is claimed here.
-- [VLM diagnosis format](docs/vlm-diagnosis-format.md) is a specification, not an
-  implemented integrated predictor. A four-pipeline comparison remains a proposal.
+- Never train or tune on DiffSpot. [ADR 0007](docs/adr/0007-frozen-full-diffspot-benchmark.md)
+  freezes four Design2Code-selected configurations and shared Kimi settings,
+  then evaluates all 4,400 pairs. It supersedes the earlier half-split policy.
+- [DiffSpot workflow](docs/diffspot-benchmark.md): pinned dataset preparation,
+  frozen run configuration, detector scoring and exact official Test 2 scoring
+  from externally supplied judge labels. No Kimi/judge API calls or model inference
+  are implemented in this data/scoring delivery; no benchmark results are claimed.
+- Kimi verifies/describes detector proposals without changing their coordinates.
+  Missing base description scores remain unavailable; binary detector metrics
+  are never relabelled as official mutation-identification accuracy.
 
 ## Repository layout
 
@@ -61,7 +66,7 @@ py -m venv .venv
 .\.venv\Scripts\python.exe -m pytest
 ```
 
-Additional extras: `dino`, `uiclip`, `fc-siam`, `figures`. ConvNeXt/SAM2 setup is documented
+Additional extras: `dino`, `uiclip`, `fc-siam`, `figures`, `diffspot`. ConvNeXt/SAM2 setup is documented
 [alongside its notebooks](notebooks/convnext_sam2/README.md). Use separate
 model environments when requirements differ. Optional model tests may skip
 when dependencies are missing; tests do not require pretrained downloads.

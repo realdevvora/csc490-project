@@ -36,9 +36,10 @@ unmerged branches or change labels, split IDs, training recipes or shared scorin
    workflow additionally installs timm. No global lockfile or GPU training
    compatibility is claimed. CLIP launchers accept `VENV_PATH`; the team
    launcher also accepts `DATA_ROOT`. Default paths remain compatible.
-5. **Benchmark pending:** main reverted the previous DiffSpot implementation.
-   ADR 0005 and the VLM diagnosis spec do not constitute a runnable benchmark.
-   A four-pipeline final comparison remains a proposal requiring a protocol update.
+5. **DiffSpot foundation integrated on 2026-11-26:** ADR 0007 supersedes
+   ADR 0005. The shared dataset/scoring and smoke workflow now exists; actual
+   model benchmarking and Kimi/judge calls remain pending. See the
+   [DiffSpot workflow](diffspot-benchmark.md).
 6. **Metric coverage differs:** DINO has no type predictions; IoU is post-hoc.
    Reflow pointing targets bbox_after while IoU uses diff_bbox. Preserve seed
    policy, coverage and recipe differences in comparisons.

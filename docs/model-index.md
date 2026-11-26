@@ -9,7 +9,7 @@ different maturity levels. No model is declared the overall winner.
 | UIClip/CLIP/SigLIP | `scripts/train_uiclip.py`, `run_all_experiments.sh`; `src/regression_lens/models/uiclip.py` | [Team-split results](results/uiclip_team_split/README.md). Older `results/uiclip/` uses a different split. `run_all_experiments.sh` runs this track, not all team models. |
 | ConvNeXt/SAM2 encoder | [Team notebook](../notebooks/convnext_sam2/CSC490_ConvNeXt_SAM2_team.ipynb) | Correct team split reported. Rounded notebook metrics use quantile FPR95/fixed-.5 classification; shared rescoring remains pending. No verified pointing/IoU. SAM2 is an encoder classifier, not a mask decoder. |
 | FC-Siam-diff | [Workflow/notebook](../notebooks/fc_siam_diff/README.md); `scripts/export_fc_siam_predictions.py`, `plot_fc_siam_results.py`; `src/regression_lens/models/fc_siam_diff.py` | [Shared-scorer results](results/fc_siam_diff/README.md). 1,033 validation pairs; localization covers 729/826 regressions. Pixel-diff veto and single-run evidence limit direct comparison. |
-| VLM/DiffSpot | [Diagnosis specification](vlm-diagnosis-format.md), ADR 0005 | No completed benchmark here. Earlier DiffSpot implementation was reverted; adaptation suggestions are unadopted research. |
+| VLM/DiffSpot | [Diagnosis specification](vlm-diagnosis-format.md), ADR 0007 | Dataset/scoring foundation now exists; see [workflow](diffspot-benchmark.md) and ADR 0007. No completed model benchmark or paid API runner; adaptation suggestions remain unadopted. |
 
 The shared contract is [prediction JSONL/scoring](prediction-format.md), using
 the unchanged 390/69-page split with 25 exclusions. Name checkpoint, threshold
