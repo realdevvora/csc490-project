@@ -57,15 +57,20 @@ No DiffSpot model metrics are claimed; synthetic tests and preparation smoke
 checks do not establish performance. Real runs require owner-supplied checkpoints,
 validation thresholds, predictions, Kimi responses and official judge labels.
 
-## Team integration (2026-11-25)
+## Team integration (2026-11-26)
 
 Main's CLIP/UIClip/SigLIP pipeline and shared scorer are integrated with DINO.
 ConvNeXt/SAM2 notebooks now live in `notebooks/convnext_sam2/`; the team-split
 notebook is the comparison source, while older split notebooks are historical.
-Data-generation notebooks remain under `data/scripts/`. Dev's FC-Siam branch
-is not merged into main and is not imported by this PR. See the
+Data-generation notebooks remain under `data/scripts/`. Dev's FC-Siam PR #8
+is now merged into main and included here. Its model, notebook, documentation
+and curated evidence follow the shared layout, with compatibility CLI/import
+wrappers. Validation predictions were rescored without retraining; see the
+[FC-Siam results](results/fc_siam_diff/README.md) and
+[integration record](fc-siam-integration.md). See the
 [model directory](model-index.md) for entry points, results and limitations.
-DiffSpot evaluation was reverted on main; this merge does not restore it.
+The shared DiffSpot foundation is now restored under ADR 0007; model benchmarking
+and paid API calls remain pending.
 
 **Earlier checkpoints:** DINOv3 access and local authentication now work, and
 checkpoint 4 completed on the font-size regression/benign/no-change trio.

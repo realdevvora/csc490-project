@@ -21,9 +21,10 @@ unmerged branches or change labels, split IDs, training recipes or shared scorin
 
 ## Remaining compatibility issues
 
-1. **FC-Siam not merged:** Dev's branch has 17 commits absent from main at
-   inspection; code/results require a separate PR. The old browser-render
-   branch also has one unmerged commit. Neither is silently imported here.
+1. **FC-Siam resolved on 2026-11-26:** Dev's PR #8 is merged into main
+   and present in this branch. Its files now follow the shared layout; see
+   [the follow-up integration record](fc-siam-integration.md). The earlier
+   browser-render branch was not imported by this cleanup.
 2. **ConvNeXt/SAM2 remain Colab workflows:** Drive paths are user-specific.
    Raw predictions are not committed; notebook quantile-FPR95/fixed-.5 numbers
    are not harmonized shared-scorer numbers. Rescore exported JSONL first.
@@ -35,9 +36,10 @@ unmerged branches or change labels, split IDs, training recipes or shared scorin
    workflow additionally installs timm. No global lockfile or GPU training
    compatibility is claimed. CLIP launchers accept `VENV_PATH`; the team
    launcher also accepts `DATA_ROOT`. Default paths remain compatible.
-5. **Benchmark pending:** main reverted the previous DiffSpot implementation.
-   ADR 0005 and the VLM diagnosis spec do not constitute a runnable benchmark.
-   A four-pipeline final comparison remains a proposal requiring a protocol update.
+5. **DiffSpot foundation integrated on 2026-11-26:** ADR 0007 supersedes
+   ADR 0005. The shared dataset/scoring and smoke workflow now exists; actual
+   model benchmarking and Kimi/judge calls remain pending. See the
+   [DiffSpot workflow](diffspot-benchmark.md).
 6. **Metric coverage differs:** DINO has no type predictions; IoU is post-hoc.
    Reflow pointing targets bbox_after while IoU uses diff_bbox. Preserve seed
    policy, coverage and recipe differences in comparisons.

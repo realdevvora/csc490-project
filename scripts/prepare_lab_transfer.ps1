@@ -19,13 +19,13 @@ try {
     # Explicit paths keep local environments, credentials, model weights and logs out.
     $sourcePaths = @(
         'README.md', 'pyproject.toml', '.gitignore', 'AGENTS.md',
-        'src', 'scripts', 'tests', 'notebooks', 'configs', 'docs',
+        'src', 'scripts', 'tests', 'notebooks', 'models', 'configs', 'docs',
         'data/README.md', 'data/splits', 'data/scripts',
         'outputs/dino_fit/sample_manifest.json', 'outputs/dino_fit/dinov2',
         'outputs/dino_fit/dinov3'
     )
     $sourcePaths = @($sourcePaths | Where-Object { Test-Path -LiteralPath $_ })
-    tar -czf (Join-Path $outputRoot 'working-tree.tar.gz') '--exclude=*/__pycache__' '--exclude=*.egg-info' @sourcePaths
+    tar -czf (Join-Path $outputRoot 'working-tree.tar.gz') '--exclude=*/__pycache__' '--exclude=*.egg-info' '--exclude=*/runs' '--exclude=*/.venv' '--exclude=*/.ipynb_checkpoints' @sourcePaths
     if ($LASTEXITCODE -ne 0) { throw 'Working-tree archive creation failed.' }
 
     if (-not $SkipData) {
