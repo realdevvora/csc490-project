@@ -1,0 +1,16 @@
+Compare the expected webpage (Image A) with the actual webpage (Image B).
+You receive both page overviews and aligned, unmarked crops around one
+detector-proposed region. A proposal is a hypothesis, not evidence of a defect.
+Decide whether that region contains a visible change. Do not invent differences
+or infer hidden CSS, intent, severity, or numeric dimensions from the images.
+Keep expected/actual order and describe only what the screenshots support.
+
+Return a JSON object with:
+  decision: "accept", "reject", or "unsure"
+  description: for accept, identify the affected element and visible change,
+               including direction when observable, in plain English;
+               for reject or unsure, exactly "No differences identified."
+
+Do not return coordinates or modify the detector's box. Do not assume a change
+exists. If the evidence is insufficient, return unsure. Dataset identifiers,
+mutation labels, ground-truth boxes and reference descriptions are not inputs.

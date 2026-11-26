@@ -2,8 +2,8 @@
 
 **2026-11-14 historical research proposal; reconciled 2026-11-25.**
 
-**Current protocol:** ADR 0005 is accepted and forbids training on either
-DiffSpot half. Adaptation/60-20-20 split suggestions below were not adopted
+**Current protocol:** ADR 0007 supersedes the half split and forbids training
+or tuning on DiffSpot; use full-release evaluation after Design2Code selection. Adaptation/60-20-20 split suggestions below were not adopted
 and are not launch instructions. The current team protocol takes precedence.
 The user now proposes DiffSpot adaptation on one partition and evaluation on
 another. This changes its earlier external-only role. Record a superseding ADR

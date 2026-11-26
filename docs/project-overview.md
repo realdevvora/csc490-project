@@ -22,7 +22,7 @@ Detection is the core task. Localization and categorization are important resear
 
 [Design2Code](https://huggingface.co/datasets/SALT-NLP/Design2Code) supplies real webpage HTML and screenshots. The project will create controlled CSS/DOM mutations, render reference/candidate pairs, and store mutation provenance and visual ground truth. The exact upstream revision and imported count must be recorded in a data manifest rather than assumed in code or prose.
 
-[DiffSpot](https://huggingface.co/datasets/tencent/DiffSpot) is never used for training. It is split once into two page-disjoint halves: a comparison half, used to compare the team's detectors and choose the detector, threshold and VLM settings, and a final-evaluation half, used once to evaluate the frozen integrated system. See [ADR 0005](adr/0005-diffspot-comparison-and-final-evaluation-halves.md), which supersedes ADR 0001.
+[DiffSpot](https://huggingface.co/datasets/tencent/DiffSpot) is never training or tuning data. Under [ADR 0007](adr/0007-frozen-full-diffspot-benchmark.md), four configurations and shared Kimi settings are frozen using Design2Code, then evaluated on the full release. Test 1 assesses base models; Test 2 adds fixed-box verification/descriptions with official DiffSpot scoring. This supersedes ADR 0005's half split. See [dataset/scoring workflow](diffspot-benchmark.md).
 
 ## Research boundaries
 

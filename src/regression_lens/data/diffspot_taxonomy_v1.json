@@ -1,0 +1,48 @@
+{
+  "version": "diffspot-d2c-exact-v1",
+  "exact": {
+    "font_weight": "font_weight",
+    "font_size": "font_size",
+    "letter_spacing": "letter_spacing",
+    "line_height": "line_height",
+    "opacity": "opacity",
+    "position": "position",
+    "rounded": "border_radius"
+  },
+  "property_rules": {
+    "color": {
+      "color": "text_color",
+      "text-color": "text_color",
+      "text-shade": "text_color",
+      "background-color": "background_color",
+      "background-shade": "background_color"
+    },
+    "spacing": {
+      "padding": "padding",
+      "padding-top": "padding",
+      "padding-bottom": "padding",
+      "padding-left": "padding",
+      "padding-right": "padding",
+      "padding-inline": "padding",
+      "padding-block": "padding",
+      "horizontal padding": "padding",
+      "vertical padding": "padding",
+      "top padding": "padding",
+      "bottom padding": "padding",
+      "left padding": "padding",
+      "right padding": "padding",
+      "margin": "margin",
+      "margin-top": "margin",
+      "margin-bottom": "margin",
+      "margin-left": "margin",
+      "margin-right": "margin",
+      "margin-inline": "margin",
+      "margin-block": "margin",
+      "bottom margin": "margin",
+      "top margin": "margin",
+      "horizontal margin": "margin"
+    }
+  },
+  "unmapped": ["text", "gradient", "justify", "border"],
+  "notes": "No border-colour to border-width, gap to margin, or gradient to flat-colour equivalence. Unknown properties remain unmapped. This filters only type scoring, never detection/localization."
+}

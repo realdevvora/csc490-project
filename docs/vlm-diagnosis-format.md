@@ -4,11 +4,16 @@ After a detector has been scored, a vision-language model (VLM) gives a second o
 
 Format version: **1**
 
+This historical post-run diagnosis schema is separate from the DiffSpot Test 2
+contract. For that benchmark use [the current workflow](diffspot-benchmark.md):
+the exact official six-field predictions plus a verification sidecar, no box
+refinement, artificial wrong claims, or order-swapped benchmark inputs.
+
 ## Scope
 
 - **Post-run diagnosis only.** It reads a finished prediction file (see [prediction format](prediction-format.md)) and never changes it. VLM output is not merged into predictions and is not scored by `scripts/score_predictions.py`.
 - **Any detector.** The input is the shared prediction format, so it works for every model the team evaluates.
-- **Validation pages only** until a model is selected. DiffSpot use follows ADR 0005: its comparison half may select prompts/settings; its final half stays untouched until the integrated system is frozen. This document specifies post-run diagnosis, not an implemented end-to-end benchmark.
+- **Design2Code diagnosis specification.** DiffSpot now follows ADR 0007: freeze models/prompts/settings on Design2Code, then evaluate the full release. This document does not replace the official benchmark output contract.
 
 ## Inputs
 

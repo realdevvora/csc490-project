@@ -1,3 +1,11 @@
+# Shared DiffSpot walkthrough
+
+[`diffspot_smoke.ipynb`](diffspot_smoke.ipynb) guides **every model owner** through
+a common 44-pair sample, inference/import, unchanged validation threshold and
+visual box review. It has no DINO-specific model assumption. See
+[the model-agnostic guide](../docs/diffspot-smoke.md) for the adapter contract.
+Existing DINO exploration documentation follows below.
+
 # DINO dataset-fit exploration
 
 Open `dino_exploration.ipynb` in VS Code with its Python and Jupyter extensions.
