@@ -130,7 +130,7 @@ A failed API call is an unfinished run. It's never written as a no-change answer
 
 ## 6. Frozen settings entry
 
-Entry `selected-fc-siam` in the team's copy of `configs/diffspot.example.json`:
+`configs/diffspot.fc-siam.json` holds the one entry, `selected-fc-siam`, plus the Kimi settings from section 3:
 
 | Field | Value |
 |---|---|
@@ -155,18 +155,33 @@ These values are made up to show the mapping. They aren't results.
 4. **Verification row:** `{"sample_id": "00ded9e6-…", "decision": "accept", "box": [416, 348, 78, 11], "description": "The subtitle text is bolder.", "source_prediction_sha256": "…"}`
 5. **Official row:** `{"id": "00ded9e6-…", "split": "<from annotations>", "model": "selected-fc-siam+kimi-k2.5", "prompt_version": "rl-verify-v1", "raw_response": "<full reply>", "prediction": "The subtitle text is bolder."}`
 
-## 8. To agree with the team before the full run
+## 8. Choices recorded in the frozen settings
 
+These go beyond ADR 0007's frozen settings. All three are written into `configs/diffspot.fc-siam.json`, so they're part of the frozen file:
 - **No-box rule:** pairs without a box are answered `reject` without calling Kimi.
 - **Image labels:** the four labels in section 3 are added before the images. The prompt file itself is unchanged.
 - **Host and thinking:** OpenRouter pinned to Bedrock, with thinking off, since Moonshot no longer serves K2.5.
 
-All three must be recorded in the frozen settings before any full-DiffSpot run.
+This is a **single-model round**. The team's `diffspot.py freeze` requires all four detectors, so `scripts/diffspot_freeze_single.py` writes the same frozen file for this one run. It's marked `"round": "single-model"`.
 
-## 9. Built so far
+## 9. Run it
 
-| Part | Status |
-|---|---|
-| Kimi runner (`scripts/diffspot_kimi.py`), sections 3–4 and `responses.jsonl` / `verification.jsonl` | Built; 44-pair cost check run with stand-in boxes |
-| FC-Siam-diff adapter on `inference.jsonl` (section 2) | Not built; needs the checkpoint on the ThinkStation |
-| Writing the official file and joining `split` (section 5) | Not built |
+From the repo root, with `.venv-diffspot` and `OPENROUTER_API_KEY` in `.env`. Every step after 1 refuses to overwrite earlier output.
+
+| # | Where | Command | Cost |
+|---|---|---|---|
+| 1 | Any | `python3 scripts/diffspot.py prepare --out data/external/diffspot-full` | — |
+| 2 | Any | Put the checkpoint's `shasum -a 256` into `configs/diffspot.fc-siam.json`, then `python3 scripts/diffspot_freeze_single.py --dataset data/external/diffspot-full --spec configs/diffspot.fc-siam.json --out outputs/diffspot/fc-siam-frozen.json` | — |
+| 3 | ThinkStation (checkpoint, torch, Design2Code data) | `python3 scripts/fc_siam_diffspot_predict.py runs/20261111-210302/ckpt_best.pt --dataset data/external/diffspot-full --out outputs/diffspot/fc-siam-base.jsonl` | — |
+| 4 | Any | `python3 scripts/diffspot.py score-base --dataset data/external/diffspot-full --frozen outputs/diffspot/fc-siam-frozen.json --run selected-fc-siam --predictions outputs/diffspot/fc-siam-base.jsonl --out outputs/diffspot/test1-fc-siam` | — |
+| 5 | Any | `python3 scripts/diffspot_kimi.py --dataset data/external/diffspot-full --predictions outputs/diffspot/fc-siam-base.jsonl --out outputs/diffspot/fc-siam-kimi` | ≈ $0.002 per pair with a box, ≈ $8 at most |
+| 6 | Any | `python3 scripts/diffspot_package.py --dataset data/external/diffspot-full --frozen outputs/diffspot/fc-siam-frozen.json --run selected-fc-siam --responses outputs/diffspot/fc-siam-kimi/responses.jsonl --out outputs/diffspot/fc-siam-kimi.jsonl` | — |
+| 7 | Any | `python3 scripts/diffspot.py judge-inputs --test 2 --dataset data/external/diffspot-full --frozen outputs/diffspot/fc-siam-frozen.json --run selected-fc-siam --predictions outputs/diffspot/fc-siam-kimi.jsonl --out outputs/diffspot/fc-siam-judge-inputs` | — |
+| 8 | Any | `python3 scripts/diffspot_judge.py --requests outputs/diffspot/fc-siam-judge-inputs/judge_requests.jsonl --out outputs/diffspot/fc-siam-judged.jsonl` | ≈ $0.0004 per pair, ≈ $1.50 |
+| 9 | Any | `python3 scripts/diffspot.py score-vlm --dataset data/external/diffspot-full --frozen outputs/diffspot/fc-siam-frozen.json --run selected-fc-siam --base-predictions outputs/diffspot/fc-siam-base.jsonl --predictions outputs/diffspot/fc-siam-kimi.jsonl --decisions outputs/diffspot/fc-siam-kimi/verification.jsonl --judged outputs/diffspot/fc-siam-judged.jsonl --judge-metadata outputs/diffspot/fc-siam-judge-inputs/judge-metadata.json --out outputs/diffspot/test2-fc-siam` | — |
+
+**Where the results land:**
+- Step 4 (`test1-fc-siam/metrics.json`) gives FC-Siam-diff alone.
+- Step 9 (`test2-fc-siam/`) gives FC-Siam-diff + Kimi: DiffSpot's official scores, plus our box and verification measures.
+
+**The judge (step 8)** uses DiffSpot's official prompt, reply parsing and reducer unchanged. Only the call goes through OpenRouter: `openai/gpt-oss-120b`, pinned to DeepInfra bf16 with no fallback, at high reasoning effort and temperature 0. A reply that doesn't give one verdict per true change is retried, up to three times.
