@@ -1,0 +1,24 @@
+{
+  "selection_dataset": "design2code_val",
+  "runs": [
+    {
+      "id": "selected-fc-siam",
+      "family": "FC-Siam-diff",
+      "checkpoint_sha256": "REPLACE_WITH_shasum_-a_256_OF_runs/20261111-210302/ckpt_best.pt",
+      "seed_policy": "Single checkpoint: run 3 (20261111-210302), best pass 33; inference has no randomness",
+      "validation_metrics_file": "../docs/results/fc_siam_diff/fc_siam_diff_val.metrics.json",
+      "preprocessing": "RGB; both screenshots padded white at the bottom and right to the larger size; predicted on 192 px squares around differing pixels (INPUT_MODE diff_squares)",
+      "box_rule": "Box around all pixels with regression confidence > 0.5; point at the most confident pixel; none if nothing is flagged",
+      "supports_type": true
+    }
+  ],
+  "kimi": {
+    "model": "kimi-k2.5",
+    "prompt_version": "rl-verify-v1",
+    "prompt_file": "prompts/kimi_diffspot_verification_v1.txt",
+    "api": "OpenRouter moonshotai/kimi-k2.5, provider amazon-bedrock, no fallbacks",
+    "thinking": "disabled",
+    "image_labels": ["Image A overview (expected):", "Image B overview (actual):", "Image A crop (expected), proposed region:", "Image B crop (actual), proposed region:"],
+    "no_box_rule": "Pairs without a detector box are answered reject with the no-difference text; Kimi is not called"
+  }
+}
