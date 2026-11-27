@@ -31,10 +31,20 @@ if [ ! -f "$VENV/.installed" ]; then
       "$VENV/bin/python" "$VENV/get-pip.py"
     fi
   fi
-  "$VENV/bin/python" -m pip install --upgrade pip
-  "$VENV/bin/python" -c "import torch" 2>/dev/null || "$VENV/bin/python" -m pip install torch --index-url "$TORCH_INDEX"
-  "$VENV/bin/python" -m pip install -e ".[diffspot,evaluation,fc-siam]"
+  # Install only what the run imports, with no pip cache, to stay inside small disk quotas
+  PIP="$VENV/bin/python -m pip install --no-cache-dir"
+  "$VENV/bin/python" -c "import torch" 2>/dev/null || $PIP torch --index-url "$TORCH_INDEX"
+  $PIP --no-deps -e .
+  MISSING=$("$VENV/bin/python" -c "
+import importlib.util as u
+need = {'numpy': 'numpy', 'scipy': 'scipy', 'PIL': 'Pillow', 'tqdm': 'tqdm'}
+print(' '.join(p for m, p in need.items() if u.find_spec(m) is None))")
+  [ -z "$MISSING" ] || $PIP $MISSING
   touch "$VENV/.installed"
+fi
+# Downloading DiffSpot needs the Hugging Face libraries; a copied, prepared dataset doesn't
+if [ ! -f data/external/diffspot-full/manifest.json ] && ! "$VENV/bin/python" -c "import datasets" 2>/dev/null; then
+  "$VENV/bin/python" -m pip install --no-cache-dir "datasets>=3,<5" "huggingface_hub>=0.34,<1"
 fi
 "$VENV/bin/python" -c "import torch; print('torch', torch.__version__, 'cuda', torch.cuda.is_available())"
 
