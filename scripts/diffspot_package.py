@@ -23,9 +23,13 @@ def main() -> None:
     for flag in ('dataset', 'frozen', 'responses', 'out'):
         parser.add_argument('--' + flag, type=Path, required=True)
     parser.add_argument('--run', required=True)
+    parser.add_argument('--sample', type=Path, help='saved sample folder; only its pairs are packaged')
     args = parser.parse_args()
 
     _, annotations = load_prepared(args.dataset)
+    if args.sample:
+        chosen = set(read_json(args.sample / 'sample.json')['sample_ids'])
+        annotations = [a for a in annotations if a['sample_id'] in chosen]
     kimi = read_json(args.frozen)['kimi']
     responses = {row['sample_id']: row for row in read_jsonl(args.responses)}
     missing = [a['sample_id'] for a in annotations if a['sample_id'] not in responses]

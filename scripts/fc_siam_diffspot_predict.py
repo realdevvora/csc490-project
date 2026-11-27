@@ -31,6 +31,7 @@ def main() -> None:
     parser.add_argument('--out', type=Path, required=True, help='base prediction JSONL to write')
     parser.add_argument('--data-root', type=Path, help='Design2Code data folder, for the notebook setup')
     parser.add_argument('--num-workers', type=int)
+    parser.add_argument('--sample', type=Path, help='saved sample folder; only its pairs are predicted')
     args = parser.parse_args()
 
     saved = json.loads((args.checkpoint.parent / 'config.json').read_text(encoding='utf-8'))
@@ -50,7 +51,7 @@ def main() -> None:
     # Point the notebook's image loader at DiffSpot; rows carry only IDs and image paths
     dataset = args.dataset.resolve()
     namespace['DATA_ROOT'] = dataset
-    rows = [json.loads(line) for line in (dataset / 'inference.jsonl').open()]
+    rows = [json.loads(line) for line in ((args.sample or dataset) / 'inference.jsonl').open()]
 
     # Predict in chunks; each finished chunk is renamed into place, so a rerun skips it
     parts = args.out.parent / (args.out.stem + '.parts')

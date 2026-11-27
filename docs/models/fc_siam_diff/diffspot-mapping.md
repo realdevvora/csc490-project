@@ -170,8 +170,18 @@ This is a **single-model round**. The team's `diffspot.py freeze` requires all f
 
 ```bash
 tmux new -s diffspot   # so it keeps running if the SSH session drops
-bash scripts/fc_siam_diffspot_lab.sh runs/20261111-210302/ckpt_best.pt
+bash scripts/fc_siam_diffspot_lab.sh pilot runs/20261111-210302/ckpt_best.pt   # 44 pairs, about $0.10
+# read outputs/diffspot/fc-siam-pilot/pilot.md, then:
+bash scripts/fc_siam_diffspot_lab.sh full runs/20261111-210302/ckpt_best.pt    # all 4,400 pairs
 ```
+
+**The pilot** runs the real chain (your checkpoint → Kimi → official judge) on the team's 44-pair sample:
+- It checks every file against the same rules `score-base` and `score-vlm` apply.
+- It writes `pilot.md`: every pair's box, Kimi's answer, DiffSpot's answer and the judge's verdict, plus the projected full-run cost.
+
+**The full run** refuses to start unless a pilot has passed with the same checkpoint and the same code. Any rerun also stops if a file under `scripts/`, `src/regression_lens/` or `configs/` changed since the run began, so don't `git pull` mid-run.
+
+**DiffSpot's target box covers the whole changed element**, such as an entire heading. FC-Siam-diff's box covers only the pixels that changed, such as two swapped words. In 3,743 of 3,900 pairs the changed pixels lie entirely inside the target box, so box overlap (IoU) with it is low by design. That isn't an error.
 
 **First run** installs `.venv-diffspot-lab`. Set `TORCH_INDEX` for a CUDA version other than 12.4.
 
@@ -185,7 +195,7 @@ bash scripts/fc_siam_diffspot_lab.sh runs/20261111-210302/ckpt_best.pt
 
 **Spending protection:**
 - **Credit check:** before Kimi starts, it checks that the OpenRouter credit covers the estimated rest of the run with a 10% margin. If not, it stops before spending anything.
-- **Caps:** `--kimi-max-cost` (default $9) and `--judge-max-cost` (default $2) are totals across reruns.
+- **Caps:** `--kimi-max-cost` (default $10) and `--judge-max-cost` (default $2.50) are totals across reruns.
 - **Running out of credit** stops the run cleanly; rerun after topping up.
 - **Thinking stays off:** if Kimi ever replies with thinking tokens, the run stops.
 
