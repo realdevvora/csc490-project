@@ -18,12 +18,22 @@ LOG=outputs/diffspot/run.log
   echo "Usage: bash $0 pilot|full path/to/ckpt_best.pt [options]"; exit 1; }
 [ -f "$(dirname "$2")/config.json" ] || { echo "config.json must sit next to the checkpoint"; exit 1; }
 
-# Install once; the marker file means a half-finished install is redone
+# Install once; the marker file means a half-finished install is redone.
+# VENV may point at an existing environment (e.g. the one FC-Siam-diff was trained in).
 if [ ! -f "$VENV/.installed" ]; then
-  python3 -m venv "$VENV"
-  "$VENV/bin/pip" install --upgrade pip
-  "$VENV/bin/pip" install torch --index-url "$TORCH_INDEX"
-  "$VENV/bin/pip" install -e ".[diffspot,evaluation,fc-siam]"
+  if [ ! -x "$VENV/bin/python" ]; then
+    rm -rf "$VENV"
+    # Lab machines may lack python3-venv (no ensurepip) and sudo: build the venv without pip, then fetch pip
+    if ! python3 -m venv "$VENV" 2>/dev/null; then
+      rm -rf "$VENV"
+      python3 -m venv --without-pip "$VENV"
+      curl -sSL https://bootstrap.pypa.io/get-pip.py -o "$VENV/get-pip.py"
+      "$VENV/bin/python" "$VENV/get-pip.py"
+    fi
+  fi
+  "$VENV/bin/python" -m pip install --upgrade pip
+  "$VENV/bin/python" -c "import torch" 2>/dev/null || "$VENV/bin/python" -m pip install torch --index-url "$TORCH_INDEX"
+  "$VENV/bin/python" -m pip install -e ".[diffspot,evaluation,fc-siam]"
   touch "$VENV/.installed"
 fi
 "$VENV/bin/python" -c "import torch; print('torch', torch.__version__, 'cuda', torch.cuda.is_available())"
