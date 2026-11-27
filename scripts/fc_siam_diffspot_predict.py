@@ -21,6 +21,7 @@ sys.path.insert(0, str(REPO / 'scripts'))
 from export_fc_siam_predictions import NOTEBOOK, apply_config, export_cells
 
 SHARED_FIELDS = ('sample_id', 'score', 'op_pred', 'box', 'point')
+CHUNK = 200
 
 
 def main() -> None:
@@ -50,12 +51,23 @@ def main() -> None:
     dataset = args.dataset.resolve()
     namespace['DATA_ROOT'] = dataset
     rows = [json.loads(line) for line in (dataset / 'inference.jsonl').open()]
-    raw = args.out.with_suffix('.full.jsonl')
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    namespace['write_predictions'](rows, raw)
+
+    # Predict in chunks; each finished chunk is renamed into place, so a rerun skips it
+    parts = args.out.parent / (args.out.stem + '.parts')
+    parts.mkdir(parents=True, exist_ok=True)
+    chunks = [rows[i:i + CHUNK] for i in range(0, len(rows), CHUNK)]
+    for number, chunk in enumerate(chunks):
+        part = parts / f'part-{number:04d}.jsonl'
+        if part.exists():
+            continue
+        print(f'chunk {number + 1}/{len(chunks)}', flush=True)
+        temporary = part.with_suffix('.tmp')
+        namespace['write_predictions'](chunk, temporary)
+        temporary.replace(part)
 
     # Keep the shared fields only, and check every pair appears exactly once
-    lines = [json.loads(line) for line in raw.read_text().splitlines()]
+    lines = [json.loads(line) for number in range(len(chunks))
+             for line in (parts / f'part-{number:04d}.jsonl').read_text().splitlines()]
     assert sorted(r['sample_id'] for r in lines) == sorted(r['sample_id'] for r in rows), 'IDs differ'
     with args.out.open('w') as out:
         for line in lines:

@@ -166,7 +166,35 @@ This is a **single-model round**. The team's `diffspot.py freeze` requires all f
 
 ## 9. Run it
 
-From the repo root, with `.venv-diffspot` and `OPENROUTER_API_KEY` in `.env`. Every step after 1 refuses to overwrite earlier output.
+**One command** on the lab machine, from the repo root, with `OPENROUTER_API_KEY=...` in `.env`:
+
+```bash
+tmux new -s diffspot   # so it keeps running if the SSH session drops
+bash scripts/fc_siam_diffspot_lab.sh runs/20261111-210302/ckpt_best.pt
+```
+
+**First run** installs `.venv-diffspot-lab`. Set `TORCH_INDEX` for a CUDA version other than 12.4.
+
+**What it does:** runs every step below through `scripts/fc_siam_diffspot_run.py` and logs to `outputs/diffspot/fc-siam/run.log`.
+
+**After any stop, rerun the same command:** crash, reboot, network drop, Ctrl-C or budget stop. It continues where it ended:
+- Finished steps are skipped.
+- Predictions resume by 200-pair chunk.
+- Kimi and the judge resume by pair. Each answer is saved as soon as it arrives, and a half-written last line is dropped.
+- Pairs that already have an answer are never re-requested. A kill loses at most the few calls in flight, about $0.01.
+
+**Spending protection:**
+- **Credit check:** before Kimi starts, it checks that the OpenRouter credit covers the estimated rest of the run with a 10% margin. If not, it stops before spending anything.
+- **Caps:** `--kimi-max-cost` (default $9) and `--judge-max-cost` (default $2) are totals across reruns.
+- **Running out of credit** stops the run cleanly; rerun after topping up.
+- **Thinking stays off:** if Kimi ever replies with thinking tokens, the run stops.
+
+**Retries:**
+- Each call retries rate limits, server errors and dropped connections up to 8 times, waiting up to 5 minutes.
+- A failed API step is retried up to 20 more times, 2 minutes apart.
+- A refused request (bad key, unknown model) stops at once.
+
+The individual steps, run from the repo root:
 
 | # | Where | Command | Cost |
 |---|---|---|---|
