@@ -42,6 +42,8 @@ PY = sys.executable
 RUN_ID = 'selected-fc-siam'
 SPEC = REPO / 'configs/diffspot.fc-siam.json'
 CODE = ('scripts', 'src/regression_lens', 'configs')
+# API transport only (retries, hosts); changing these doesn't change any answer or score, so it can't block a resume
+TRANSPORT = ('scripts/openrouter.py', 'scripts/diffspot_judge.py')
 KIMI_PER_CALL, JUDGE_PER_CALL = 0.0021, 0.00035  # measured on the 44-pair sample, USD
 
 
@@ -81,7 +83,7 @@ def code_hash() -> str:
     digest = hashlib.sha256()
     for folder in CODE:
         for path in sorted((REPO / folder).rglob('*')):
-            if path.is_file() and '__pycache__' not in path.parts:
+            if path.is_file() and '__pycache__' not in path.parts and str(path.relative_to(REPO)) not in TRANSPORT:
                 digest.update(str(path.relative_to(REPO)).encode() + path.read_bytes())
     return digest.hexdigest()
 

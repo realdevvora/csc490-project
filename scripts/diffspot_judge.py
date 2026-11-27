@@ -3,7 +3,7 @@
 Reads the evaluator-only ``judge_requests.jsonl`` from ``diffspot.py judge-inputs``
 and appends one judged row per pair for ``score-vlm``. Uses the official prompt,
 reply parsing and reducer unchanged; only the API call goes through OpenRouter,
-pinned to one full-precision host. Rerunning continues where it stopped; exit
+limited to a fixed list of hosts that serve the full model. Rerunning continues where it stopped; exit
 code 3 means the spending cap or the account credit stopped it.
 
     python3 scripts/diffspot_judge.py --requests outputs/diffspot/fc-siam-judge-inputs/judge_requests.jsonl \\
@@ -23,7 +23,9 @@ from openrouter import BUDGET_EXIT, BudgetStop, call, cost, load_key, resume, ru
 from regression_lens.evaluation._diffspot_official.judge import (DEFAULT_MAX_TOKENS, DEFAULT_REASONING_EFFORT,
     DEFAULT_TEMPERATURE, _parse_judge_json, reduce_judge_label, render_prompt)
 
-JUDGE_MODEL, JUDGE_PROVIDER, JUDGE_QUANTIZATION = 'openai/gpt-oss-120b', 'deepinfra', 'bf16'
+JUDGE_MODEL = 'openai/gpt-oss-120b'
+# Hosts tried in this order, all serving the full model (bf16, or its native fp4); no other host is used
+JUDGE_PROVIDERS = ['deepinfra', 'crusoe', 'google-vertex', 'amazon-bedrock', 'together', 'nebius', 'baseten']
 
 
 def complete(label, expected: int) -> bool:
@@ -39,7 +41,7 @@ def main() -> None:
     parser.add_argument('--requests', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--max-cost', type=float, default=2.0, help='stop starting calls once this many USD are spent')
-    parser.add_argument('--workers', type=int, default=8, help='calls in flight at once')
+    parser.add_argument('--workers', type=int, default=4, help='calls in flight at once')
     args = parser.parse_args()
 
     requests = [json.loads(line) for line in args.requests.open() if line.strip()]
@@ -53,7 +55,7 @@ def main() -> None:
     def work(item: dict) -> tuple[dict, float]:
         body = dict(model=JUDGE_MODEL, temperature=DEFAULT_TEMPERATURE, max_tokens=DEFAULT_MAX_TOKENS,
                     reasoning={'effort': DEFAULT_REASONING_EFFORT}, usage={'include': True},
-                    provider={'order': [JUDGE_PROVIDER], 'quantizations': [JUDGE_QUANTIZATION], 'allow_fallbacks': False},
+                    provider={'order': JUDGE_PROVIDERS, 'allow_fallbacks': False},
                     messages=[{'role': 'user', 'content': render_prompt(
                         gt_mutations=item['gt_mutations'], gt_description=item['gt_description'],
                         prediction=item['prediction'])}])
